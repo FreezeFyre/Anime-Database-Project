@@ -10,13 +10,17 @@
 #include <unordered_map>
 #include <fstream>
 #include <string>
+#include <sstream>
+#include <vector>
 
 
 
 // Declare Struct For MetaData Contents and Types
 struct animeDatabase {
     int rank;
+    int media_type;
     std::string name;
+    std::string alt_name;
     std::vector<int> service_id;
     std::vector<int> genre_ids;
     int status_id;
@@ -26,6 +30,9 @@ struct animeDatabase {
     int season_count;
     int episode_count;
     float avg_episode_length;
+    int hour_runtime;
+    int min_runtime;
+    std::vector<int> related_show_ids;
 };
 
 
@@ -66,9 +73,9 @@ void initializeGenres() {
 void initializeStatus() {
     status[0] = "Ongoing";
     status[1] = "Completed";
-    status[2] = "Unfinished And Cancelled";
-    status[3] = "Unfinished Completion Unlickely";
-    status[4] = "Unfinished Limbo";
+    status[2] = "Limbo";
+    status[3] = "Cancelled";
+    status[4] = "Un-Released";
 }
 
 
@@ -90,35 +97,35 @@ std::unordered_map<int, animeDatabase> anime;
 void storeAnimeMAP() {
     
     // anime[] = {0, "", {0}, {0}, 0, {0}, {0}, 0, 0, 0, 0.0};
-    anime[0] = {1, "Rascal Does Not Dream of Bunny Girl Senpai", {0}, {1, 2, 3}, 0, {0}, {0, 1}, 1, 1, 13, 26.7};
+    anime[0] = {1,0, "Rascal Does Not Dream of Bunny Girl Senpai","", {0}, {1, 2, 3}, 0, {0}, {0, 1}, 1, 1, 13, 26.7, 0, 0, {}};
     
-    anime[1] = {2, "Solo Leveling", {0}, {0, 1}, 1, {0}, {0, 1}, 0, 1, 13, 24.0};
+    anime[1] = {2,0, "Solo Leveling","", {0}, {0, 1}, 1, {0}, {0, 1}, 0, 1, 13, 24.0, 0, 0, {}};
     
-    anime[2] = {3, "Horimiya", {0}, {1, 2}, 0, {0}, {0, 1}, 0, 2, 26, 24.0};
+    anime[2] = {3,0, "Horimiya","", {0}, {1, 2}, 0, {0}, {0, 1}, 0, 2, 26, 24.0, 0, 0, {}};
     
-    anime[3] = {4, "Lycoris Recoil", {0}, {0, 1, 3}, 0, {0}, {0, 1}, 1, 1, 13, 24.5};
+    anime[3] = {4,0, "Lycoris Recoil","", {0}, {0, 1, 3}, 0, {0}, {0, 1}, 1, 1, 13, 24.5, 0, 0, {}};
     
-    anime[4] = {5, "Devil May Cry", {1}, {0, 4}, 0, {0}, {0, 1}, 0, 1, 12, 22.0};
+    anime[4] = {5,0, "Devil May Cry","", {1}, {0, 4}, 0, {0}, {0, 1}, 0, 1, 12, 22.0, 0, 0, {}};
     
-    anime[5] = {6, "Girls Band Cry", {0}, {1, 2, 3}, 2, {0}, {0, 1}, 0, 1, 12, 22.5};
+    anime[5] = {6,0, "Girls Band Cry","", {0}, {1, 2, 3}, 2, {0}, {0, 1}, 0, 1, 12, 22.5, 0, 0, {}};
     
-    anime[6] = {7, "Frieren: Beyond Journey's End", {0}, {0, 4}, 1, {0}, {0, 1}, 1, 1, 13, 25.0};
+    anime[6] = {7,0, "Frieren: Beyond Journey's End","", {0}, {0, 4}, 1, {0}, {0, 1}, 1, 1, 13, 25.0, 0, 0, {}};
     
-    anime[7] = {8, "Uzaki-Chan Wants to Hang Out", {0}, {0, 1, 3}, 1, {0}, {0, 1}, 2, 1, 12, 23.5};
+    anime[7] = {8,0, "Uzaki-Chan Wants to Hang Out","", {0}, {0, 1, 3}, 1, {0}, {0, 1}, 2, 1, 12, 23.5, 0, 0, {}};
     
-    anime[8] = {9, "Pseudo Harem", {0}, {1, 0}, 2, {0}, {0, 1}, 3, 1, 11, 22.0};
+    anime[8] = {9,0, "Pseudo Harem","", {0}, {1, 0}, 2, {0}, {0, 1}, 3, 1, 11, 22.0, 0, 0, {}};
     
-    anime[9] = {10, "The Genius Prince's Guide to Raising a Nation out of Debt", {0}, {0, 4}, 0, {0}, {0, 1}, 1, 1, 12, 23.0};
+    anime[9] = {10,0, "The Genius Prince's Guide to Raising a Nation out of Debt","", {0}, {0, 4}, 0, {0}, {0, 1}, 1, 1, 12, 23.0, 0, 0, {}};
     
-    anime[10] = {11, "Trapped in a Dating Sim: The World of Otome Games is Tough for Mobs", {0}, {0, 1}, 0, {0}, {0, 1}, 1, 1, 12, 24.0};
+    anime[10] = {11,0, "Trapped in a Dating Sim: The World of Otome Games is Tough for Mobs","", {0}, {0, 1}, 0, {0}, {0, 1}, 1, 1, 12, 24.0, 0, 0, {}};
     
-    anime[11] = {12, "Re:Zero - Starting Life in Another World", {0}, {0, 4, 5}, 0, {0}, {0, 1}, 2, 1, 25, 24.5};
+    anime[11] = {12,0, "Re:Zero - Starting Life in Another World","", {0}, {0, 4, 5}, 0, {0}, {0, 1}, 2, 1, 25, 24.5, 0, 0, {}};
     
-    anime[12] = {13, "The Misfit Of Demon King Academy", {0}, {0}, 0, {0}, {0}, 2, 2, 41, 0.0};
+    anime[12] = {13,0, "The Misfit Of Demon King Academy","", {0}, {0}, 0, {0}, {0}, 2, 2, 41, 0.0, 0, 0, {}};
     
-    anime[13] = {0, "", {0}, {0}, 0, {0}, {0}, 0, 0, 0, 0.0};
+    anime[13] = {0,0, "","", {0}, {0}, 0, {0}, {0}, 0, 0, 0, 0.0, 0, 0, {}};
     
-    anime[14] = {0, "", {0}, {0}, 0, {0}, {0}, 0, 0, 0, 0.0};
+    anime[14] = {0,0, "","", {0}, {0}, 0, {0}, {0}, 0, 0, 0, 0.0, 0, 0, {}};
 }
 
 
@@ -137,6 +144,104 @@ void printVectors(const std::vector<int>& vec, const std::unordered_map<int, std
 
 
 
+<<<<<<< Updated upstream
+=======
+bool discludeVector(const std::vector<int>& x, const std::vector<int>& y) {
+    if (y.empty()) return false;
+
+    for (int value : y) {
+        if (std::find(x.begin(), x.end(), value) == x.end())
+            return false;
+        }
+    
+    return true;
+}
+
+
+
+bool includeVector(const std::vector<int>& x, const std::vector<int>& y) {
+    if (y.empty()) return true;
+
+    
+    for (int value : y) {
+        if (std::find(x.begin(), x.end(), value) == x.end())
+            return false;
+    }
+        return true;
+}
+
+
+
+void saveAnimeToJSON(const std::string& filename) {
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) {
+        std::cerr << "Failed to open file for writing: " << filename << "\n";
+        return;
+    }
+
+    outFile << "[\n";
+    bool firstAnime = true;
+    for (const auto& [id, a] : anime) {
+        if (!firstAnime) outFile << ",\n";
+        firstAnime = false;
+
+        auto writeVector = [](std::ofstream& out, const std::vector<int>& vec) {
+            out << "[";
+            for (size_t i = 0; i < vec.size(); ++i) {
+                out << vec[i];
+                if (i < vec.size() - 1) out << ", ";
+            }
+            out << "]";
+        };
+
+        outFile << "  {\n";
+        outFile << "    \"id\": " << id << ",\n";  // <- Now includes the ID
+        outFile << "    \"rank\": " << a.rank << ",\n";
+        outFile << "    \"media type\": " << a.media_type << ",\n";
+        outFile << "    \"name\": " << std::quoted(a.name) << ",\n";
+        outFile << "    \"alt_name\": " << std::quoted(a.alt_name) << ",\n";
+
+
+        outFile << "    \"service_id\": ";
+        writeVector(outFile, a.service_id);
+        outFile << ",\n";
+
+        outFile << "    \"genre_ids\": ";
+        writeVector(outFile, a.genre_ids);
+        outFile << ",\n";
+
+        outFile << "    \"status_id\": " << a.status_id << ",\n";
+
+        outFile << "    \"audio_lang_ids\": ";
+        writeVector(outFile, a.audio_lang_ids);
+        outFile << ",\n";
+
+        outFile << "    \"sub_lang_ids\": ";
+        writeVector(outFile, a.sub_lang_ids);
+        outFile << ",\n";
+
+        outFile << "    \"fan_service_rating\": " << a.fan_service_rating << ",\n";
+        outFile << "    \"season_count\": " << a.season_count << ",\n";
+        outFile << "    \"episode_count\": " << a.episode_count << ",\n";
+        outFile << "    \"avg_episode_length\": " << a.avg_episode_length << ",\n";
+        outFile << "    \"hours\": " << a.hour_runtime << ",\n";
+        outFile << "    \"minutes\": " << a.min_runtime << ",\n";
+        
+        outFile << "    \"related ids\": ";
+        writeVector(outFile, a.related_show_ids);
+        outFile << "\n";
+        
+        outFile << "  }";
+    }
+    outFile << "\n]\n";
+
+    outFile.close();
+    std::cout << "Saved anime data to " << filename << "\n";
+}
+
+
+
+>>>>>>> Stashed changes
 int main () {
     // Initialize Unordered Maps
     initializeServices();
@@ -170,6 +275,7 @@ int main () {
     while(count < n)
         if (anime.find(count) != anime.end()) {
             animeDatabase& a = anime[count];
+<<<<<<< Updated upstream
                          std::cout << "| "
                       << std::setw(4) << std::left << a.rank << " | "
                       << std::setw(maxNameLength) << std::left << a.name << " | "
@@ -179,8 +285,24 @@ int main () {
                       << std::setw(13) << std::right << a.episode_count << " | "
                       << std::setw(22) << std::right << a.avg_episode_length << " |\n";
         
+=======
+            
+            if (includeVector(a.service_id, inc_services) and !discludeVector(a.service_id, dis_services) and includeVector(a.genre_ids, inc_genres) and !discludeVector(a.genre_ids, dis_genres) and includeVector(a.audio_lang_ids, inc_audios) and !discludeVector(a.audio_lang_ids, dis_audios) and includeVector(a.sub_lang_ids, inc_subs) and !discludeVector(a.sub_lang_ids, dis_subs))
+                std::cout << "| "
+             << std::setw(4) << std::left << a.rank << " | "
+             << std::setw(maxNameLength) << std::left << a.name << " | "
+             << std::setw(31) << std::right << status.at(a.status_id) << " | "
+             << std::setw(18) << std::right << a.fan_service_rating << " | "
+             << std::setw(12) << std::right << a.season_count << " | "
+             << std::setw(13) << std::right << a.episode_count << " | "
+             << std::setw(22) << std::right << a.avg_episode_length << " |\n";
+
+>>>>>>> Stashed changes
         count += 1;
     }
+    
+    saveAnimeToJSON("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json");
+
 }
 
 
