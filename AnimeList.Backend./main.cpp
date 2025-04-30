@@ -144,8 +144,6 @@ void printVectors(const std::vector<int>& vec, const std::unordered_map<int, std
 
 
 
-<<<<<<< Updated upstream
-=======
 bool discludeVector(const std::vector<int>& x, const std::vector<int>& y) {
     if (y.empty()) return false;
 
@@ -241,7 +239,7 @@ void saveAnimeToJSON(const std::string& filename) {
 
 
 
->>>>>>> Stashed changes
+
 int main () {
     // Initialize Unordered Maps
     initializeServices();
@@ -269,13 +267,26 @@ int main () {
     std::cout << "--------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
     std::cout << "| Rank | " << std::setw(maxNameLength) << std::left << "Name" << " |            Status ID            | Fan Service Rating | Season Count | Episode Count | Average Episode Length |\n";
     std::cout << "--------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
+        
+
+    
+    std::vector<int> dis_services= {};
+    std::vector<int> inc_services= {};
+    std::vector<int> dis_genres= {};
+    std::vector<int> inc_genres= {};
+    std::vector<int> dis_statuses= {};
+    std::vector<int> inc_statuses= {};
+    std::vector<int> dis_audios= {};
+    std::vector<int> inc_audios= {};
+    std::vector<int> dis_subs= {};
+    std::vector<int> inc_subs= {};
+    
     
     
     int count = 0;
     while(count < n)
         if (anime.find(count) != anime.end()) {
             animeDatabase& a = anime[count];
-<<<<<<< Updated upstream
                          std::cout << "| "
                       << std::setw(4) << std::left << a.rank << " | "
                       << std::setw(maxNameLength) << std::left << a.name << " | "
@@ -285,7 +296,6 @@ int main () {
                       << std::setw(13) << std::right << a.episode_count << " | "
                       << std::setw(22) << std::right << a.avg_episode_length << " |\n";
         
-=======
             
             if (includeVector(a.service_id, inc_services) and !discludeVector(a.service_id, dis_services) and includeVector(a.genre_ids, inc_genres) and !discludeVector(a.genre_ids, dis_genres) and includeVector(a.audio_lang_ids, inc_audios) and !discludeVector(a.audio_lang_ids, dis_audios) and includeVector(a.sub_lang_ids, inc_subs) and !discludeVector(a.sub_lang_ids, dis_subs))
                 std::cout << "| "
@@ -297,7 +307,6 @@ int main () {
              << std::setw(13) << std::right << a.episode_count << " | "
              << std::setw(22) << std::right << a.avg_episode_length << " |\n";
 
->>>>>>> Stashed changes
         count += 1;
     }
     
