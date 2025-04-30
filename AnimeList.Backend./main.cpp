@@ -240,6 +240,7 @@ void saveAnimeToJSON(const std::string& filename) {
 
 
 
+
 int main () {
     // Initialize Unordered Maps
     initializeServices();
@@ -267,6 +268,20 @@ int main () {
     std::cout << "--------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
     std::cout << "| Rank | " << std::setw(maxNameLength) << std::left << "Name" << " |            Status ID            | Fan Service Rating | Season Count | Episode Count | Average Episode Length |\n";
     std::cout << "--------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
+        
+
+    
+    std::vector<int> dis_services= {};
+    std::vector<int> inc_services= {};
+    std::vector<int> dis_genres= {};
+    std::vector<int> inc_genres= {};
+    std::vector<int> dis_statuses= {};
+    std::vector<int> inc_statuses= {};
+    std::vector<int> dis_audios= {};
+    std::vector<int> inc_audios= {};
+    std::vector<int> dis_subs= {};
+    std::vector<int> inc_subs= {};
+    
     
     
     
