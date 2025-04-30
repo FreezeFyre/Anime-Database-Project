@@ -284,34 +284,11 @@ int main () {
     
     
     
-    
-    std::vector<int> dis_services= {};
-    std::vector<int> inc_services= {};
-    std::vector<int> dis_genres= {};
-    std::vector<int> inc_genres= {};
-    std::vector<int> dis_statuses= {};
-    std::vector<int> inc_statuses= {};
-    std::vector<int> dis_audios= {};
-    std::vector<int> inc_audios= {};
-    std::vector<int> dis_subs= {};
-    std::vector<int> inc_subs= {};
-    
-    
-    
     int count = 0;
     while(count < n)
         if (anime.find(count) != anime.end()) {
             animeDatabase& a = anime[count];
-                         std::cout << "| "
-                      << std::setw(4) << std::left << a.rank << " | "
-                      << std::setw(maxNameLength) << std::left << a.name << " | "
-                      << std::setw(31) << std::right << status.at(a.status_id) << " | "
-                      << std::setw(18) << std::right << a.fan_service_rating << " | "
-                      << std::setw(12) << std::right << a.season_count << " | "
-                      << std::setw(13) << std::right << a.episode_count << " | "
-                      << std::setw(22) << std::right << a.avg_episode_length << " |\n";
         
-
             
             if (includeVector(a.service_id, inc_services) and !discludeVector(a.service_id, dis_services) and includeVector(a.genre_ids, inc_genres) and !discludeVector(a.genre_ids, dis_genres) and includeVector(a.audio_lang_ids, inc_audios) and !discludeVector(a.audio_lang_ids, dis_audios) and includeVector(a.sub_lang_ids, inc_subs) and !discludeVector(a.sub_lang_ids, dis_subs))
                 std::cout << "| "
