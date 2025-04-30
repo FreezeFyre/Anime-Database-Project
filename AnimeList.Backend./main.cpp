@@ -240,7 +240,6 @@ void saveAnimeToJSON(const std::string& filename) {
 
 
 
->>>>>>> Stashed changes
 int main () {
     // Initialize Unordered Maps
     initializeServices();
