@@ -283,26 +283,115 @@ void parseJson(const std::string& file) {
 
 
 
-int main () {
+void inputAnime() {
+    int id;
+    std::string new_anime;
+    int rank;
+    int media_type;
+    std::string name;
+    std::string alt_name;
+    std::vector<int> service_id;
+    std::vector<int> genre_ids;
+    int status_id;
+    std::vector<int> audio_lang_ids;
+    std::vector<int> sub_lang_ids;
+    int fan_service_rating;
+    int season_count;
+    int episode_count;
+    float avg_episode_length;
+    int hour_runtime;
+    int min_runtime;
+    std::vector<int> related_show_ids;
+    std::vector<int> media_versions;
     
-    std::string database = "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
+    id = anime.size();
     
-    // Initialize Unordered Maps
-    initializeServices();
-    initializeFormat();
-    initializeGenres();
-    
-    initializeStatus();
-    
-    initializeAudio();
-    initializeSub();
-    
-    
-    // Store Anime Metadata to Struct and to Unordered Map
-    parseJson(database);
+    std::cout << "Do you want to input a anime? Y / N |" << "\t";
+    std::cin >> new_anime;
+    if (new_anime == "Y" or new_anime == "y") {
+        std::cout << "| Rank | Unranked = 0 |" << "\t";
+        std::cin >> rank;
+        std::cout << "| Media type | 0 = TV | 1 = Film |" << "\t";
+        std::cin >> media_type;
+        std::cout << "| Name |";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::getline(std::cin, name);
+        std::cout << "| Japanese Name |" << "\t";
+        std::getline(std::cin, alt_name);
+        
+        std::cout << "| Enter service IDs (space-separated, end with -1): ";
+        int service_input;
+        while (std::cin >> service_input && service_input != -1) {
+            service_id.push_back(service_input);
+        }
+        
+        std::cout << "| Enter genre IDs (space-separated, end with -1): ";
+        int genre_input;
+        while (std::cin >> genre_input && genre_input != -1) {
+            genre_ids.push_back(genre_input);
+        }
 
-    
-    size_t n = anime.size();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        
+        std::cout << "| Status |" << "\t";
+        std::cin >> status_id;
+        
+        std::cout << "| Enter audio IDs (space-separated, end with -1): ";
+        int audio_input;
+        while (std::cin >> audio_input && audio_input != -1) {
+            audio_lang_ids.push_back(audio_input);
+        }
+        
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        std::cout << "| Enter subtitle IDs (space-separated, end with -1): ";
+        int sub_input;
+        while (std::cin >> sub_input && sub_input != -1) {
+            sub_lang_ids.push_back(sub_input);
+        }
+        
+        std::cout << "| Fan Service | 0 - 10 |" << "\t";
+        std::cin >> fan_service_rating;
+        
+        std::cout << "| Season Count |" << "\t";
+        std::cin >> season_count;
+        
+        std::cout << "| Episode Count |" << "\t";
+        std::cin >> episode_count;
+        
+        std::cout << "| Avg Episode Length |" << "\t";
+        std::cin >> avg_episode_length;
+        
+        std::cout << "| Hour Runtime | 0 if null |" << "\t";
+        std::cin >> hour_runtime;
+
+        std::cout << "| Minute Runtime | 0 if null |" << "\t";
+        std::cin >> min_runtime;
+        
+        std::cout << "| Enter related show IDs (space-separated, end with -1): ";
+        int related_show_input;
+        while (std::cin >> related_show_input && related_show_input != -1) {
+            related_show_ids.push_back(related_show_input);
+        }
+        
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        
+        std::cout << "| Enter Media Version Ids (space-separated, end with -1): ";
+        int media_version_input;
+        while (std::cin >> media_version_input && media_version_input != -1) {
+            media_versions.push_back(media_version_input);
+        }
+
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        anime[id] = {rank,media_type,name,alt_name,service_id,genre_ids,status_id,audio_lang_ids,sub_lang_ids,fan_service_rating,season_count,episode_count,avg_episode_length,hour_runtime,min_runtime,related_show_ids,media_versions};
+    }
+    else return;
+}
+
+
+
+void printAnimes() {
     
     int maxNameLength = 0;
     for (const auto& pair : anime) {
@@ -315,8 +404,6 @@ int main () {
     std::cout << "--------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
     std::cout << "| Rank | " << std::setw(maxNameLength) << std::left << "Name" << " |            Status ID            | Fan Service Rating | Season Count | Episode Count | Average Episode Length |\n";
     std::cout << "--------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
-        
-
     
     std::vector<int> dis_services = {};
     std::vector<int> inc_services = {};
@@ -329,7 +416,7 @@ int main () {
     std::vector<int> dis_subs = {};
     std::vector<int> inc_subs = {};
     
-    
+    size_t n = anime.size();
     
     int count = 0;
     while(count < n)
@@ -349,8 +436,30 @@ int main () {
 
         count += 1;
     }
-//    saveAnimeToJSON(database);
 }
 
 
 
+int main () {
+    
+    std::string database = "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
+    
+    // Initialize Unordered Maps
+    initializeServices();
+    initializeFormat();
+    initializeGenres();
+    
+    initializeStatus();
+    
+    initializeAudio();
+    initializeSub();
+    
+    
+    // Store Anime Metadata to Struct and to Unordered Map
+    parseJson(database);
+    
+    // Print Animes From unordered Map
+    printAnimes();
+    
+    inputAnime();
+}
