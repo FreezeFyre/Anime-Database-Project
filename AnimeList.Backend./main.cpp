@@ -12,6 +12,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <cctype>
 
 
 
@@ -33,6 +34,7 @@ struct animeDatabase {
     int hour_runtime;
     int min_runtime;
     std::vector<int> related_show_ids;
+    std::vector<int> media_versions;
 };
 
 
@@ -106,57 +108,6 @@ void initializeSub() {
 
 
 std::unordered_map<int, animeDatabase> anime;
-void storeAnimeMAP() {
-    
-    // anime[] = {0, "", {0}, {0}, 0, {0}, {0}, 0, 0, 0, 0.0};
-    anime[0] = {1,0, "Rascal Does Not Dream of Bunny Girl Senpai","Seishun Buta Yarō wa Bunny Girl Senpai no Yume wo Minai", {0}, {1,2,4,5,8}, 1, {0,1}, {0}, 1, 1, 13, 26.7, 0, 0, {}};
-    
-    anime[1] = {2,0, "Solo Leveling","", {0}, {0,1,7,9,12}, 0, {0,1}, {0}, 1, 1, 13, 24.0, 0, 0, {}};
-    
-    anime[2] = {3,0, "Horimiya","", {0}, {1,2,4,5,8}, 1, {0,1}, {0}, 0, 2, 26, 24.0, 0, 0, {}};
-    
-    anime[3] = {4,0, "Lycoris Recoil","", {0}, {0, 1, 3}, 0, {0}, {0, 1}, 1, 1, 13, 24.5, 0, 0, {}};
-    
-    anime[4] = {5,0, "Devil May Cry","", {1}, {0, 4}, 0, {0}, {0, 1}, 0, 1, 12, 22.0, 0, 0, {}};
-    
-    anime[5] = {6,0, "Girls Band Cry","", {0}, {1, 2, 3}, 2, {0}, {0, 1}, 0, 1, 12, 22.5, 0, 0, {}};
-    
-    anime[6] = {7,0, "Frieren: Beyond Journey's End","", {0}, {0, 4}, 1, {0}, {0, 1}, 1, 1, 13, 25.0, 0, 0, {}};
-    
-    anime[7] = {8,0, "Uzaki-Chan Wants to Hang Out","", {0}, {0, 1, 3}, 1, {0}, {0, 1}, 2, 1, 12, 23.5, 0, 0, {}};
-    
-    anime[8] = {9,0, "Pseudo Harem","", {0}, {1, 0}, 2, {0}, {0, 1}, 3, 1, 11, 22.0, 0, 0, {}};
-    
-    anime[9] = {10,0, "The Genius Prince's Guide to Raising a Nation out of Debt","", {0}, {0, 4}, 0, {0}, {0, 1}, 1, 1, 12, 23.0, 0, 0, {}};
-    
-    anime[10] = {11,0, "Trapped in a Dating Sim: The World of Otome Games is Tough for Mobs","", {0}, {0, 1}, 0, {0}, {0, 1}, 1, 1, 12, 24.0, 0, 0, {}};
-    
-    anime[11] = {12,0, "Re:Zero - Starting Life in Another World","", {0}, {0, 4, 5}, 0, {0}, {0, 1}, 2, 1, 25, 24.5, 0, 0, {}};
-    
-    anime[12] = {13,0, "The Misfit Of Demon King Academy","", {0}, {0}, 0, {0}, {0}, 2, 2, 41, 0.0, 0, 0, {}};
-    
-    anime[13] = {0,1, "Your Name","", {0}, {1,2,4,5,11,12}, 1, {0,1}, {0}, 0, 0, 0, 0.0, 1, 46, {}};
-    
-    anime[14] = {0,0, "","", {0}, {0}, 0, {0}, {0}, 0, 0, 0, 0.0, 0, 0, {}};
-}
-
-
-
-void printVectors(const std::vector<int>& vec, const std::unordered_map<int, std::string>& map) {
-    for (size_t i = 0; i < vec.size(); ++i) {
-            int id = vec[i];
-            if (map.find(id) != map.end()) {
-                std::cout << map.at(id);
-                if (i != vec.size() - 1) {
-                    std::cout << ",";
-                }
-            }
-        }
-}
-
-
-
-
 bool discludeVector(const std::vector<int>& x, const std::vector<int>& y) {
     if (y.empty()) return false;
 
@@ -193,7 +144,7 @@ void saveAnimeToJSON(const std::string& filename) {
     outFile << "[\n";
     bool firstAnime = true;
     for (const auto& [id, a] : anime) {
-        if (!firstAnime) outFile << ",\n";
+        if (!firstAnime) outFile << "\n";
         firstAnime = false;
 
         auto writeVector = [](std::ofstream& out, const std::vector<int>& vec) {
@@ -234,19 +185,108 @@ void saveAnimeToJSON(const std::string& filename) {
                 << a.min_runtime << ",";
 
         writeVector(outFile, a.related_show_ids);
+        outFile << ",";
+        
+        writeVector(outFile, a.media_versions);
         outFile << "]";
 
     }
-    outFile << "\n]\n";
+    outFile << "\n]";
 
     outFile.close();
-    std::cout << "Saved anime data to " << filename << "\n";
 }
 
 
 
+std::vector<int> parseVector(const std::string& str) {
+    std::vector<int> result;
+    std::string num;
+    for (char c : str) {
+        if (isdigit(c) || c == '-') {
+            num += c;
+        } else if (!num.empty()) {
+            result.push_back(std::stoi(num));
+            num.clear();
+        }
+    }
+    if (!num.empty()) result.push_back(std::stoi(num));
+    return result;
+}
+
+
+
+void parseJson(const std::string& file) {
+    std::ifstream source(file);
+    
+
+    std::string line;
+    while (getline(source, line)) {
+        line.erase(line.size() - 1);
+        line.erase(0,3);
+        
+        std::vector<std::string> tokens;
+        std::string token;
+        bool inQuotes = 0;
+        bool inVector = 0;
+
+        if (!line.empty()) {
+            for (char c : line) {
+                if (c == '"') inQuotes = !inQuotes;
+                else if (c == '[') inVector = true;
+                else if (c == ']') inVector = false;
+                
+                if (c == ',' and !inQuotes and !inVector) {
+                    
+                    tokens.push_back(token);
+                    token.clear();
+                }
+                else {
+                    token += c;
+                }
+            }
+            
+            if (!token.empty()) tokens.push_back(token); // add last token
+                        
+            int id = std::stoi(tokens[0]);  // convert "123" to 123
+
+            anime[id].rank              = std::stoi(tokens[1]);
+            anime[id].media_type        = std::stoi(tokens[2]);
+            anime[id].name              = tokens[3];
+            anime[id].alt_name          = tokens[4];
+            anime[id].service_id        = parseVector(tokens[5]);
+            anime[id].genre_ids         = parseVector(tokens[6]);
+            anime[id].status_id         = std::stoi(tokens[7]);
+            anime[id].audio_lang_ids    = parseVector(tokens[8]);
+            anime[id].sub_lang_ids      = parseVector(tokens[9]);
+            anime[id].fan_service_rating= std::stoi(tokens[10]);
+            anime[id].season_count      = std::stoi(tokens[11]);
+            anime[id].episode_count     = std::stoi(tokens[12]);
+            anime[id].avg_episode_length= std::stof(tokens[13]);
+            anime[id].hour_runtime      = std::stoi(tokens[14]);
+            anime[id].min_runtime       = std::stoi(tokens[15]);
+            anime[id].related_show_ids  = parseVector(tokens[16]);
+            anime[id].media_versions    = parseVector(tokens[17]);
+        }
+        
+    
+    }
+    source.close();
+    
+    
+    // Open file skip line 1
+    // Loop through each line
+    // [Id,Rank,Media_type,"Name","Alt_name",[Service_Vec],[Genre_Vec],Status,[Audio_Vec],[Sub_Vec],Fan_Service,Seasons,Ep's,Ep_Length,Hours,Mins,[Related_Vec],[Media_Vec]]
+    // anime[Id] = {t.rank, t.media ,t.name, t.alt, t.services, t.genres, t.status, t.audios, t.subs, t.fan_service, t.seasons, t.ep, t.ep_length, t.hrs, t.mins, t.related, t.medias}
+    // Loop through and Remove/Tokenize Strings
+    // Loop Through and tokenize based off of commas
+}
+
+
 
 int main () {
+    
+    std::string database = "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
+    
     // Initialize Unordered Maps
     initializeServices();
     initializeFormat();
@@ -259,7 +299,8 @@ int main () {
     
     
     // Store Anime Metadata to Struct and to Unordered Map
-    storeAnimeMAP();
+    parseJson(database);
+
     
     size_t n = anime.size();
     
@@ -308,9 +349,7 @@ int main () {
 
         count += 1;
     }
-    
-    saveAnimeToJSON("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json");
-
+//    saveAnimeToJSON(database);
 }
 
 

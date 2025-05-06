@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,11 +23,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		700704822DB1E7FF00BAFCCB /* AnimeList.Backend. */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = AnimeList.Backend.;
-			sourceTree = "<group>";
-		};
+		700704822DB1E7FF00BAFCCB /* AnimeList.Backend. */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AnimeList.Backend.; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +93,7 @@
 				};
 			};
 			buildConfigurationList = 7007047B2DB1E7FF00BAFCCB /* Build configuration list for PBXProject "AnimeList.Backend." */;
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -105,7 +102,6 @@
 			);
 			mainGroup = 700704772DB1E7FF00BAFCCB;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 700704812DB1E7FF00BAFCCB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
