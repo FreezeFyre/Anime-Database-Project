@@ -161,8 +161,8 @@ void saveAnimeToJSON(const std::string& filename) {
                 << id << ","
                 << a.rank << ","
                 << a.media_type << ","
-                << std::quoted(a.name) << ","
-                << std::quoted(a.alt_name) << ",";
+                << a.name << ","
+                << a.alt_name << ",";
 
         writeVector(outFile, a.service_id);
         outFile << ",";
@@ -462,4 +462,5 @@ int main () {
     printAnimes();
     
     inputAnime();
+    saveAnimeToJSON(Database);
 }
