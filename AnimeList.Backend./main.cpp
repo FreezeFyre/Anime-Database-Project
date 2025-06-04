@@ -13,6 +13,8 @@
 #include <sstream>
 #include <vector>
 #include <cctype>
+#include <algorithm>
+#include <limits>
 
 
 
@@ -440,9 +442,9 @@ void printAnimes() {
 
 
 
-int main () {
-    
-    std::string database = "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
+int main(int argc, char* argv[]) {
+
+    std::string database = argc > 1 ? argv[1] : "AnimeList.Backend./anime_data.json";
     
     // Initialize Unordered Maps
     initializeServices();
@@ -462,5 +464,5 @@ int main () {
     printAnimes();
     
     inputAnime();
-    saveAnimeToJSON(Database);
+    saveAnimeToJSON(database);
 }
