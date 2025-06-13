@@ -1,22 +1,20 @@
 :root {
     --background-color: #E6E6E6;
     --card-background: #F2F2F2;
-    --card-spacing: ;
-    --card-margins: ;
+    --card-spacing: 16px;
+    --card-margins: 16px;
     --card-radius: 32px;
     --card-shadow: 0px 0px 16px rgba(0, 0, 0, .25);
     --filter-margins: 32px;
 }
 
-
 body {
+    margin: 0;
     background-color: var(--background-color);
     display: flex;
     flex-direction: row;
     justify-content: center;
 }
-
-
 
 .container {
     width: 100%;
@@ -26,6 +24,9 @@ body {
     display: flex ;
     flex-direction: row;
     justify-content: center;
+    margin: 0 auto;
+    gap: var(--card-spacing);
+    padding: var(--card-margins);
 }
 
 
@@ -44,6 +45,9 @@ body {
     background-color: red;
     width: 100%;
     height: 192px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 
@@ -54,6 +58,7 @@ body {
     height: 1050px;
     border-radius: var(--card-radius);
     box-shadow: var(--card-shadow);
+    margin-top: var(--card-margins);
 }
 
 
@@ -64,6 +69,7 @@ body {
     align-items: flex-start;
     width: 100%;
     z-index: 2;
+    gap: var(--card-spacing);
 }
 
 
@@ -75,6 +81,7 @@ body {
     max-height: 256px;
     border-radius: var(--card-radius);
     box-shadow: var(--card-shadow);
+    margin-bottom: var(--card-margins);
 }
 
 
@@ -83,8 +90,7 @@ body {
     background-color: red;
     width: 100%;
     height: 32px;
-    margin-left: var(--filter-margins);
-    margin-right: var(--filter-margins);
+    margin: var(--filter-margins);
 }
 
 
@@ -93,8 +99,7 @@ body {
     background-color: green;
     width: 100%;
     height: 32px;
-    margin-left: var(--filter-margins);
-    margin-right: var(--filter-margins);
+    margin: var(--filter-margins);
 }
 
 
@@ -103,6 +108,5 @@ body {
     background-color: blue;
     width: 100%;
     height: 32px;
-    margin-left: var(--filter-margins);
-    margin-right: var(--filter-margins);
+    margin: var(--filter-margins);
 }
