@@ -5,6 +5,9 @@
 //  Created by Luke Raykovitz on 4/17/25.
 //
 
+
+
+// Include Libraries
 #include <iostream>
 #include <iomanip>
 #include <unordered_map>
@@ -46,9 +49,14 @@ std::unordered_map<int, std::string> genre;
 std::unordered_map<int, std::string> status;
 std::unordered_map<int, std::string> audio;
 std::unordered_map<int, std::string> sub;
+std::unordered_map<int, std::string> media;
+
+
+std::unordered_map<size_t, animeDatabase> anime;
 
 
 
+// Services Hash
 void initializeServices() {
     service[0] = "Crunchyroll";
     service[1] = "Netflix";
@@ -58,6 +66,7 @@ void initializeServices() {
 
 
 
+// Formats Hash
 void initializeFormat() {
     format[0] = "TV";
     format[1] = "Movie";
@@ -65,6 +74,7 @@ void initializeFormat() {
 
 
 
+// Genres Hash
 void initializeGenres() {
     genre[0] = "Action";
     genre[1] = "Romance";
@@ -83,6 +93,7 @@ void initializeGenres() {
 
 
 
+// Status hash
 void initializeStatus() {
     status[0] = "Ongoing";
     status[1] = "Completed";
@@ -93,6 +104,7 @@ void initializeStatus() {
 
 
 
+// Audios Hash
 void initializeAudio() {
     audio[0] = "Japanese";
     audio[1] = "English";
@@ -101,13 +113,24 @@ void initializeAudio() {
 
 
 
+// Subs Hash
 void initializeSub() {
     sub[0] = "English";
 }
 
 
 
-std::unordered_map<int, animeDatabase> anime;
+// Medias Hash
+void initializeMedias() {
+    media[0] = "Manga";
+    media[1] = "Light Novel";
+    media[2] = "Film";
+    media[3] = "TV Series";
+}
+
+
+
+// Disclude if within Vector
 bool discludeVector(const std::vector<int>& x, const std::vector<int>& y) {
     if (y.empty()) return false;
 
@@ -121,6 +144,7 @@ bool discludeVector(const std::vector<int>& x, const std::vector<int>& y) {
 
 
 
+// Include if within Vector
 bool includeVector(const std::vector<int>& x, const std::vector<int>& y) {
     if (y.empty()) return true;
 
@@ -134,6 +158,7 @@ bool includeVector(const std::vector<int>& x, const std::vector<int>& y) {
 
 
 
+// Update Database Json
 void saveAnimeToJSON(const std::string& filename) {
     std::ofstream outFile(filename);
     if (!outFile.is_open()) {
@@ -143,22 +168,26 @@ void saveAnimeToJSON(const std::string& filename) {
 
     outFile << "[\n";
     bool firstAnime = true;
-    for (const auto& [id, a] : anime) {
+
+    // Moved writeVector definition outside the loop (unchanged)
+    auto writeVector = [](std::ofstream& out, const std::vector<int>& vec) {
+        out << "[";
+        for (size_t i = 0; i < vec.size(); ++i) {
+            out << vec[i];
+            if (i < vec.size() - 1) out << ",";
+        }
+        out << "]";
+    };
+
+    // 🔧 Changed from map-based loop to index-based loop to preserve order
+    for (size_t i = 0; i < anime.size(); ++i) {  // <-- changed loop type
+        const auto& a = anime[i];                // <-- access object by index
+
         if (!firstAnime) outFile << "\n";
         firstAnime = false;
 
-        auto writeVector = [](std::ofstream& out, const std::vector<int>& vec) {
-            out << "[";
-            for (size_t i = 0; i < vec.size(); ++i) {
-                out << vec[i];
-                if (i < vec.size() - 1) out << ",";
-            }
-            out << "]";
-        };
-
-
         outFile << "  ["
-                << id << ","
+                << i << "," // 🔧 Replaced 'id' with 'i' since we're using index now
                 << a.rank << ","
                 << a.media_type << ","
                 << a.name << ","
@@ -189,15 +218,16 @@ void saveAnimeToJSON(const std::string& filename) {
         
         writeVector(outFile, a.media_versions);
         outFile << "]";
-
     }
-    outFile << "\n]";
 
+    outFile << "\n]";
     outFile.close();
 }
 
 
 
+
+// Parse Out Vectors
 std::vector<int> parseVector(const std::string& str) {
     std::vector<int> result;
     std::string num;
@@ -215,6 +245,7 @@ std::vector<int> parseVector(const std::string& str) {
 
 
 
+// Parse Out Json to anime Map
 void parseJson(const std::string& file) {
     std::ifstream source(file);
     
@@ -283,8 +314,9 @@ void parseJson(const std::string& file) {
 
 
 
+// Input Processing
 void inputAnime() {
-    int id;
+    size_t id;
     std::string new_anime;
     int rank;
     int media_type;
@@ -311,6 +343,15 @@ void inputAnime() {
     if (new_anime == "Y" or new_anime == "y") {
         std::cout << "| Rank | Unranked = 0 |" << "\t";
         std::cin >> rank;
+        
+        if (rank > 0) {
+            for (int i = 0; i < anime.size(); i++) {
+                if (anime[i].rank >= rank) {
+                    ++anime[i].rank;
+                }
+            }
+        }
+        
         std::cout << "| Media type | 0 = TV | 1 = Film |" << "\t";
         std::cin >> media_type;
         std::cout << "| Name |";
@@ -384,6 +425,8 @@ void inputAnime() {
 
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
+        name = "\"" + name + "\"";
+        alt_name = "\"" + alt_name + "\"";
         anime[id] = {rank,media_type,name,alt_name,service_id,genre_ids,status_id,audio_lang_ids,sub_lang_ids,fan_service_rating,season_count,episode_count,avg_episode_length,hour_runtime,min_runtime,related_show_ids,media_versions};
     }
     else return;
@@ -391,6 +434,7 @@ void inputAnime() {
 
 
 
+// Print Animes From Map
 void printAnimes() {
     
     int maxNameLength = 0;
@@ -440,6 +484,7 @@ void printAnimes() {
 
 
 
+// Main
 int main () {
     
     std::string database = "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
@@ -462,5 +507,5 @@ int main () {
     printAnimes();
     
     inputAnime();
-    saveAnimeToJSON(Database);
+    saveAnimeToJSON(database);
 }
