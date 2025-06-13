@@ -79,16 +79,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Declare Struct For MetaData Contents and Types
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>#include &lt;limits&gt;
 
 </string>
 				<key>trailing</key>
-				<string>struct animeDatabase {
-    int rank;
-    int media_type;
+				<string>
+// Declare Struct For MetaData Contents and Types
+struct animeDatabase {
 </string>
 			</dict>
 			<key>type</key>
@@ -124,16 +124,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Declare Unordered Maps Globally
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>};
 
 </string>
 				<key>trailing</key>
-				<string>std::unordered_map&lt;int, std::string&gt; service;
-std::unordered_map&lt;int, std::string&gt; format;
-std::unordered_map&lt;int, std::string&gt; genre;
+				<string>
+// Declare Unordered Maps Globally
+std::unordered_map&lt;int, std::string&gt; service;
 </string>
 			</dict>
 			<key>type</key>
@@ -169,16 +169,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Services Hash
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>std::unordered_map&lt;size_t, animeDatabase&gt; anime;
 
 </string>
 				<key>trailing</key>
-				<string>void initializeServices() {
-    service[0] = "Crunchyroll";
-    service[1] = "Netflix";
+				<string>
+// Services Hash
+void initializeServices() {
 </string>
 			</dict>
 			<key>type</key>
@@ -214,16 +214,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Formats Hash
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void initializeFormat() {
-    format[0] = "TV";
-    format[1] = "Movie";
+				<string>
+// Formats Hash
+void initializeFormat() {
 </string>
 			</dict>
 			<key>type</key>
@@ -259,16 +259,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Genres Hash
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void initializeGenres() {
-    genre[0] = "Action";
-    genre[1] = "Romance";
+				<string>
+// Genres Hash
+void initializeGenres() {
 </string>
 			</dict>
 			<key>type</key>
@@ -304,16 +304,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Status hash
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void initializeStatus() {
-    status[0] = "Ongoing";
-    status[1] = "Completed";
+				<string>
+// Status hash
+void initializeStatus() {
 </string>
 			</dict>
 			<key>type</key>
@@ -349,16 +349,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Audios Hash
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void initializeAudio() {
-    audio[0] = "Japanese";
-    audio[1] = "English";
+				<string>
+// Audios Hash
+void initializeAudio() {
 </string>
 			</dict>
 			<key>type</key>
@@ -394,16 +394,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Subs Hash
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void initializeSub() {
-    sub[0] = "English";
-}
+				<string>
+// Subs Hash
+void initializeSub() {
 </string>
 			</dict>
 			<key>type</key>
@@ -439,16 +439,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Medias Hash
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void initializeMedias() {
-    media[0] = "Manga";
-    media[1] = "Light Novel";
+				<string>
+// Medias Hash
+void initializeMedias() {
 </string>
 			</dict>
 			<key>type</key>
@@ -484,16 +484,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Disclude if within Vector
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>bool discludeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
-    if (y.empty()) return false;
-
+				<string>
+// Disclude if within Vector
+bool discludeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
 </string>
 			</dict>
 			<key>type</key>
@@ -529,16 +529,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Include if within Vector
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>bool includeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
-    if (y.empty()) return true;
-
+				<string>
+// Include if within Vector
+bool includeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
 </string>
 			</dict>
 			<key>type</key>
@@ -574,16 +574,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Update Database Json
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void saveAnimeToJSON(const std::string&amp; filename) {
-    std::ofstream outFile(filename);
-    if (!outFile.is_open()) {
+				<string>
+// Update Database Json
+void saveAnimeToJSON(const std::string&amp; filename) {
 </string>
 			</dict>
 			<key>type</key>
@@ -619,16 +619,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Parse Out Vectors
+				<string>
 </string>
 				<key>leading</key>
 				<string>
 
 </string>
 				<key>trailing</key>
-				<string>std::vector&lt;int&gt; parseVector(const std::string&amp; str) {
-    std::vector&lt;int&gt; result;
-    std::string num;
+				<string>
+// Parse Out Vectors
+std::vector&lt;int&gt; parseVector(const std::string&amp; str) {
 </string>
 			</dict>
 			<key>type</key>
@@ -664,16 +664,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Parse Out Json to anime Map
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void parseJson(const std::string&amp; file) {
-    std::ifstream source(file);
-    
+				<string>
+// Parse Out Json to anime Map
+void parseJson(const std::string&amp; file) {
 </string>
 			</dict>
 			<key>type</key>
@@ -709,16 +709,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Input Processing
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void inputAnime() {
-    size_t id;
-    std::string new_anime;
+				<string>
+// Input Processing
+void inputAnime() {
 </string>
 			</dict>
 			<key>type</key>
@@ -754,16 +754,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Print Animes From Map
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>void printAnimes() {
-    
-    int maxNameLength = 0;
+				<string>
+// Print Animes From Map
+void printAnimes() {
 </string>
 			</dict>
 			<key>type</key>
@@ -799,16 +799,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Main
+				<string>
 </string>
 				<key>leading</key>
-				<string>
+				<string>}
 
 </string>
 				<key>trailing</key>
-				<string>int main () {
-    
-    std::string database = "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
+				<string>
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+// Main
 </string>
 			</dict>
 			<key>type</key>
