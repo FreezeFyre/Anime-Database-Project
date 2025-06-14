@@ -1,11 +1,19 @@
 :root {
     --background-color: #E6E6E6;
     --card-background: #F2F2F2;
+    --accent-color: #FFC3F3;
+    --inset-color: #DCDADA;
+    --filter-text-color: #5F5F5F;
+    --filter-text-sub-color: var(--accent-color);
     --card-spacing: 16px;
     --card-margins: 16px;
     --card-radius: 32px;
     --card-shadow: 0px 0px 16px rgba(0, 0, 0, .25);
     --filter-margins: 32px;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 body {
@@ -55,10 +63,14 @@ body {
 .filters {
     background-color: var(--card-background);
     width: 100%;
-    height: 1050px;
     border-radius: var(--card-radius);
     box-shadow: var(--card-shadow);
     margin-top: var(--card-margins);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 32px;
 }
 
 
@@ -68,7 +80,7 @@ body {
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
-    z-index: 2;
+    z-index: 1;
     gap: var(--card-spacing);
 }
 
@@ -90,7 +102,6 @@ body {
     background-color: red;
     width: 100%;
     height: 32px;
-    margin: var(--filter-margins);
 }
 
 
@@ -99,14 +110,66 @@ body {
     background-color: green;
     width: 100%;
     height: 32px;
-    margin: var(--filter-margins);
 }
 
 
 
 .library {
-    background-color: blue;
     width: 100%;
-    height: 32px;
-    margin: var(--filter-margins);
+    height: 64px;
+    display: flex;
+    height: 64px;
+    align-items: flex-start;
+    align-content: flex-start;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+h6 {
+    color: var(--Genres-Text, #FBFBFB);
+    text-align: center;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    margin: 0;
+    letter-spacing: 1px;
+    text-transform: capitalize;
+    height: fit-content;
+}
+
+.genre_tag {
+    background-color: var(--inset-color);
+    width: fit-content;
+    display: flex;
+    height: fit-content;
+    padding: 4px 8px;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 2;
+    border-radius: 32px;
+    background: var(--Notch-Color, #DCDADA);
+    box-shadow: 0.5px 0.5px 2px 0px rgba(0, 0, 0, 0.10) inset;
+}
+
+.filter_title {
+    width: 100%;
+    height: fit-content;
+    margin:8px 0 8px 0;
+}
+
+h5 {
+    color: var(--filter-text-color);
+    leading-trim: both;
+    text-edge: cap;
+    font-family: Inter;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    margin: 0;
+    line-height: normal;
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
 }
