@@ -57,6 +57,8 @@ std::unordered_map<int, std::string> media;
 std::unordered_map<size_t, animeDatabase> anime;
 
 
+std::vector<int> sorted_ids;
+
 
 // Services Hash
 void initializeServices() {
@@ -438,7 +440,7 @@ void inputAnime() {
 
 
 // Print Animes From Map
-void printAnimes() {
+void printAnimes(const std::vector<int>& sorted_ids) {
     
     int maxNameLength = 0;
     for (const auto& pair : anime) {
@@ -467,10 +469,7 @@ void printAnimes() {
     std::vector<int> dis_subs = {};
     std::vector<int> inc_subs = {};
     
-    size_t n = anime.size();
-    
-    int count = 0;
-    while(count < n) {
+    for (int count : sorted_ids) {
         if (anime.find(count) != anime.end()) {
             animeDatabase& a = anime[count];
             
@@ -490,15 +489,14 @@ void printAnimes() {
                     << std::setw(22) << std::right << a.avg_episode_length << " |\n";
             }
         }
-        count += 1;
     }
 }
 
 
 
 
-void anime_sorting() {
-    std::vector<int> sorted_list;
+
+void anime_sorting(std::vector<int>& sorted_list) {
 
     for (int count = 0; count < anime.size(); ++count) {
         int curr_rank = anime[count].rank == 0 ? INT_MAX : anime[count].rank;
@@ -517,11 +515,6 @@ void anime_sorting() {
         if (!inserted) {
             sorted_list.push_back(count);
         }
-    }
-
-    // Print the sorted indices and corresponding anime
-    for (int i = 0; i < sorted_list.size(); ++i) {
-        std::cout << sorted_list[i] << " ";
     }
 }
 
@@ -572,12 +565,12 @@ int main(int argc, char* argv[]) {
     
     // Store Anime Metadata to Struct and to Unordered Map
     parseJson(database);
+    anime_sorting(sorted_ids);
     
     // Print Animes From unordered Map
-    printAnimes();
+    printAnimes(sorted_ids);
     
     inputAnime();
     change_ranks();
     saveAnimeToJSON(database);
-    anime_sorting();
 }

@@ -147,13 +147,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>61</string>
+					<string>63</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>60</string>
+					<string>62</string>
 					<key>Timestamp</key>
-					<string>774400315.046085</string>
+					<string>774403540.795243</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -192,13 +192,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>71</string>
+					<string>73</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>70</string>
+					<string>72</string>
 					<key>Timestamp</key>
-					<string>774400311.6246949</string>
+					<string>774403540.79483</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -237,13 +237,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>79</string>
+					<string>81</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>78</string>
+					<string>80</string>
 					<key>Timestamp</key>
-					<string>774400307.060559</string>
+					<string>774403540.795306</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -282,13 +282,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>99</string>
+					<string>101</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>98</string>
+					<string>100</string>
 					<key>Timestamp</key>
-					<string>774400305.015394</string>
+					<string>774403540.795089</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -327,13 +327,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>110</string>
+					<string>112</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>109</string>
+					<string>111</string>
 					<key>Timestamp</key>
-					<string>774400302.3509851</string>
+					<string>774403540.795154</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -372,13 +372,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>119</string>
+					<string>121</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>118</string>
+					<string>120</string>
 					<key>Timestamp</key>
-					<string>774400299.22531</string>
+					<string>774403540.795133</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -417,13 +417,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>126</string>
+					<string>128</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>125</string>
+					<string>127</string>
 					<key>Timestamp</key>
-					<string>774400296.136204</string>
+					<string>774403540.795199</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -462,13 +462,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>136</string>
+					<string>138</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>135</string>
+					<string>137</string>
 					<key>Timestamp</key>
-					<string>774400292.994112</string>
+					<string>774403540.795328</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -507,13 +507,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>150</string>
+					<string>152</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>149</string>
+					<string>151</string>
 					<key>Timestamp</key>
-					<string>774400287.832595</string>
+					<string>774403540.795285</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -552,13 +552,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>164</string>
+					<string>166</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>163</string>
+					<string>165</string>
 					<key>Timestamp</key>
-					<string>774400281.333531</string>
+					<string>774403540.795045</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -597,13 +597,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>233</string>
+					<string>235</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>232</string>
+					<string>234</string>
 					<key>Timestamp</key>
-					<string>774400277.493721</string>
+					<string>774403540.795264</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -642,13 +642,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>251</string>
+					<string>253</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>250</string>
+					<string>252</string>
 					<key>Timestamp</key>
-					<string>774400272.991502</string>
+					<string>774403540.795176</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -687,13 +687,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>320</string>
+					<string>322</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>319</string>
+					<string>321</string>
 					<key>Timestamp</key>
-					<string>774400268.0584249</string>
+					<string>774403540.795067</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -732,13 +732,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>440</string>
+					<string>442</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>439</string>
+					<string>441</string>
 					<key>Timestamp</key>
-					<string>774400262.637585</string>
+					<string>774403540.795221</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -761,7 +761,7 @@ std::unordered_map&lt;int, std::string&gt; genre;
 
 </string>
 				<key>trailing</key>
-				<string>void printAnimes() {
+				<string>void printAnimes(const std::vector&lt;int&gt;&amp; sorted_ids) {
     
     int maxNameLength = 0;
 </string>
@@ -777,13 +777,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>558</string>
+					<string>551</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>557</string>
+					<string>550</string>
 					<key>Timestamp</key>
-					<string>774403197.8851449</string>
+					<string>774403649.459911</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -822,13 +822,13 @@ std::unordered_map&lt;int, std::string&gt; genre;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>500</string>
+					<string>499</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>499</string>
+					<string>498</string>
 					<key>Timestamp</key>
-					<string>774402441.424142</string>
+					<string>774403629.837095</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -844,16 +844,16 @@ std::unordered_map&lt;int, std::string&gt; genre;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>void anime_sorting() {
+				<string>void anime_sorting(std::vector&lt;int&gt;&amp; sorted_list) {
 </string>
 				<key>leading</key>
 				<string>
 
 </string>
 				<key>trailing</key>
-				<string>    std::vector&lt;int&gt; sorted_list;
-
+				<string>
     for (int count = 0; count &lt; anime.size(); ++count) {
+        int curr_rank = anime[count].rank == 0 ? INT_MAX : anime[count].rank;
 </string>
 			</dict>
 			<key>type</key>
