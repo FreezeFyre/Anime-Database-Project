@@ -184,7 +184,7 @@ void saveAnimeToJSON(const std::string& filename) {
         out << "]";
     };
 
-    // 🔧 Changed from map-based loop to index-based loop to preserve order
+    //  Changed from map-based loop to index-based loop to preserve order
     for (size_t i = 0; i < anime.size(); ++i) {  // <-- changed loop type
         const auto& a = anime[i];                // <-- access object by index
 
@@ -565,12 +565,24 @@ int main(int argc, char* argv[]) {
     
     // Store Anime Metadata to Struct and to Unordered Map
     parseJson(database);
-    anime_sorting(sorted_ids);
     
-    // Print Animes From unordered Map
-    printAnimes(sorted_ids);
+    bool keepRunning = true;
+    while (keepRunning) {
+        sorted_ids.clear();
+        anime_sorting(sorted_ids);
+        printAnimes(sorted_ids);
+        
+        inputAnime();
+        change_ranks();
+        
+        std::string again;
+        std::cout << "Would you like to continue modifying the list? Y / N | ";
+        std::cin >> again;
+        if (again != "Y" && again != "y") {
+            keepRunning = false;
+        }
+    }
     
-    inputAnime();
-    change_ranks();
     saveAnimeToJSON(database);
+    
 }
