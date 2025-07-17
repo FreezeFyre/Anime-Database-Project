@@ -91,6 +91,7 @@ void initializeGenres() {
     genre[10] = "Ecchi";
     genre[11] = "Moving";
     genre[12] = "Magic";
+    genre[13] = "Coming of Age";
 }
 
 
@@ -361,7 +362,7 @@ void inputAnime() {
         std::getline(std::cin, name);
         std::cout << "| Japanese Name |" << "\t";
         std::getline(std::cin, alt_name);
-        
+        	
         std::cout << "| Enter service IDs (space-separated, end with -1): ";
         int service_input;
         while (std::cin >> service_input && service_input != -1) {
@@ -441,15 +442,19 @@ void printAnimes() {
     
     int maxNameLength = 0;
     for (const auto& pair : anime) {
-        int length = static_cast<int>(pair.second.name.length());  // cast to int
+        int length = static_cast<int>(pair.second.name.length());
         if (length > maxNameLength) {
             maxNameLength = length;
         }
     }
     
-    std::cout << "--------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
-    std::cout << "| Rank | " << std::setw(maxNameLength) << std::left << "Name" << " |            Status ID            | Fan Service Rating | Season Count | Episode Count | Average Episode Length |\n";
-    std::cout << "--------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
+    // Print header line with adjusted width for new ID column (4 chars)
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
+    
+    // Print header with new "ID" column before Rank
+    std::cout << "| ID  | Rank | " << std::setw(maxNameLength) << std::left << "Name" << " |            Status ID            | Fan Service Rating | Season Count | Episode Count | Average Episode Length |\n";
+    
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
     
     std::vector<int> dis_services = {};
     std::vector<int> inc_services = {};
@@ -465,37 +470,94 @@ void printAnimes() {
     size_t n = anime.size();
     
     int count = 0;
-    while(count < n)
+    while(count < n) {
         if (anime.find(count) != anime.end()) {
             animeDatabase& a = anime[count];
-        
             
-            if (includeVector(a.service_id, inc_services) and !discludeVector(a.service_id, dis_services) and includeVector(a.genre_ids, inc_genres) and !discludeVector(a.genre_ids, dis_genres) and includeVector(a.audio_lang_ids, inc_audios) and !discludeVector(a.audio_lang_ids, dis_audios) and includeVector(a.sub_lang_ids, inc_subs) and !discludeVector(a.sub_lang_ids, dis_subs))
+            if (includeVector(a.service_id, inc_services) && !discludeVector(a.service_id, dis_services)
+                && includeVector(a.genre_ids, inc_genres) && !discludeVector(a.genre_ids, dis_genres)
+                && includeVector(a.audio_lang_ids, inc_audios) && !discludeVector(a.audio_lang_ids, dis_audios)
+                && includeVector(a.sub_lang_ids, inc_subs) && !discludeVector(a.sub_lang_ids, dis_subs)) {
+                
                 std::cout << "| "
-             << std::setw(4) << std::left << a.rank << " | "
-             << std::setw(maxNameLength) << std::left << a.name << " | "
-             << std::setw(31) << std::right << status.at(a.status_id) << " | "
-             << std::setw(18) << std::right << a.fan_service_rating << " | "
-             << std::setw(12) << std::right << a.season_count << " | "
-             << std::setw(13) << std::right << a.episode_count << " | "
-             << std::setw(22) << std::right << a.avg_episode_length << " |\n";
-
+                    << std::setw(3) << std::right << count << " | "
+                    << std::setw(4) << std::left << a.rank << " | "
+                    << std::setw(maxNameLength) << std::left << a.name << " | "
+                    << std::setw(31) << std::right << status.at(a.status_id) << " | "
+                    << std::setw(18) << std::right << a.fan_service_rating << " | "
+                    << std::setw(12) << std::right << a.season_count << " | "
+                    << std::setw(13) << std::right << a.episode_count << " | "
+                    << std::setw(22) << std::right << a.avg_episode_length << " |\n";
+            }
+        }
         count += 1;
     }
 }
 
 
 
-<<<<<<< HEAD
-// Main
-int main () {
-    
-    std::string database = "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
-=======
-int main(int argc, char* argv[]) {
 
-    std::string database = argc > 1 ? argv[1] : "AnimeList.Backend./anime_data.json";
->>>>>>> 87c1685c30aefdb5cb097e2566d03f40e79873c8
+void anime_sorting() {
+    std::vector<int> sorted_list;
+
+    for (int count = 0; count < anime.size(); ++count) {
+        int curr_rank = anime[count].rank == 0 ? INT_MAX : anime[count].rank;
+        bool inserted = false;
+
+        for (int i = 0; i < sorted_list.size(); ++i) {
+            int other_rank = anime[sorted_list[i]].rank == 0 ? INT_MAX : anime[sorted_list[i]].rank;
+
+            if (curr_rank < other_rank) {
+                sorted_list.insert(sorted_list.begin() + i, count);
+                inserted = true;
+                break;
+            }
+        }
+
+        if (!inserted) {
+            sorted_list.push_back(count);
+        }
+    }
+
+    // Print the sorted indices and corresponding anime
+    for (int i = 0; i < sorted_list.size(); ++i) {
+        std::cout << sorted_list[i] << " ";
+    }
+}
+
+
+
+void change_ranks() {
+    std::string rank_change;
+    size_t id;
+    int new_rank;
+    
+    
+    std::cout << "Do you want to change a animes rank? Y / N |" << "\t";
+    std::cin >> rank_change;
+    if (rank_change == "Y" or rank_change == "y") {
+        std::cout << "What is the ID of the anime you want to change" << "\t";
+        std::cin >> id;
+        
+        std::cout << "What is its new rank" << "\t";
+        std::cin >> new_rank;
+        
+        for (int i = 0; i < anime.size(); i++) {
+            if (anime[i].rank >= new_rank) {
+                anime[i].rank += 1;
+            }
+        }
+        
+        anime[id].rank = new_rank;
+        
+    }
+}
+
+
+
+// Main
+int main(int argc, char* argv[]) {
+    std::string database = argc > 1 ? argv[1] : "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
     
     // Initialize Unordered Maps
     initializeServices();
@@ -515,5 +577,7 @@ int main(int argc, char* argv[]) {
     printAnimes();
     
     inputAnime();
+    change_ranks();
     saveAnimeToJSON(database);
+    anime_sorting();
 }

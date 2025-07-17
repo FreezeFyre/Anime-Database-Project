@@ -57,13 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>22</string>
+					<string>24</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>21</string>
+					<string>23</string>
 					<key>Timestamp</key>
-					<string>768267903.093195</string>
+					<string>774400321.703109</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -79,16 +79,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Declare Struct For MetaData Contents and Types
 </string>
 				<key>leading</key>
-				<string>#include &lt;limits&gt;
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Declare Struct For MetaData Contents and Types
-struct animeDatabase {
+				<string>struct animeDatabase {
+    int rank;
+    int media_type;
 </string>
 			</dict>
 			<key>type</key>
@@ -102,13 +102,13 @@ struct animeDatabase {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>45</string>
+					<string>47</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>44</string>
+					<string>46</string>
 					<key>Timestamp</key>
-					<string>768267903.0932339</string>
+					<string>774400317.529688</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -124,16 +124,16 @@ struct animeDatabase {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Declare Unordered Maps Globally
 </string>
 				<key>leading</key>
-				<string>};
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Declare Unordered Maps Globally
-std::unordered_map&lt;int, std::string&gt; service;
+				<string>std::unordered_map&lt;int, std::string&gt; service;
+std::unordered_map&lt;int, std::string&gt; format;
+std::unordered_map&lt;int, std::string&gt; genre;
 </string>
 			</dict>
 			<key>type</key>
@@ -147,13 +147,13 @@ std::unordered_map&lt;int, std::string&gt; service;
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>59</string>
+					<string>61</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>58</string>
+					<string>60</string>
 					<key>Timestamp</key>
-					<string>768267906.537903</string>
+					<string>774400315.046085</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -169,16 +169,16 @@ std::unordered_map&lt;int, std::string&gt; service;
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Services Hash
 </string>
 				<key>leading</key>
-				<string>std::unordered_map&lt;size_t, animeDatabase&gt; anime;
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Services Hash
-void initializeServices() {
+				<string>void initializeServices() {
+    service[0] = "Crunchyroll";
+    service[1] = "Netflix";
 </string>
 			</dict>
 			<key>type</key>
@@ -192,13 +192,13 @@ void initializeServices() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>69</string>
+					<string>71</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>68</string>
+					<string>70</string>
 					<key>Timestamp</key>
-					<string>768267906.537891</string>
+					<string>774400311.6246949</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -214,16 +214,16 @@ void initializeServices() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Formats Hash
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Formats Hash
-void initializeFormat() {
+				<string>void initializeFormat() {
+    format[0] = "TV";
+    format[1] = "Movie";
 </string>
 			</dict>
 			<key>type</key>
@@ -237,13 +237,13 @@ void initializeFormat() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>77</string>
+					<string>79</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>76</string>
+					<string>78</string>
 					<key>Timestamp</key>
-					<string>768267906.537878</string>
+					<string>774400307.060559</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -259,16 +259,16 @@ void initializeFormat() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Genres Hash
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Genres Hash
-void initializeGenres() {
+				<string>void initializeGenres() {
+    genre[0] = "Action";
+    genre[1] = "Romance";
 </string>
 			</dict>
 			<key>type</key>
@@ -282,13 +282,13 @@ void initializeGenres() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>96</string>
+					<string>99</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>95</string>
+					<string>98</string>
 					<key>Timestamp</key>
-					<string>768267906.537865</string>
+					<string>774400305.015394</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -304,16 +304,16 @@ void initializeGenres() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Status hash
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Status hash
-void initializeStatus() {
+				<string>void initializeStatus() {
+    status[0] = "Ongoing";
+    status[1] = "Completed";
 </string>
 			</dict>
 			<key>type</key>
@@ -327,13 +327,13 @@ void initializeStatus() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>107</string>
+					<string>110</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>106</string>
+					<string>109</string>
 					<key>Timestamp</key>
-					<string>768267906.5379291</string>
+					<string>774400302.3509851</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -349,16 +349,16 @@ void initializeStatus() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Audios Hash
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Audios Hash
-void initializeAudio() {
+				<string>void initializeAudio() {
+    audio[0] = "Japanese";
+    audio[1] = "English";
 </string>
 			</dict>
 			<key>type</key>
@@ -372,13 +372,13 @@ void initializeAudio() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>116</string>
+					<string>119</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>115</string>
+					<string>118</string>
 					<key>Timestamp</key>
-					<string>768267906.537941</string>
+					<string>774400299.22531</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -394,16 +394,16 @@ void initializeAudio() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Subs Hash
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Subs Hash
-void initializeSub() {
+				<string>void initializeSub() {
+    sub[0] = "English";
+}
 </string>
 			</dict>
 			<key>type</key>
@@ -417,13 +417,13 @@ void initializeSub() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>123</string>
+					<string>126</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>122</string>
+					<string>125</string>
 					<key>Timestamp</key>
-					<string>768267906.538</string>
+					<string>774400296.136204</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -439,16 +439,16 @@ void initializeSub() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Medias Hash
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Medias Hash
-void initializeMedias() {
+				<string>void initializeMedias() {
+    media[0] = "Manga";
+    media[1] = "Light Novel";
 </string>
 			</dict>
 			<key>type</key>
@@ -462,13 +462,13 @@ void initializeMedias() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>133</string>
+					<string>136</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>132</string>
+					<string>135</string>
 					<key>Timestamp</key>
-					<string>768267906.537822</string>
+					<string>774400292.994112</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -484,16 +484,16 @@ void initializeMedias() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Disclude if within Vector
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Disclude if within Vector
-bool discludeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
+				<string>bool discludeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
+    if (y.empty()) return false;
+
 </string>
 			</dict>
 			<key>type</key>
@@ -507,13 +507,13 @@ bool discludeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;in
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>147</string>
+					<string>150</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>146</string>
+					<string>149</string>
 					<key>Timestamp</key>
-					<string>768267906.53785</string>
+					<string>774400287.832595</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -529,16 +529,16 @@ bool discludeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;in
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Include if within Vector
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Include if within Vector
-bool includeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
+				<string>bool includeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
+    if (y.empty()) return true;
+
 </string>
 			</dict>
 			<key>type</key>
@@ -552,13 +552,13 @@ bool includeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>161</string>
+					<string>164</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>160</string>
+					<string>163</string>
 					<key>Timestamp</key>
-					<string>768268216.601596</string>
+					<string>774400281.333531</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -574,16 +574,16 @@ bool includeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Update Database Json
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Update Database Json
-void saveAnimeToJSON(const std::string&amp; filename) {
+				<string>void saveAnimeToJSON(const std::string&amp; filename) {
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) {
 </string>
 			</dict>
 			<key>type</key>
@@ -597,13 +597,13 @@ void saveAnimeToJSON(const std::string&amp; filename) {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>230</string>
+					<string>233</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>229</string>
+					<string>232</string>
 					<key>Timestamp</key>
-					<string>768268157.959407</string>
+					<string>774400277.493721</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -619,16 +619,16 @@ void saveAnimeToJSON(const std::string&amp; filename) {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Parse Out Vectors
 </string>
 				<key>leading</key>
 				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Parse Out Vectors
-std::vector&lt;int&gt; parseVector(const std::string&amp; str) {
+				<string>std::vector&lt;int&gt; parseVector(const std::string&amp; str) {
+    std::vector&lt;int&gt; result;
+    std::string num;
 </string>
 			</dict>
 			<key>type</key>
@@ -642,13 +642,13 @@ std::vector&lt;int&gt; parseVector(const std::string&amp; str) {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>248</string>
+					<string>251</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>247</string>
+					<string>250</string>
 					<key>Timestamp</key>
-					<string>768268157.959443</string>
+					<string>774400272.991502</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -664,16 +664,16 @@ std::vector&lt;int&gt; parseVector(const std::string&amp; str) {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Parse Out Json to anime Map
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Parse Out Json to anime Map
-void parseJson(const std::string&amp; file) {
+				<string>void parseJson(const std::string&amp; file) {
+    std::ifstream source(file);
+    
 </string>
 			</dict>
 			<key>type</key>
@@ -687,13 +687,13 @@ void parseJson(const std::string&amp; file) {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>317</string>
+					<string>320</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>316</string>
+					<string>319</string>
 					<key>Timestamp</key>
-					<string>768268157.959425</string>
+					<string>774400268.0584249</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -709,16 +709,16 @@ void parseJson(const std::string&amp; file) {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Input Processing
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Input Processing
-void inputAnime() {
+				<string>void inputAnime() {
+    size_t id;
+    std::string new_anime;
 </string>
 			</dict>
 			<key>type</key>
@@ -732,13 +732,13 @@ void inputAnime() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>437</string>
+					<string>440</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>436</string>
+					<string>439</string>
 					<key>Timestamp</key>
-					<string>769308635.094857</string>
+					<string>774400262.637585</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -754,16 +754,16 @@ void inputAnime() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Print Animes From Map
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
-				<string>
-// Print Animes From Map
-void printAnimes() {
+				<string>void printAnimes() {
+    
+    int maxNameLength = 0;
 </string>
 			</dict>
 			<key>type</key>
@@ -777,13 +777,13 @@ void printAnimes() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>487</string>
+					<string>558</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>486</string>
+					<string>557</string>
 					<key>Timestamp</key>
-					<string>769308635.0948859</string>
+					<string>774403197.8851449</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -799,16 +799,61 @@ void printAnimes() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>// Main
 </string>
 				<key>leading</key>
-				<string>}
+				<string>
 
 </string>
 				<key>trailing</key>
+				<string>int main(int argc, char* argv[]) {
+    std::string database = argc &gt; 1 ? argv[1] : "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
+    
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>500</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>499</string>
+					<key>Timestamp</key>
+					<string>774402441.424142</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>void anime_sorting() {
+</string>
+				<key>leading</key>
 				<string>
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-// Main
+
+</string>
+				<key>trailing</key>
+				<string>    std::vector&lt;int&gt; sorted_list;
+
+    for (int count = 0; count &lt; anime.size(); ++count) {
 </string>
 			</dict>
 			<key>type</key>
