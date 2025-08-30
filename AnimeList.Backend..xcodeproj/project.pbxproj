@@ -6,6 +6,10 @@
 	objectVersion = 70;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		70B7E2A62E621E5B00D61D7C /* libglfw.3.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 70B7E2A52E621E5B00D61D7C /* libglfw.3.4.dylib */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		7007047E2DB1E7FF00BAFCCB /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -19,7 +23,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		700704802DB1E7FF00BAFCCB /* AnimeList.Backend. */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AnimeList.Backend.; sourceTree = BUILT_PRODUCTS_DIR; };
+		700704802DB1E7FF00BAFCCB /* Anime List */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Anime List"; sourceTree = BUILT_PRODUCTS_DIR; };
+		70B7E2A52E621E5B00D61D7C /* libglfw.3.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.4.dylib; path = ../../../../../usr/local/Cellar/glfw/3.4/lib/libglfw.3.4.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -31,6 +36,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				70B7E2A62E621E5B00D61D7C /* libglfw.3.4.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +47,7 @@
 			isa = PBXGroup;
 			children = (
 				700704822DB1E7FF00BAFCCB /* AnimeList.Backend. */,
+				70B7E2A42E621E5B00D61D7C /* Frameworks */,
 				700704812DB1E7FF00BAFCCB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,17 +55,25 @@
 		700704812DB1E7FF00BAFCCB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				700704802DB1E7FF00BAFCCB /* AnimeList.Backend. */,
+				700704802DB1E7FF00BAFCCB /* Anime List */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		70B7E2A42E621E5B00D61D7C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				70B7E2A52E621E5B00D61D7C /* libglfw.3.4.dylib */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		7007047F2DB1E7FF00BAFCCB /* AnimeList.Backend. */ = {
+		7007047F2DB1E7FF00BAFCCB /* Anime List */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 700704872DB1E7FF00BAFCCB /* Build configuration list for PBXNativeTarget "AnimeList.Backend." */;
+			buildConfigurationList = 700704872DB1E7FF00BAFCCB /* Build configuration list for PBXNativeTarget "Anime List" */;
 			buildPhases = (
 				7007047C2DB1E7FF00BAFCCB /* Sources */,
 				7007047D2DB1E7FF00BAFCCB /* Frameworks */,
@@ -71,11 +86,11 @@
 			fileSystemSynchronizedGroups = (
 				700704822DB1E7FF00BAFCCB /* AnimeList.Backend. */,
 			);
-			name = AnimeList.Backend.;
+			name = "Anime List";
 			packageProductDependencies = (
 			);
 			productName = AnimeList.Backend.;
-			productReference = 700704802DB1E7FF00BAFCCB /* AnimeList.Backend. */;
+			productReference = 700704802DB1E7FF00BAFCCB /* Anime List */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -106,7 +121,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				7007047F2DB1E7FF00BAFCCB /* AnimeList.Backend. */,
+				7007047F2DB1E7FF00BAFCCB /* Anime List */,
 			);
 		};
 /* End PBXProject section */
@@ -241,6 +256,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/lib,
+					/usr/local/Cellar/glfw/3.4/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -250,6 +269,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/lib,
+					/usr/local/Cellar/glfw/3.4/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -267,7 +290,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		700704872DB1E7FF00BAFCCB /* Build configuration list for PBXNativeTarget "AnimeList.Backend." */ = {
+		700704872DB1E7FF00BAFCCB /* Build configuration list for PBXNativeTarget "Anime List" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				700704882DB1E7FF00BAFCCB /* Debug */,

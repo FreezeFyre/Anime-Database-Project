@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7007047F2DB1E7FF00BAFCCB"
-               BuildableName = "AnimeList.Backend."
-               BlueprintName = "AnimeList.Backend."
+               BuildableName = "Anime List"
+               BlueprintName = "Anime List"
                ReferencedContainer = "container:AnimeList.Backend..xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -30,7 +30,8 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:TestPlan.xctestplan">
+            reference = "container:TestPlan.xctestplan"
+            default = "YES">
          </TestPlanReference>
       </TestPlans>
    </TestAction>
@@ -50,8 +51,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7007047F2DB1E7FF00BAFCCB"
-            BuildableName = "AnimeList.Backend."
-            BlueprintName = "AnimeList.Backend."
+            BuildableName = "Anime List"
+            BlueprintName = "Anime List"
             ReferencedContainer = "container:AnimeList.Backend..xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -67,8 +68,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7007047F2DB1E7FF00BAFCCB"
-            BuildableName = "AnimeList.Backend."
-            BlueprintName = "AnimeList.Backend."
+            BuildableName = "Anime List"
+            BlueprintName = "Anime List"
             ReferencedContainer = "container:AnimeList.Backend..xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
