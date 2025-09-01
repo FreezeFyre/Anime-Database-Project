@@ -135,34 +135,6 @@ void initializeMedias() {
 
 
 
-// Disclude if within Vector
-bool discludeVector(const std::vector<int>& x, const std::vector<int>& y) {
-    if (y.empty()) return false;
-
-    for (int value : y) {
-        if (std::find(x.begin(), x.end(), value) == x.end())
-            return false;
-        }
-    
-    return true;
-}
-
-
-
-// Include if within Vector
-bool includeVector(const std::vector<int>& x, const std::vector<int>& y) {
-    if (y.empty()) return true;
-
-    
-    for (int value : y) {
-        if (std::find(x.begin(), x.end(), value) == x.end())
-            return false;
-    }
-        return true;
-}
-
-
-
 // Update Database Json
 void saveAnimeToJSON(const std::string& filename) {
     std::ofstream outFile(filename);
@@ -359,7 +331,7 @@ void inputAnime() {
 
 
             name = "\"" + name + "\"";
-            anime[id] = {0,0,name,"alt_name",{},{},0,{},{},0,0,0,24,0,0,{},{}};
+            anime[id] = {0,0,name,"alt_name",{},{},0,{},{},0,1,0,24,0,0,{},{}};
         }
         
         else {
@@ -468,6 +440,7 @@ void printAnimes(const std::vector<int>& sorted_ids) {
             maxNameLength = length;
         }
     }
+        
     
     // Print header line with adjusted width for new ID column (4 chars)
     std::cout << "----------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
@@ -477,26 +450,11 @@ void printAnimes(const std::vector<int>& sorted_ids) {
     
     std::cout << "----------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
     
-    std::vector<int> dis_services = {};
-    std::vector<int> inc_services = {};
-    std::vector<int> dis_genres = {};
-    std::vector<int> inc_genres = {};
-    std::vector<int> dis_statuses = {};
-    std::vector<int> inc_statuses = {};
-    std::vector<int> dis_audios = {};
-    std::vector<int> inc_audios = {};
-    std::vector<int> dis_subs = {};
-    std::vector<int> inc_subs = {};
-    
+
     for (int count : sorted_ids) {
         if (anime.find(count) != anime.end()) {
             animeDatabase& a = anime[count];
-            
-            if (includeVector(a.service_id, inc_services) && !discludeVector(a.service_id, dis_services)
-                && includeVector(a.genre_ids, inc_genres) && !discludeVector(a.genre_ids, dis_genres)
-                && includeVector(a.audio_lang_ids, inc_audios) && !discludeVector(a.audio_lang_ids, dis_audios)
-                && includeVector(a.sub_lang_ids, inc_subs) && !discludeVector(a.sub_lang_ids, dis_subs)) {
-                
+
                 std::cout << "| "
                     << std::setw(3) << std::right << count << " | "
                     << std::setw(4) << std::left << a.rank << " | "
@@ -505,8 +463,14 @@ void printAnimes(const std::vector<int>& sorted_ids) {
                     << std::setw(18) << std::right << a.fan_service_rating << " | "
                     << std::setw(12) << std::right << a.season_count << " | "
                     << std::setw(13) << std::right << a.episode_count << " | "
-                    << std::setw(22) << std::right << a.avg_episode_length << " |\n";
-            }
+                    << std::setw(22) << std::right << a.avg_episode_length << " | ";
+                
+                for (int i = 0; i < a.genre_ids.size(); i++) {
+                    std::cout << genre[a.genre_ids[i]] << ", ";
+                }
+                
+                std::cout  << "\n";
+            
         }
     }
 }
@@ -515,27 +479,31 @@ void printAnimes(const std::vector<int>& sorted_ids) {
 
 
 
-void anime_sorting(std::vector<int>& sorted_list) {
-
-    for (int count = 0; count < anime.size(); ++count) {
-        int curr_rank = anime[count].rank == 0 ? INT_MAX : anime[count].rank;
+// Sorting Anime List By Rank
+void animeSorting(std::vector<int>& sorted_ids) {
+    
+    for (size_t id = 0; id < anime.size(); ++id) {
+        
+        // Assign INT_MAX to unranked anime so they go at the bottom
+        int current_rank = (anime[id].rank == 0) ? INT_MAX : anime[id].rank;
         bool inserted = false;
-
-        for (int i = 0; i < sorted_list.size(); ++i) {
-            int other_rank = anime[sorted_list[i]].rank == 0 ? INT_MAX : anime[sorted_list[i]].rank;
-
-            if (curr_rank < other_rank) {
-                sorted_list.insert(sorted_list.begin() + i, count);
+        
+        for (size_t i = 0; i < sorted_ids.size(); ++i) {
+            int other_rank = (anime[sorted_ids[i]].rank == 0) ? INT_MAX : anime[sorted_ids[i]].rank;
+            
+            if (current_rank < other_rank) {
+                sorted_ids.insert(sorted_ids.begin() + i, id);
                 inserted = true;
                 break;
             }
         }
-
+        
         if (!inserted) {
-            sorted_list.push_back(count);
+            sorted_ids.push_back(id);
         }
     }
 }
+
 
 
 
@@ -588,7 +556,7 @@ int main(int argc, char* argv[]) {
     bool keepRunning = true;
     while (keepRunning) {
         sorted_ids.clear();
-        anime_sorting(sorted_ids);
+        animeSorting(sorted_ids);
         printAnimes(sorted_ids);
         
         inputAnime();

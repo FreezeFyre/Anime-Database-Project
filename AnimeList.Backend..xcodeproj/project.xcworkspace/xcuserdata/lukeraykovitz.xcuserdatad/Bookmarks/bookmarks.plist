@@ -462,103 +462,103 @@ void initializeMedias() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
+					<string>135</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>134</string>
+					<key>Timestamp</key>
+					<string>778458113.919976</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>
+</string>
+				<key>leading</key>
+				<string>    media[3] = "TV Series";
+}
+</string>
+				<key>trailing</key>
+				<string>
+
+// Update Database Json
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>135</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>134</string>
+					<key>Timestamp</key>
+					<string>778458113.919948</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>
+</string>
+				<key>leading</key>
+				<string>    media[3] = "TV Series";
+}
+</string>
+				<key>trailing</key>
+				<string>
+
+// Update Database Json
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
 					<string>140</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
 					<string>139</string>
 					<key>Timestamp</key>
-					<string>778205710.269089</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    if (y.empty()) return false;
-</string>
-				<key>leading</key>
-				<string>// Disclude if within Vector
-bool discludeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
-</string>
-				<key>trailing</key>
-				<string>
-    for (int value : y) {
-        if (std::find(x.begin(), x.end(), value) == x.end())
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>154</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>153</string>
-					<key>Timestamp</key>
-					<string>778205710.2690541</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    if (y.empty()) return true;
-</string>
-				<key>leading</key>
-				<string>// Include if within Vector
-bool includeVector(const std::vector&lt;int&gt;&amp; x, const std::vector&lt;int&gt;&amp; y) {
-</string>
-				<key>trailing</key>
-				<string>
-    
-    for (int value : y) {
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>168</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>167</string>
-					<key>Timestamp</key>
-					<string>778205710.268997</string>
+					<string>778458113.948982</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -597,13 +597,13 @@ void saveAnimeToJSON(const std::string&amp; filename) {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>237</string>
+					<string>209</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>236</string>
+					<string>208</string>
 					<key>Timestamp</key>
-					<string>778205710.269101</string>
+					<string>778458113.949151</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -642,13 +642,13 @@ std::vector&lt;int&gt; parseVector(const std::string&amp; str) {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>255</string>
+					<string>227</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>254</string>
+					<string>226</string>
 					<key>Timestamp</key>
-					<string>778205710.269066</string>
+					<string>778458113.949102</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -687,13 +687,13 @@ void parseJson(const std::string&amp; file) {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>324</string>
+					<string>296</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>323</string>
+					<string>295</string>
 					<key>Timestamp</key>
-					<string>778205710.268986</string>
+					<string>778458113.9491349</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -732,13 +732,13 @@ void inputAnime() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>463</string>
+					<string>435</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>462</string>
+					<string>434</string>
 					<key>Timestamp</key>
-					<string>778208198.878723</string>
+					<string>778458113.949168</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -777,13 +777,13 @@ void printAnimes(const std::vector&lt;int&gt;&amp; sorted_ids) {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>572</string>
+					<string>540</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>571</string>
+					<string>539</string>
 					<key>Timestamp</key>
-					<string>778208198.878765</string>
+					<string>778458463.9189759</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -822,13 +822,13 @@ int main(int argc, char* argv[]) {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>520</string>
+					<string>505</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>519</string>
+					<string>505</string>
 					<key>Timestamp</key>
-					<string>778208198.87875</string>
+					<string>778458463.918947</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -844,15 +844,14 @@ int main(int argc, char* argv[]) {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>    for (int count = 0; count &lt; anime.size(); ++count) {
-</string>
+				<string></string>
 				<key>leading</key>
-				<string>void anime_sorting(std::vector&lt;int&gt;&amp; sorted_list) {
-
+				<string>    }
+}
 </string>
 				<key>trailing</key>
-				<string>        int curr_rank = anime[count].rank == 0 ? INT_MAX : anime[count].rank;
-        bool inserted = false;
+				<string>
+
 
 </string>
 			</dict>
