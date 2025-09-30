@@ -12,13 +12,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
+					<string>11</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
 					<string>10</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>9</string>
 					<key>Timestamp</key>
-					<string>768267903.093273</string>
+					<string>778885749.943226</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -34,16 +34,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Include Libraries
+				<string>// Libraries
 </string>
 				<key>leading</key>
 				<string>
-
+// ============================================================================
 </string>
 				<key>trailing</key>
-				<string>#include &lt;iostream&gt;
-#include &lt;iomanip&gt;
-#include &lt;unordered_map&gt;
+				<string>// ============================================================================
+
+
 </string>
 			</dict>
 			<key>type</key>
@@ -57,13 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>24</string>
+					<string>31</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>23</string>
+					<string>30</string>
 					<key>Timestamp</key>
-					<string>778205710.2688251</string>
+					<string>780880926.470922</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -79,16 +79,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Declare Struct For MetaData Contents and Types
+				<string>// Data Structs
 </string>
 				<key>leading</key>
 				<string>
-
+// ============================================================================
 </string>
 				<key>trailing</key>
-				<string>struct animeDatabase {
-    int rank;
-    int media_type;
+				<string>// ============================================================================
+
+
 </string>
 			</dict>
 			<key>type</key>
@@ -102,13 +102,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>47</string>
+					<string>91</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>46</string>
+					<string>90</string>
 					<key>Timestamp</key>
-					<string>778205710.269009</string>
+					<string>780880926.470799</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -124,105 +124,15 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Declare Unordered Maps Globally
+				<string>// Define Maps
 </string>
 				<key>leading</key>
 				<string>
+// ============================================================================
+</string>
+				<key>trailing</key>
+				<string>// ============================================================================
 
-</string>
-				<key>trailing</key>
-				<string>std::unordered_map&lt;int, std::string&gt; service;
-std::unordered_map&lt;int, std::string&gt; format;
-std::unordered_map&lt;int, std::string&gt; genre;
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>65</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>64</string>
-					<key>Timestamp</key>
-					<string>778205710.269032</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    service[0] = "Crunchyroll";
-</string>
-				<key>leading</key>
-				<string>// Services Hash
-void initializeServices() {
-</string>
-				<key>trailing</key>
-				<string>    service[1] = "Netflix";
-    service[2] = "Hulu";
-    service[3] = "Disney Plus";
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>75</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>74</string>
-					<key>Timestamp</key>
-					<string>778205710.2688839</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    format[0] = "TV";
-</string>
-				<key>leading</key>
-				<string>// Formats Hash
-void initializeFormat() {
-</string>
-				<key>trailing</key>
-				<string>    format[1] = "Movie";
-}
 
 </string>
 			</dict>
@@ -237,13 +147,13 @@ void initializeFormat() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>83</string>
+					<string>98</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>82</string>
+					<string>97</string>
 					<key>Timestamp</key>
-					<string>778205710.269112</string>
+					<string>780880926.470834</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -259,106 +169,16 @@ void initializeFormat() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>    genre[0] = "Action";
+				<string>// Global Variables
 </string>
 				<key>leading</key>
-				<string>// Genres Hash
-void initializeGenres() {
+				<string>
+// ============================================================================
 </string>
 				<key>trailing</key>
-				<string>    genre[1] = "Romance";
-    genre[2] = "Slice of Life";
-    genre[3] = "Comedey";
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>103</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>102</string>
-					<key>Timestamp</key>
-					<string>778205710.26902</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    status[0] = "Ongoing";
-</string>
-				<key>leading</key>
-				<string>// Status hash
-void initializeStatus() {
-</string>
-				<key>trailing</key>
-				<string>    status[1] = "Completed";
-    status[2] = "Limbo";
-    status[3] = "Cancelled";
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>114</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>113</string>
-					<key>Timestamp</key>
-					<string>778205710.268925</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    audio[0] = "Japanese";
-</string>
-				<key>leading</key>
-				<string>// Audios Hash
-void initializeAudio() {
-</string>
-				<key>trailing</key>
-				<string>    audio[1] = "English";
-    
-}
+				<string>// ============================================================================
+
+
 </string>
 			</dict>
 			<key>type</key>
@@ -378,7 +198,7 @@ void initializeAudio() {
 					<key>StartingLineNumber</key>
 					<string>122</string>
 					<key>Timestamp</key>
-					<string>778205710.2690769</string>
+					<string>780880926.470852</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -394,14 +214,14 @@ void initializeAudio() {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>    sub[0] = "English";
+				<string>// Initilize Maps
 </string>
 				<key>leading</key>
-				<string>// Subs Hash
-void initializeSub() {
+				<string>
+// ============================================================================
 </string>
 				<key>trailing</key>
-				<string>}
+				<string>// ============================================================================
 
 
 </string>
@@ -417,283 +237,13 @@ void initializeSub() {
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>130</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>129</string>
-					<key>Timestamp</key>
-					<string>778205710.268912</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    media[0] = "Manga";
-</string>
-				<key>leading</key>
-				<string>// Medias Hash
-void initializeMedias() {
-</string>
-				<key>trailing</key>
-				<string>    media[1] = "Light Novel";
-    media[2] = "Film";
-    media[3] = "TV Series";
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>135</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>134</string>
-					<key>Timestamp</key>
-					<string>778458113.919976</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>
-</string>
-				<key>leading</key>
-				<string>    media[3] = "TV Series";
-}
-</string>
-				<key>trailing</key>
-				<string>
-
-// Update Database Json
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>135</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>134</string>
-					<key>Timestamp</key>
-					<string>778458113.919948</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>
-</string>
-				<key>leading</key>
-				<string>    media[3] = "TV Series";
-}
-</string>
-				<key>trailing</key>
-				<string>
-
-// Update Database Json
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>140</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>139</string>
-					<key>Timestamp</key>
-					<string>778458113.948982</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    std::ofstream outFile(filename);
-</string>
-				<key>leading</key>
-				<string>// Update Database Json
-void saveAnimeToJSON(const std::string&amp; filename) {
-</string>
-				<key>trailing</key>
-				<string>    if (!outFile.is_open()) {
-        std::cerr &lt;&lt; "Failed to open file for writing: " &lt;&lt; filename &lt;&lt; "\n";
-        return;
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>209</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>208</string>
-					<key>Timestamp</key>
-					<string>778458113.949151</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    std::vector&lt;int&gt; result;
-</string>
-				<key>leading</key>
-				<string>// Parse Out Vectors
-std::vector&lt;int&gt; parseVector(const std::string&amp; str) {
-</string>
-				<key>trailing</key>
-				<string>    std::string num;
-    for (char c : str) {
-        if (isdigit(c) || c == '-') {
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>227</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
 					<string>226</string>
-					<key>Timestamp</key>
-					<string>778458113.949102</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    std::ifstream source(file);
-</string>
-				<key>leading</key>
-				<string>// Parse Out Json to anime Map
-void parseJson(const std::string&amp; file) {
-</string>
-				<key>trailing</key>
-				<string>    
-
-    std::string line;
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>296</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>295</string>
+					<string>225</string>
 					<key>Timestamp</key>
-					<string>778458113.9491349</string>
+					<string>780880926.4708689</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -709,150 +259,196 @@ void parseJson(const std::string&amp; file) {
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>    size_t id;
+				<string>// Functions
 </string>
 				<key>leading</key>
-				<string>// Input Processing
-void inputAnime() {
-</string>
-				<key>trailing</key>
-				<string>    std::string new_anime;
-    int rank;
-    int media_type;
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>435</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>434</string>
-					<key>Timestamp</key>
-					<string>778458113.949168</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    
-</string>
-				<key>leading</key>
-				<string>// Print Animes From Map
-void printAnimes(const std::vector&lt;int&gt;&amp; sorted_ids) {
-</string>
-				<key>trailing</key>
-				<string>    int maxNameLength = 0;
-    for (const auto&amp; pair : anime) {
-        int length = static_cast&lt;int&gt;(pair.second.name.length());
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>540</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>539</string>
-					<key>Timestamp</key>
-					<string>778458463.9189759</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    std::string database = argc &gt; 1 ? argv[1] : "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
-</string>
-				<key>leading</key>
-				<string>// Main
-int main(int argc, char* argv[]) {
-</string>
-				<key>trailing</key>
-				<string>    
-    // Initialize Unordered Maps
-    initializeServices();
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>505</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>505</string>
-					<key>Timestamp</key>
-					<string>778458463.918947</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string></string>
-				<key>leading</key>
-				<string>    }
-}
-</string>
-				<key>trailing</key>
 				<string>
+// ============================================================================
+</string>
+				<key>trailing</key>
+				<string>// ============================================================================
 
 
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>343</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>342</string>
+					<key>Timestamp</key>
+					<string>780883267.556141</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>// File Saving | Parsing
+</string>
+				<key>leading</key>
+				<string>
+// ============================================================================
+</string>
+				<key>trailing</key>
+				<string>// ============================================================================
+
+
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>485</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>484</string>
+					<key>Timestamp</key>
+					<string>780883267.556275</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>// Input Processing
+</string>
+				<key>leading</key>
+				<string>
+// ============================================================================
+</string>
+				<key>trailing</key>
+				<string>// ============================================================================
+
+
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>734</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>733</string>
+					<key>Timestamp</key>
+					<string>780887453.381391</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>// Database Processing
+</string>
+				<key>leading</key>
+				<string>
+// ============================================================================
+</string>
+				<key>trailing</key>
+				<string>// ============================================================================
+
+
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>802</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>801</string>
+					<key>Timestamp</key>
+					<string>780887453.3814501</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>// Main
+</string>
+				<key>leading</key>
+				<string>
+// ============================================================================
+</string>
+				<key>trailing</key>
+				<string>// ============================================================================
+
+int main(int argc, char* argv[]) {
 </string>
 			</dict>
 			<key>type</key>

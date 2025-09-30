@@ -7,7 +7,12 @@
 
 
 
-// Include Libraries
+// ============================================================================
+// Libraries
+// ============================================================================
+
+
+
 #include <iostream>
 #include <iomanip>
 #include <unordered_map>
@@ -18,10 +23,16 @@
 #include <cctype>
 #include <algorithm>
 #include <limits>
+#include <variant>
 
 
 
-// Declare Struct For MetaData Contents and Types
+// ============================================================================
+// Data Structs
+// ============================================================================
+
+
+
 struct animeDatabase {
     int rank;
     int media_type;
@@ -44,7 +55,51 @@ struct animeDatabase {
 
 
 
-// Declare Unordered Maps Globally
+struct FilterBlock {
+    std::vector<int> ids;
+    std::vector<int> media_types;
+    std::vector<int> services;
+    std::vector<int> genres;
+    std::vector<int> statuses;
+    std::vector<int> dubs;
+    std::vector<int> subs;
+    std::vector<int> media_versions;
+};
+
+struct RangeBlock {
+    std::vector<int> rank;
+    std::vector<int> fan_service;
+    std::vector<int> seasons;
+    std::vector<int> ep_count;
+    std::vector<int> ep_length;
+    std::vector<int> hour_run;
+    std::vector<int> min_run;
+};
+
+struct filterData {
+    std::string ip;
+    int sorting;          // enum for sort mode
+    FilterBlock include;
+    FilterBlock exclude;
+    RangeBlock ranges;
+};
+
+
+
+
+// ============================================================================
+// Define Maps
+// ============================================================================
+
+
+
+
+// ============================================================================
+// Global Variables
+// ============================================================================
+
+
+
 std::unordered_map<int, std::string> service;
 std::unordered_map<int, std::string> format;
 std::unordered_map<int, std::string> genre;
@@ -53,11 +108,21 @@ std::unordered_map<int, std::string> audio;
 std::unordered_map<int, std::string> sub;
 std::unordered_map<int, std::string> media;
 
-
 std::unordered_map<size_t, animeDatabase> anime;
 
+// Assign filterData to "f"
+filterData f;
 
 std::vector<int> sorted_ids;
+
+int arrayLevel = 0;
+
+
+
+// ============================================================================
+// Initilize Maps
+// ============================================================================
+
 
 
 // Services Hash
@@ -66,16 +131,17 @@ void initializeServices() {
     service[1] = "Netflix";
     service[2] = "Hulu";
     service[3] = "Disney Plus";
+    service[4] = "Amazon Prime Video";
+    service[5] = "HiDive";
+    service[6] = "YouTube";
 }
-
 
 
 // Formats Hash
 void initializeFormat() {
-    format[0] = "TV";
+    format[0] = "Series";
     format[1] = "Movie";
 }
-
 
 
 // Genres Hash
@@ -83,7 +149,7 @@ void initializeGenres() {
     genre[0] = "Action";
     genre[1] = "Romance";
     genre[2] = "Slice of Life";
-    genre[3] = "Comedey";
+    genre[3] = "Comedy";
     genre[4] = "Drama";
     genre[5] = "Highschool";
     genre[6] = "College";
@@ -94,8 +160,24 @@ void initializeGenres() {
     genre[11] = "Moving";
     genre[12] = "Magic";
     genre[13] = "Coming of Age";
+    genre[14] = "Adventure";
+    genre[15] = "Mystery";
+    genre[16] = "Thriller";
+    genre[17] = "Horror";
+    genre[18] = "Supernatural";
+    genre[19] = "Historical";
+    genre[20] = "Mecha";
+    genre[21] = "Psychological";
+    genre[22] = "Military";
+    genre[23] = "Sports";
+    genre[24] = "Music";
+    genre[25] = "Martial Arts";
+    genre[26] = "Shounen";
+    genre[27] = "Shoujo";
+    genre[28] = "Seinen";
+    genre[29] = "Josei";
+    genre[30] = "Isekai";
 }
-
 
 
 // Status hash
@@ -108,19 +190,24 @@ void initializeStatus() {
 }
 
 
-
 // Audios Hash
 void initializeAudio() {
     audio[0] = "Japanese";
     audio[1] = "English";
-    
+    audio[2] = "Korean";
+    audio[3] = "Chinese";
+    audio[4] = "Spanish";
+    audio[5] = "French";
 }
-
-
 
 // Subs Hash
 void initializeSub() {
     sub[0] = "English";
+    sub[1] = "Japanese";
+    sub[2] = "Korean";
+    sub[3] = "Chinese";
+    sub[4] = "Spanish";
+    sub[5] = "French";
 }
 
 
@@ -129,13 +216,136 @@ void initializeSub() {
 void initializeMedias() {
     media[0] = "Manga";
     media[1] = "Light Novel";
-    media[2] = "Film";
-    media[3] = "TV Series";
+    media[2] = "Movie";
+    media[3] = "Series";
 }
 
 
 
-// Update Database Json
+// ============================================================================
+// Functions
+// ============================================================================
+
+
+
+// Array Level
+void arrayLeveler(char c) {
+    if (c == '{') arrayLevel++;
+    else if (c == '}') arrayLevel--;
+}
+
+
+// Parse Out Vectors
+std::vector<int> parseVector(const std::string& str) {
+    std::vector<int> result;
+    std::string num;
+    for (char c : str) {
+        if (isdigit(c) or c == '-') {
+            num += c;
+        } else if (!num.empty()) {
+            result.push_back(std::stoi(num));
+            num.clear();
+        }
+    }
+    if (!num.empty()) result.push_back(std::stoi(num));
+    return result;
+}
+
+
+std::vector<std::vector<int>> parseNestedVECTOR(const std::string& str) {
+    int level = 0;
+    std::vector<std::vector<int>> result;
+    std::string num;
+    for (char c : str) {
+        if (c == '{') {
+            level++;
+        }
+        else if (c == '}') {
+            level--;
+        }
+        else if (level == 1) {
+            num += c;
+        }
+        else if (level == 0) {
+            result.push_back(parseVector(num));
+            num.clear();
+        }
+    }
+    if (!num.empty()) result.push_back(parseVector(num));
+    return result;
+}
+
+// Adjusters
+void adjustRank(int id, int newRank) {
+    
+}
+
+
+void adjustID(int id, int newID) {
+    
+}
+
+
+// Update and Edit Handling
+void updateAnime(int id) {
+    
+}
+
+
+// Print Animes From Map
+void printAnimes(const std::vector<int>& sorted_ids) {
+    
+    int maxNameLength = 0;
+    for (const auto& pair : anime) {
+        int length = static_cast<int>(pair.second.name.length());
+        if (length > maxNameLength) {
+            maxNameLength = length;
+        }
+    }
+        
+    
+    // Print header line with adjusted width for new ID column (4 chars)
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
+    
+    // Print header with new "ID" column before Rank
+    std::cout << "| ID  | Rank | " << std::setw(maxNameLength) << std::left << "Name" << " |            Status ID            | Fan Service Rating | Season Count | Episode Count | Average Episode Length |\n";
+    
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
+    
+
+    for (int count : sorted_ids) {
+        if (anime.find(count) != anime.end()) {
+            animeDatabase& a = anime[count];
+
+                std::cout << "| "
+                    << std::setw(3) << std::right << count << " | "
+                    << std::setw(4) << std::left << a.rank << " | "
+                    << std::setw(maxNameLength) << std::left << a.name << " | "
+                    << std::setw(31) << std::right << status.at(a.status_id) << " | "
+                    << std::setw(18) << std::right << a.fan_service_rating << " | "
+                    << std::setw(12) << std::right << a.season_count << " | "
+                    << std::setw(13) << std::right << a.episode_count << " | "
+                    << std::setw(22) << std::right << a.avg_episode_length << " | ";
+                
+                for (int i = 0; i < a.genre_ids.size(); i++) {
+                    std::cout << genre[a.genre_ids[i]] << ", ";
+                }
+                
+                std::cout  << "\n";
+            
+        }
+    }
+}
+
+
+
+// ============================================================================
+// File Saving | Parsing
+// ============================================================================
+
+
+
+// Save Anime Map to File
 void saveAnimeToJSON(const std::string& filename) {
     std::ofstream outFile(filename);
     if (!outFile.is_open()) {
@@ -202,27 +412,7 @@ void saveAnimeToJSON(const std::string& filename) {
 }
 
 
-
-
-// Parse Out Vectors
-std::vector<int> parseVector(const std::string& str) {
-    std::vector<int> result;
-    std::string num;
-    for (char c : str) {
-        if (isdigit(c) || c == '-') {
-            num += c;
-        } else if (!num.empty()) {
-            result.push_back(std::stoi(num));
-            num.clear();
-        }
-    }
-    if (!num.empty()) result.push_back(std::stoi(num));
-    return result;
-}
-
-
-
-// Parse Out Json to anime Map
+// Parse Out File to Anime Map
 void parseJson(const std::string& file) {
     std::ifstream source(file);
     
@@ -291,7 +481,11 @@ void parseJson(const std::string& file) {
 
 
 
+// ============================================================================
 // Input Processing
+// ============================================================================
+
+
 void inputAnime() {
     size_t id;
     std::string new_anime;
@@ -346,7 +540,7 @@ void inputAnime() {
                 }
             }
             
-            std::cout << "| Media type | 0 = TV | 1 = Film |" << "\t";
+            std::cout << "| Media type | 0 = Series | 1 = Movie |" << "\t";
             std::cin >> media_type;
             std::cout << "| Name |";
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -430,53 +624,124 @@ void inputAnime() {
 
 
 
-// Print Animes From Map
-void printAnimes(const std::vector<int>& sorted_ids) {
-    
-    int maxNameLength = 0;
-    for (const auto& pair : anime) {
-        int length = static_cast<int>(pair.second.name.length());
-        if (length > maxNameLength) {
-            maxNameLength = length;
-        }
+void inputRequest(const std::string& file) {
+    std::ifstream source(file);
+    if (!source.is_open()) {
+        std::cerr << "Failed to open file: " << file << "\n";
+        return;
     }
-        
-    
-    // Print header line with adjusted width for new ID column (4 chars)
-    std::cout << "----------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
-    
-    // Print header with new "ID" column before Rank
-    std::cout << "| ID  | Rank | " << std::setw(maxNameLength) << std::left << "Name" << " |            Status ID            | Fan Service Rating | Season Count | Episode Count | Average Episode Length |\n";
-    
-    std::cout << "----------------------------------------------------------------------------------------------------------------------------" << std::string(maxNameLength, '-') << "\n";
-    
 
-    for (int count : sorted_ids) {
-        if (anime.find(count) != anime.end()) {
-            animeDatabase& a = anime[count];
+    std::string line;
+    while (getline(source, line)) {
+        if (line.size() < 2) continue;
 
-                std::cout << "| "
-                    << std::setw(3) << std::right << count << " | "
-                    << std::setw(4) << std::left << a.rank << " | "
-                    << std::setw(maxNameLength) << std::left << a.name << " | "
-                    << std::setw(31) << std::right << status.at(a.status_id) << " | "
-                    << std::setw(18) << std::right << a.fan_service_rating << " | "
-                    << std::setw(12) << std::right << a.season_count << " | "
-                    << std::setw(13) << std::right << a.episode_count << " | "
-                    << std::setw(22) << std::right << a.avg_episode_length << " | ";
-                
-                for (int i = 0; i < a.genre_ids.size(); i++) {
-                    std::cout << genre[a.genre_ids[i]] << ", ";
-                }
-                
-                std::cout  << "\n";
+        // Remove outermost braces
+        line = line.substr(1, line.size() - 2);
+
+        std::vector<std::string> tokens;
+        std::vector<std::string> subtokens;
+        std::string token;
+
+        for (char c : line) {
+            arrayLeveler(c);
+
+            // Top-level comma
+            if (c == ',' && arrayLevel == 0) {
+                tokens.push_back(token);
+                token.clear();
+            } else {
+                token += c;
+            }
+        }
+        if (!token.empty()) tokens.push_back(token);
+
+        // Strip outer braces for include/exclude/ranges sections
+        for (int i = 2; i <= 4 && i < tokens.size(); i++) {
+            if (tokens[i].size() >= 2 && tokens[i][0] == '{' && tokens[i].back() == '}') {
+                tokens[i] = tokens[i].substr(1, tokens[i].size() - 2);
+            }
             
+            arrayLevel = 0;
         }
+        
+        for (char c :tokens[2]) {
+            arrayLeveler(c);
+            token.clear();
+            
+            if (c == ',' && arrayLevel == 1) {
+                subtokens.push_back(token);
+                token.clear();
+            } else {
+                token += c;
+            }
+        }
+        if (!token.empty()) subtokens.push_back(token);
+        
+        
+        f.ip = tokens[0];
+        f.sorting = stoi(tokens[1]);
+        
+        f.exclude.ids = parseNestedVECTOR(tokens[2])[0];
+        f.exclude.media_types = parseNestedVECTOR(tokens[2])[1];
+        f.exclude.services = parseNestedVECTOR(tokens[2])[2];
+        f.exclude.genres = parseNestedVECTOR(tokens[2])[3];
+        f.exclude.statuses = parseNestedVECTOR(tokens[2])[4];
+        f.exclude.dubs = parseNestedVECTOR(tokens[2])[5];
+        f.exclude.subs = parseNestedVECTOR(tokens[2])[6];
+        f.exclude.media_versions = parseNestedVECTOR(tokens[2])[7];
+        
+        f.include.ids = parseNestedVECTOR(tokens[3])[0];
+        f.include.media_types = parseNestedVECTOR(tokens[3])[1];
+        f.include.services = parseNestedVECTOR(tokens[3])[2];
+        f.include.genres = parseNestedVECTOR(tokens[3])[3];
+        f.include.statuses = parseNestedVECTOR(tokens[3])[4];
+        f.include.dubs = parseNestedVECTOR(tokens[3])[5];
+        f.include.subs = parseNestedVECTOR(tokens[3])[6];
+        f.include.media_versions = parseNestedVECTOR(tokens[3])[7];
+        
+        f.ranges.rank = parseNestedVECTOR(tokens[4])[0];
+        f.ranges.fan_service = parseNestedVECTOR(tokens[4])[1];
+        f.ranges.seasons = parseNestedVECTOR(tokens[4])[2];
+        f.ranges.ep_count = parseNestedVECTOR(tokens[4])[3];
+        f.ranges.ep_length = parseNestedVECTOR(tokens[4])[4];
+        f.ranges.hour_run = parseNestedVECTOR(tokens[4])[5];
+        f.ranges.min_run = parseNestedVECTOR(tokens[4])[6];
+        
+        
+        
+
+#ifdef DEBUG
+        std::cout << "Tokens:\n";
+        for (int i = 0; i < tokens.size(); i++) {
+            std::cout << i << ": " << tokens[i] << "\n";
+        }
+        std::cout << f.ip << "\n"
+                  << f.sorting << "\n"
+                  << parseNestedVECTOR(tokens[2])[1][2] << "\n"
+                  << subtokens.size() << "\n";
+
+   
+        
+#endif
     }
+
+    source.close();
 }
 
 
 
+// ============================================================================
+// Database Processing
+// ============================================================================
+
+
+
+// Filter Processing
+std::vector<int> filterAnimes(const filterData& f) {
+    std::vector<int> results;
+
+    return results;
+}
 
 
 // Sorting Anime List By Rank
@@ -503,8 +768,6 @@ void animeSorting(std::vector<int>& sorted_ids) {
         }
     }
 }
-
-
 
 
 void change_ranks() {
@@ -535,33 +798,37 @@ void change_ranks() {
 
 
 
+// ============================================================================
 // Main
+// ============================================================================
+
 int main(int argc, char* argv[]) {
     std::string database = argc > 1 ? argv[1] : "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
-    
-    // Initialize Unordered Maps
+
+#ifdef DEBUG
+    // Debug mode code
+    parseJson(database);
+    inputRequest("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./input.json");
+#else
+    // Release / Build code
     initializeServices();
     initializeFormat();
     initializeGenres();
-    
     initializeStatus();
-    
     initializeAudio();
     initializeSub();
-    
-    
-    // Store Anime Metadata to Struct and to Unordered Map
+
     parseJson(database);
-    
+
     bool keepRunning = true;
     while (keepRunning) {
         sorted_ids.clear();
         animeSorting(sorted_ids);
         printAnimes(sorted_ids);
-        
+
         inputAnime();
         change_ranks();
-        
+
         std::string again;
         std::cout << "Would you like to continue modifying the list? Y / N | ";
         std::cin >> again;
@@ -569,7 +836,9 @@ int main(int argc, char* argv[]) {
             keepRunning = false;
         }
     }
-    
+
     saveAnimeToJSON(database);
-    
+#endif
+
+    return 0;
 }
