@@ -16,6 +16,7 @@
 #include <iostream>
 #include <iomanip>
 #include <unordered_map>
+#include <unordered_set>
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -24,6 +25,7 @@
 #include <algorithm>
 #include <limits>
 #include <variant>
+
 
 
 
@@ -289,6 +291,42 @@ void adjustID(int id, int newID) {
 // Update and Edit Handling
 void updateAnime(int id) {
     
+}
+
+
+// Contains Any
+bool containsAny(std::unordered_set<int>& filterSet, std::vector<int>& data, std::vector<int>& filters) {
+    std::unordered_set<int> filterVecSet(filters.begin(),filters.end());
+    
+    for (int i : data) {
+        if (filterVecSet.count(i)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+// Contains All
+bool containsAll(std::unordered_set<int>& filterSet, std::vector<int>& data, std::vector<int>& filters) {
+    std::unordered_set<int> dataSet(data.begin(), data.end());
+
+    for (int f : filters) {
+        if (!dataSet.count(f)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+
+// In Range
+bool inRange(int data, const std::vector<int>& range) {
+    if (data >= range[0] and data <= range[1]) {
+        return true;
+    }
+    return false;
 }
 
 

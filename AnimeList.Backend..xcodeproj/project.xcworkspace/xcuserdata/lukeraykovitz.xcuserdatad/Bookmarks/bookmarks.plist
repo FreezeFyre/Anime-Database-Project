@@ -57,13 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>31</string>
+					<string>34</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>30</string>
+					<string>33</string>
 					<key>Timestamp</key>
-					<string>780880926.470922</string>
+					<string>783042715.217065</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -79,14 +79,14 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Data Structs
+				<string>// ============================================================================
 </string>
 				<key>leading</key>
-				<string>
-// ============================================================================
+				<string>// ============================================================================
+// Data Structs
 </string>
 				<key>trailing</key>
-				<string>// ============================================================================
+				<string>
 
 
 </string>
@@ -102,13 +102,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>91</string>
+					<string>94</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>90</string>
+					<string>93</string>
 					<key>Timestamp</key>
-					<string>780880926.470799</string>
+					<string>783042715.2170531</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -124,14 +124,14 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Define Maps
+				<string>// ============================================================================
 </string>
 				<key>leading</key>
-				<string>
-// ============================================================================
+				<string>// ============================================================================
+// Define Maps
 </string>
 				<key>trailing</key>
-				<string>// ============================================================================
+				<string>
 
 
 </string>
@@ -147,13 +147,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>98</string>
+					<string>101</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>97</string>
+					<string>100</string>
 					<key>Timestamp</key>
-					<string>780880926.470834</string>
+					<string>783042715.2169859</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -169,14 +169,14 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Global Variables
+				<string>// ============================================================================
 </string>
 				<key>leading</key>
-				<string>
-// ============================================================================
+				<string>// ============================================================================
+// Global Variables
 </string>
 				<key>trailing</key>
-				<string>// ============================================================================
+				<string>
 
 
 </string>
@@ -192,13 +192,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>123</string>
+					<string>126</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>122</string>
+					<string>125</string>
 					<key>Timestamp</key>
-					<string>780880926.470852</string>
+					<string>783042715.217077</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -214,14 +214,14 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Initilize Maps
+				<string>// ============================================================================
 </string>
 				<key>leading</key>
-				<string>
-// ============================================================================
+				<string>// ============================================================================
+// Initilize Maps
 </string>
 				<key>trailing</key>
-				<string>// ============================================================================
+				<string>
 
 
 </string>
@@ -237,13 +237,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>226</string>
+					<string>229</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>225</string>
+					<string>228</string>
 					<key>Timestamp</key>
-					<string>780880926.4708689</string>
+					<string>783042715.217101</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -259,14 +259,14 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Functions
+				<string>// ============================================================================
 </string>
 				<key>leading</key>
-				<string>
-// ============================================================================
+				<string>// ============================================================================
+// Functions
 </string>
 				<key>trailing</key>
-				<string>// ============================================================================
+				<string>
 
 
 </string>
@@ -282,13 +282,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>343</string>
+					<string>444</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>342</string>
+					<string>443</string>
 					<key>Timestamp</key>
-					<string>780883267.556141</string>
+					<string>783042715.217014</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -304,14 +304,104 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// File Saving | Parsing
+				<string>        writeVector(outFile, a.media_versions);
 </string>
 				<key>leading</key>
-				<string>
-// ============================================================================
+				<string>        outFile &lt;&lt; ",";
+        
 </string>
 				<key>trailing</key>
-				<string>// ============================================================================
+				<string>        outFile &lt;&lt; "]";
+    }
+
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>586</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>585</string>
+					<key>Timestamp</key>
+					<string>783042715.217029</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>            std::cout &lt;&lt; "| Japanese Name |" &lt;&lt; "\t";
+</string>
+				<key>leading</key>
+				<string>            std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
+            std::getline(std::cin, name);
+</string>
+				<key>trailing</key>
+				<string>            std::getline(std::cin, alt_name);
+            
+            std::cout &lt;&lt; "| Enter service IDs (space-separated, end with -1): ";
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>835</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>834</string>
+					<key>Timestamp</key>
+					<string>783042715.217041</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>}
+</string>
+				<key>leading</key>
+				<string>        
+    }
+</string>
+				<key>trailing</key>
+				<string>
 
 
 </string>
@@ -327,13 +417,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>485</string>
+					<string>882</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>484</string>
+					<string>882</string>
 					<key>Timestamp</key>
-					<string>780883267.556275</string>
+					<string>783042715.2170891</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -349,107 +439,13 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>// Input Processing
-</string>
+				<string></string>
 				<key>leading</key>
-				<string>
-// ============================================================================
+				<string>    return 0;
+}
 </string>
 				<key>trailing</key>
-				<string>// ============================================================================
-
-
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>734</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>733</string>
-					<key>Timestamp</key>
-					<string>780887453.381391</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>// Database Processing
-</string>
-				<key>leading</key>
-				<string>
-// ============================================================================
-</string>
-				<key>trailing</key>
-				<string>// ============================================================================
-
-
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>802</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>801</string>
-					<key>Timestamp</key>
-					<string>780887453.3814501</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>// Main
-</string>
-				<key>leading</key>
-				<string>
-// ============================================================================
-</string>
-				<key>trailing</key>
-				<string>// ============================================================================
-
-int main(int argc, char* argv[]) {
-</string>
+				<string></string>
 			</dict>
 			<key>type</key>
 			<string>bookmark</string>
