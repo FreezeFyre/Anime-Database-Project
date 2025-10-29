@@ -5,7 +5,7 @@
 //  Created by Luke Raykovitz on 10/24/25.
 //
 
-#include "Helpers.hpp"
+#include "helpers.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -21,6 +21,3 @@
 #include <variant>
 
 
-void storeFilters(int phase, int slot_index, const std::list<int>& slot_values, Filters& f){
-    
-}

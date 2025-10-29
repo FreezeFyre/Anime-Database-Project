@@ -21,7 +21,7 @@
 
 #include "client_io.hpp"
 #include "filters.hpp"
-#include "Helpers.hpp"
+#include "helpers.hpp"
 
 
 void parseFilters(const std::string& file) {

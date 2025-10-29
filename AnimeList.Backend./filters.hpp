@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <limits>
 #include <variant>
+#include <list>
 
 
 enum SetsKey : int {
@@ -62,5 +63,8 @@ struct Filters {
     std::array<Range, RK_COUNT> Ranges;
 };
 
+
+
+void storeFilters(int phase, int slot_index, const std::list<int>& slot_values, Filters& f);
 
 /* Filters_hpp */

@@ -1,11 +1,8 @@
 //
-//  Anime_data.hpp
+//  Anime_data.cpp
 //  Anime List
 //
 //  Created by Luke Raykovitz on 10/24/25.
 //
 
-#pragma once
-
-
-/* Anime_data_hpp */
+#include "anime_data.hpp"

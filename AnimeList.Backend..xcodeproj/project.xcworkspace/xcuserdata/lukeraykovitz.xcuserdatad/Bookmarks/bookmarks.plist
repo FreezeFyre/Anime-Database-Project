@@ -57,238 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>34</string>
+					<string>258</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>33</string>
+					<string>257</string>
 					<key>Timestamp</key>
-					<string>783042715.217065</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>// ============================================================================
-</string>
-				<key>leading</key>
-				<string>// ============================================================================
-// Data Structs
-</string>
-				<key>trailing</key>
-				<string>
-
-
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>94</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>93</string>
-					<key>Timestamp</key>
-					<string>783042715.2170531</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>// ============================================================================
-</string>
-				<key>leading</key>
-				<string>// ============================================================================
-// Define Maps
-</string>
-				<key>trailing</key>
-				<string>
-
-
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>101</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>100</string>
-					<key>Timestamp</key>
-					<string>783042715.2169859</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>// ============================================================================
-</string>
-				<key>leading</key>
-				<string>// ============================================================================
-// Global Variables
-</string>
-				<key>trailing</key>
-				<string>
-
-
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>126</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>125</string>
-					<key>Timestamp</key>
-					<string>783042715.217077</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>// ============================================================================
-</string>
-				<key>leading</key>
-				<string>// ============================================================================
-// Initilize Maps
-</string>
-				<key>trailing</key>
-				<string>
-
-
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>229</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>228</string>
-					<key>Timestamp</key>
-					<string>783042715.217101</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>// ============================================================================
-</string>
-				<key>leading</key>
-				<string>// ============================================================================
-// Functions
-</string>
-				<key>trailing</key>
-				<string>
-
-
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>444</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>443</string>
-					<key>Timestamp</key>
-					<string>783042715.217014</string>
+					<string>783398464.554217</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -327,13 +102,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>586</string>
+					<string>400</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>585</string>
+					<string>399</string>
 					<key>Timestamp</key>
-					<string>783042715.217029</string>
+					<string>783398464.55424</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -372,13 +147,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>835</string>
+					<string>536</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>834</string>
+					<string>535</string>
 					<key>Timestamp</key>
-					<string>783042715.217041</string>
+					<string>783398464.554262</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -417,13 +192,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>882</string>
+					<string>568</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>882</string>
+					<string>568</string>
 					<key>Timestamp</key>
-					<string>783042715.2170891</string>
+					<string>783398464.554153</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
