@@ -96,10 +96,3 @@ void parseFilters(const std::string& file) {
         }
     }
 }
-
-
-
-
-int main() {
-    parseFilters("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./input.json");
-}

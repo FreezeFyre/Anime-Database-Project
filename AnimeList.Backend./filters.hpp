@@ -20,6 +20,8 @@
 #include <limits>
 #include <variant>
 #include <list>
+#include <optional>
+#include <array>
 
 
 enum SetsKey : int {
