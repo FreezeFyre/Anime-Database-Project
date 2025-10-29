@@ -31,6 +31,13 @@
 #include "client_io.hpp"
 #include "filters.hpp"
 #include "helpers.hpp"
+<<<<<<< HEAD
+=======
+
+
+std::unordered_map<size_t, animeDatabase> anime;
+
+>>>>>>> ac61a878537227ed541adcf7e501a2d74aeb5eab
 
 std::vector<int> sorted_ids;
 
@@ -542,8 +549,19 @@ void change_ranks() {
 // ============================================================================
 
 int main(int argc, char* argv[]) {
+<<<<<<< HEAD
     // Release / Build code
     parseJson("anime_data.json");
+=======
+    std::string database = argc > 1 ? argv[1] : "/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json";
+
+    // Debug mode code
+    parseJson(database);
+
+    // Release / Build code
+
+    parseJson(database);
+>>>>>>> ac61a878537227ed541adcf7e501a2d74aeb5eab
 
     bool keepRunning = true;
     while (keepRunning) {
@@ -562,7 +580,11 @@ int main(int argc, char* argv[]) {
         }
     }
 
+<<<<<<< HEAD
     saveAnimeToJSON("anime_data.json");
+=======
+    saveAnimeToJSON(database);
+>>>>>>> ac61a878537227ed541adcf7e501a2d74aeb5eab
 
     return 0;
 }
