@@ -57,13 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>258</string>
+					<string>255</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>257</string>
+					<string>254</string>
 					<key>Timestamp</key>
-					<string>783398464.554217</string>
+					<string>783469416.138813</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -79,106 +79,106 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>        writeVector(outFile, a.media_versions);
+				<string>        writeVector(outFile, a.related_show_ids);
 </string>
 				<key>leading</key>
+				<string>                &lt;&lt; a.min_runtime &lt;&lt; ",";
+
+</string>
+				<key>trailing</key>
 				<string>        outFile &lt;&lt; ",";
+        
+        writeVector(outFile, a.media_versions);
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>397</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>396</string>
+					<key>Timestamp</key>
+					<string>783469416.1388561</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>            std::cout &lt;&lt; "| Name |";
+</string>
+				<key>leading</key>
+				<string>            std::cout &lt;&lt; "| Media type | 0 = Series | 1 = Movie |" &lt;&lt; "\t";
+            std::cin &gt;&gt; media_type;
+</string>
+				<key>trailing</key>
+				<string>            std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
+            std::getline(std::cin, name);
+            std::cout &lt;&lt; "| Japanese Name |" &lt;&lt; "\t";
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>533</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>532</string>
+					<key>Timestamp</key>
+					<string>783469416.138841</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnimeList.Backend./main.cpp</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>        anime[id].rank = new_rank;
+</string>
+				<key>leading</key>
+				<string>        }
         
 </string>
 				<key>trailing</key>
-				<string>        outFile &lt;&lt; "]";
-    }
-
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>400</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>399</string>
-					<key>Timestamp</key>
-					<string>783398464.55424</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>            std::cout &lt;&lt; "| Japanese Name |" &lt;&lt; "\t";
-</string>
-				<key>leading</key>
-				<string>            std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
-            std::getline(std::cin, name);
-</string>
-				<key>trailing</key>
-				<string>            std::getline(std::cin, alt_name);
-            
-            std::cout &lt;&lt; "| Enter service IDs (space-separated, end with -1): ";
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>536</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>535</string>
-					<key>Timestamp</key>
-					<string>783398464.554262</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>AnimeList.Backend./main.cpp</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>}
-</string>
-				<key>leading</key>
 				<string>        
     }
-</string>
-				<key>trailing</key>
-				<string>
-
-
+}
 </string>
 			</dict>
 			<key>type</key>
@@ -192,13 +192,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>568</string>
+					<string>561</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>568</string>
+					<string>560</string>
 					<key>Timestamp</key>
-					<string>783398464.554153</string>
+					<string>783469416.138869</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -214,13 +214,17 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string></string>
+				<string>            keepRunning = false;
+</string>
 				<key>leading</key>
-				<string>    return 0;
-}
+				<string>        std::cin &gt;&gt; again;
+        if (again != "Y" &amp;&amp; again != "y") {
 </string>
 				<key>trailing</key>
-				<string></string>
+				<string>        }
+    }
+
+</string>
 			</dict>
 			<key>type</key>
 			<string>bookmark</string>
