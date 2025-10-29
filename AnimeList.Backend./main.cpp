@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <limits>
 #include <variant>
+#include <climits>
 
 
 #include "anime_data.hpp"

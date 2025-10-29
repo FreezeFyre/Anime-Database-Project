@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <limits>
 #include <variant>
+#include <unordered_map>
 
 #pragma once
 
@@ -39,89 +40,20 @@ struct animeDatabase {
     std::vector<int> media_versions;
 };
 
-std::unordered_map<size_t, animeDatabase> anime;
+extern std::unordered_map<size_t, animeDatabase> anime;
 
 
 /* Convert Following to a File Parser (metadata types saved in file)*/
-const std::vector<std::string> service = {
-    "Crunchyroll",
-    "Netflix",
-    "Hulu",
-    "Disney Plus",
-    "Amazon Prime Video",
-    "HiDive",
-    "Youtube"
-};
+extern const std::vector<std::string> service;
 
-const std::vector<std::string> format = {
-    "Series",
-    "Movie"
-};
+extern const std::vector<std::string> format;
 
-const std::vector<std::string> genre = {
-    "Action",
-    "Romance",
-    "Slice of Life",
-    "Comedy",
-    "Drama",
-    "Highschool",
-    "College",
-    "SciFi",
-    "Modern Day",
-    "Fantasy",
-    "Ecchi",
-    "Moving",
-    "Magic",
-    "Coming of Age",
-    "Adventure",
-    "Mystery",
-    "Thriller",
-    "Horror",
-    "Supernatural",
-    "Historical",
-    "Mech",
-    "Psychological",
-    "Military",
-    "Sports",
-    "Music",
-    "Martial Arts",
-    "Shounen",
-    "Shoujo",
-    "Seinen",
-    "Josei",
-    "Isekai"
-};
+extern const std::vector<std::string> genre;
 
-const std::vector<std::string> status = {
-    "Ongoing",
-    "Completed",
-    "Limbo",
-    "Cancelled",
-    "Un-Released"
-};
+extern const std::vector<std::string> status;
 
-const std::vector<std::string> audio = {
-    "Japanese",
-    "English",
-    "Korean",
-    "Chinese",
-    "Spanish",
-    "French"
-};
+extern const std::vector<std::string> audio;
 
-const std::vector<std::string> sub = {
-    "Japanese",
-    "English",
-    "Korean",
-    "Chinese",
-    "Spanish",
-    "French"
-};
+extern const std::vector<std::string> sub;
 
-const std::vector<std::string> media = {
-    "Manga",
-    "Light Novel",
-    "Movie",
-    "Series",
-    "Game"
-};
+extern const std::vector<std::string> media;
