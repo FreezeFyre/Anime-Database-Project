@@ -57,13 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>255</string>
+					<string>248</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>254</string>
+					<string>247</string>
 					<key>Timestamp</key>
-					<string>783469416.138813</string>
+					<string>783469592.8496881</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -79,16 +79,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>        writeVector(outFile, a.related_show_ids);
+				<string>                &lt;&lt; a.fan_service_rating &lt;&lt; ","
 </string>
 				<key>leading</key>
-				<string>                &lt;&lt; a.min_runtime &lt;&lt; ",";
-
+				<string>        writeVector(outFile, a.sub_lang_ids);
+        outFile &lt;&lt; ","
 </string>
 				<key>trailing</key>
-				<string>        outFile &lt;&lt; ",";
-        
-        writeVector(outFile, a.media_versions);
+				<string>                &lt;&lt; a.season_count &lt;&lt; ","
+                &lt;&lt; a.episode_count &lt;&lt; ","
+                &lt;&lt; a.avg_episode_length &lt;&lt; ","
 </string>
 			</dict>
 			<key>type</key>
@@ -102,13 +102,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>397</string>
+					<string>390</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>396</string>
+					<string>389</string>
 					<key>Timestamp</key>
-					<string>783469416.1388561</string>
+					<string>783469592.849674</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -124,16 +124,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>            std::cout &lt;&lt; "| Name |";
+				<string>                        ++anime[i].rank;
 </string>
 				<key>leading</key>
-				<string>            std::cout &lt;&lt; "| Media type | 0 = Series | 1 = Movie |" &lt;&lt; "\t";
-            std::cin &gt;&gt; media_type;
+				<string>                for (int i = 0; i &lt; anime.size(); i++) {
+                    if (anime[i].rank &gt;= rank) {
 </string>
 				<key>trailing</key>
-				<string>            std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
-            std::getline(std::cin, name);
-            std::cout &lt;&lt; "| Japanese Name |" &lt;&lt; "\t";
+				<string>                    }
+                }
+            }
 </string>
 			</dict>
 			<key>type</key>
@@ -147,13 +147,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>533</string>
+					<string>526</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>532</string>
+					<string>525</string>
 					<key>Timestamp</key>
-					<string>783469416.138841</string>
+					<string>783469592.849659</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -169,16 +169,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>        anime[id].rank = new_rank;
-</string>
-				<key>leading</key>
-				<string>        }
-        
-</string>
-				<key>trailing</key>
 				<string>        
-    }
-}
+</string>
+				<key>leading</key>
+				<string>        std::cout &lt;&lt; "What is its new rank" &lt;&lt; "\t";
+        std::cin &gt;&gt; new_rank;
+</string>
+				<key>trailing</key>
+				<string>        for (int i = 0; i &lt; anime.size(); i++) {
+            if (anime[i].rank &gt;= new_rank) {
+                anime[i].rank += 1;
 </string>
 			</dict>
 			<key>type</key>
@@ -192,13 +192,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>561</string>
+					<string>548</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>560</string>
+					<string>547</string>
 					<key>Timestamp</key>
-					<string>783469416.138869</string>
+					<string>783469592.849629</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -214,16 +214,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>            keepRunning = false;
+				<string>
 </string>
 				<key>leading</key>
-				<string>        std::cin &gt;&gt; again;
-        if (again != "Y" &amp;&amp; again != "y") {
+				<string>    // Release / Build code
+    parseJson("anime_data.json");
 </string>
 				<key>trailing</key>
-				<string>        }
-    }
-
+				<string>
+    bool keepRunning = true;
+    while (keepRunning) {
 </string>
 			</dict>
 			<key>type</key>

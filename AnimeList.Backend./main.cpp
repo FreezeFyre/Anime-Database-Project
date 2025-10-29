@@ -542,8 +542,10 @@ void change_ranks() {
 // ============================================================================
 
 int main(int argc, char* argv[]) {
+
     // Release / Build code
     parseJson("anime_data.json");
+
 
     bool keepRunning = true;
     while (keepRunning) {
@@ -561,6 +563,7 @@ int main(int argc, char* argv[]) {
             keepRunning = false;
         }
     }
+
 
     saveAnimeToJSON("anime_data.json");
 
