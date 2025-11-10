@@ -91,3 +91,24 @@ const std::vector<std::string> media = {
     "Series",
     "Game"
 };
+
+
+
+void parseAnimeDATA(const std::string& file) {
+    std::ifstream source(file);
+    
+    if (!source.is_open()) {
+        std::cerr << "Failed to open: \t" << file << "\n";
+        return;
+    }
+    
+    std::string line;
+    while (getline(source, line)) {
+        
+        if (!line.empty()) {
+            std::cout << line << "\n";
+        }
+        
+        
+    }
+};

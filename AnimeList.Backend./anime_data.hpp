@@ -57,3 +57,7 @@ extern const std::vector<std::string> audio;
 extern const std::vector<std::string> sub;
 
 extern const std::vector<std::string> media;
+
+
+
+void parseAnimeDATA(const std::string& file);

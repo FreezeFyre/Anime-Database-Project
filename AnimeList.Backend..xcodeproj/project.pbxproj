@@ -6,10 +6,6 @@
 	objectVersion = 70;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		70B7E2A62E621E5B00D61D7C /* libglfw.3.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 70B7E2A52E621E5B00D61D7C /* libglfw.3.4.dylib */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		7007047E2DB1E7FF00BAFCCB /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -24,7 +20,6 @@
 
 /* Begin PBXFileReference section */
 		700704802DB1E7FF00BAFCCB /* Anime List */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Anime List"; sourceTree = BUILT_PRODUCTS_DIR; };
-		70B7E2A52E621E5B00D61D7C /* libglfw.3.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.4.dylib; path = ../../../../../usr/local/Cellar/glfw/3.4/lib/libglfw.3.4.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -36,7 +31,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				70B7E2A62E621E5B00D61D7C /* libglfw.3.4.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,7 +41,6 @@
 			isa = PBXGroup;
 			children = (
 				700704822DB1E7FF00BAFCCB /* AnimeList.Backend. */,
-				70B7E2A42E621E5B00D61D7C /* Frameworks */,
 				700704812DB1E7FF00BAFCCB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -58,14 +51,6 @@
 				700704802DB1E7FF00BAFCCB /* Anime List */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		70B7E2A42E621E5B00D61D7C /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				70B7E2A52E621E5B00D61D7C /* libglfw.3.4.dylib */,
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -261,10 +246,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				LIBRARY_SEARCH_PATHS = (
-					/usr/local/lib,
-					/usr/local/Cellar/glfw/3.4/lib,
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -275,10 +257,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				LIBRARY_SEARCH_PATHS = (
-					/usr/local/lib,
-					/usr/local/Cellar/glfw/3.4/lib,
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

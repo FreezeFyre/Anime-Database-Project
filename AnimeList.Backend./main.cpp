@@ -269,11 +269,22 @@ void saveAnimeToJSON(const std::string& filename) {
 void parseJson(const std::string& file) {
     std::ifstream source(file);
     
+    if (!source.is_open()) {
+        std::cerr << "Failed to open file: " << file << "\n";
+        return;
+    }
 
     std::string line;
     while (getline(source, line)) {
-        line.erase(line.size() - 1);
-        line.erase(0,3);
+        if (line.size() <= 1) {
+            line.erase(0);
+        }
+        
+        if (line.size() >= 5) {
+            line.erase(line.size() - 1);
+            line.erase(0,3);
+        }
+
         
         std::vector<std::string> tokens;
         std::string token;
@@ -298,7 +309,7 @@ void parseJson(const std::string& file) {
             
             if (!token.empty()) tokens.push_back(token); // add last token
                         
-            int id = std::stoi(tokens[0]);  // convert "123" to 123
+            int id = std::stoi(tokens[0]);
 
             anime[id].rank              = std::stoi(tokens[1]);
             anime[id].media_type        = std::stoi(tokens[2]);
@@ -317,6 +328,7 @@ void parseJson(const std::string& file) {
             anime[id].min_runtime       = std::stoi(tokens[15]);
             anime[id].related_show_ids  = parseVector(tokens[16]);
             anime[id].media_versions    = parseVector(tokens[17]);
+            
         }
         
     
@@ -545,10 +557,10 @@ void change_ranks() {
 int main(int argc, char* argv[]) {
 
     // Release / Build code
-    parseJson("anime_data.json");
+    parseJson("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json");
 
 
-    bool keepRunning = true;
+    bool keepRunning = false;
     while (keepRunning) {
         sorted_ids.clear();
         animeSorting(sorted_ids);
@@ -565,8 +577,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-
-    saveAnimeToJSON("anime_data.json");
+    parseFilters("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./input.json");
+    saveAnimeToJSON("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json");
 
     return 0;
 }

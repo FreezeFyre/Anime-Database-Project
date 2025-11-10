@@ -79,16 +79,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
+				<string>        outFile &lt;&lt; ","
+</string>
+				<key>leading</key>
+				<string>
+        writeVector(outFile, a.sub_lang_ids);
+</string>
+				<key>trailing</key>
 				<string>                &lt;&lt; a.fan_service_rating &lt;&lt; ","
-</string>
-				<key>leading</key>
-				<string>        writeVector(outFile, a.sub_lang_ids);
-        outFile &lt;&lt; ","
-</string>
-				<key>trailing</key>
-				<string>                &lt;&lt; a.season_count &lt;&lt; ","
+                &lt;&lt; a.season_count &lt;&lt; ","
                 &lt;&lt; a.episode_count &lt;&lt; ","
-                &lt;&lt; a.avg_episode_length &lt;&lt; ","
 </string>
 			</dict>
 			<key>type</key>
@@ -102,13 +102,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>390</string>
+					<string>402</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>389</string>
+					<string>401</string>
 					<key>Timestamp</key>
-					<string>783469592.849674</string>
+					<string>783478156.092261</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -124,16 +124,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
+				<string>                    if (anime[i].rank &gt;= rank) {
+</string>
+				<key>leading</key>
+				<string>            if (rank &gt; 0) {
+                for (int i = 0; i &lt; anime.size(); i++) {
+</string>
+				<key>trailing</key>
 				<string>                        ++anime[i].rank;
-</string>
-				<key>leading</key>
-				<string>                for (int i = 0; i &lt; anime.size(); i++) {
-                    if (anime[i].rank &gt;= rank) {
-</string>
-				<key>trailing</key>
-				<string>                    }
+                    }
                 }
-            }
 </string>
 			</dict>
 			<key>type</key>
@@ -147,13 +147,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>526</string>
+					<string>538</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>525</string>
+					<string>537</string>
 					<key>Timestamp</key>
-					<string>783469592.849659</string>
+					<string>783478156.092239</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -169,16 +169,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
+				<string>        std::cin &gt;&gt; new_rank;
+</string>
+				<key>leading</key>
 				<string>        
-</string>
-				<key>leading</key>
-				<string>        std::cout &lt;&lt; "What is its new rank" &lt;&lt; "\t";
-        std::cin &gt;&gt; new_rank;
+        std::cout &lt;&lt; "What is its new rank" &lt;&lt; "\t";
 </string>
 				<key>trailing</key>
-				<string>        for (int i = 0; i &lt; anime.size(); i++) {
+				<string>        
+        for (int i = 0; i &lt; anime.size(); i++) {
             if (anime[i].rank &gt;= new_rank) {
-                anime[i].rank += 1;
 </string>
 			</dict>
 			<key>type</key>
@@ -192,13 +192,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>548</string>
+					<string>560</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>547</string>
+					<string>559</string>
 					<key>Timestamp</key>
-					<string>783469592.849629</string>
+					<string>783478156.0921789</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -214,16 +214,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>
+				<string>    parseJson("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json");
 </string>
 				<key>leading</key>
-				<string>    // Release / Build code
-    parseJson("anime_data.json");
+				<string>
+    // Release / Build code
 </string>
 				<key>trailing</key>
 				<string>
-    bool keepRunning = true;
-    while (keepRunning) {
+
+    bool keepRunning = false;
 </string>
 			</dict>
 			<key>type</key>
