@@ -9,6 +9,9 @@
 
 std::unordered_map<size_t, animeDatabase> anime;
 
+
+
+
 const std::vector<std::string> service = {
     "Crunchyroll",
     "Netflix",

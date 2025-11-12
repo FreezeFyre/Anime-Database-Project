@@ -44,45 +44,37 @@ void storeFilters(int phase, int slot_index, const std::vector<int>& slot_values
 
 bool inVector(std::vector<int>& inData, int& inFilter) {
     std::unordered_set<int> mDat(inData.begin(),inData.end());
-    
+
     if (mDat.count(inFilter)) {
         return true;
     }
-    
     return false;
 }
 
-void checkIncludes(Filters& f, int id) {
-    for (int i = 0; i > SK_COUNT; i++) {
-        if (i == 0) {
-            
-        }
-        else if (f.Sets[i].include.size() > 1) {
-            for (int n = 0; n < f.Sets[i].include.size(); i++) {
-                if (inVector(anime[id].genre_ids, f.Sets[i].include)) {
-                    <#statements#>
-                }
-            }
-        }
-        else {
-            
-        }
-    }
+
+
+
+bool checkIncludes(Filters& f, int id) {
+    return false;
 }
 
 
-void checkExcludes(Filters& f, int id) {
-    
+bool checkExcludes(Filters& f, int id) {
+    return false;
 }
 
 
-void checkRanges(Filters& f, int id) {
-    
+bool checkRanges(Filters& f, int id) {
+    return false;
 }
 
 
 void filterChecks(Filters& f) {
+    std::vector<int> passed_ids;
+    
     for (int i = 0; i < anime.size(); i++) {
-        
+        if (checkIncludes(f, i) and checkExcludes(f, i) and checkRanges(f, i)) {
+            passed_ids.push_back(i);
+        }
     }
 }
