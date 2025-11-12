@@ -31,7 +31,6 @@
 #include "anime_data.hpp"
 #include "client_io.hpp"
 #include "filters.hpp"
-#include "helpers.hpp"
 
 std::vector<int> sorted_ids;
 
@@ -110,7 +109,7 @@ void updateAnime(int id) {
 
 
 // Contains Any
-bool containsAny(std::unordered_set<int>& filterSet, std::vector<int>& data, std::vector<int>& filters) {
+bool containsAny(Filters& f, std::vector<int>& data, std::vector<int>& filters) {
     std::unordered_set<int> filterVecSet(filters.begin(),filters.end());
     
     for (int i : data) {
@@ -123,7 +122,7 @@ bool containsAny(std::unordered_set<int>& filterSet, std::vector<int>& data, std
 
 
 // Contains All
-bool containsAll(std::unordered_set<int>& filterSet, std::vector<int>& data, std::vector<int>& filters) {
+bool containsAll(Filters& f, std::vector<int>& data, std::vector<int>& filters) {
     std::unordered_set<int> dataSet(data.begin(), data.end());
 
     for (int f : filters) {
@@ -576,7 +575,7 @@ int main(int argc, char* argv[]) {
             keepRunning = false;
         }
     }
-
+    
     parseFilters("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./input.json");
     saveAnimeToJSON("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json");
 

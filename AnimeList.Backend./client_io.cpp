@@ -21,7 +21,6 @@
 
 #include "client_io.hpp"
 #include "filters.hpp"
-#include "helpers.hpp"
 
 
 void parseFilters(const std::string& file) {
@@ -30,7 +29,7 @@ void parseFilters(const std::string& file) {
     int slot_index = 0;
     bool slot_collection = 0;
     std::string buffer;
-    std::list<int> slot_values;
+    std::vector<int> slot_values;
     
     
     Filters f;

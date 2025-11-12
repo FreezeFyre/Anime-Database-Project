@@ -66,7 +66,16 @@ struct Filters {
 };
 
 
+bool inVector(std::vector<int>& mDat, std::vector<int>& inFilter);
 
-void storeFilters(int phase, int slot_index, const std::list<int>& slot_values, Filters& f);
+void storeFilters(int phase, int slot_index, const std::vector<int>& slot_values, Filters& f);
+
+void checkIncludes(Filters& f, int id);
+
+void checkExcludes(Filters& f, int id);
+
+void checkRanges(Filters& f, int id);
+
+void filterChecks(Filters& f);
 
 /* Filters_hpp */
