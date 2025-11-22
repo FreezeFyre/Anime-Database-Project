@@ -9,9 +9,6 @@
 
 std::unordered_map<size_t, animeDatabase> anime;
 
-
-
-
 const std::vector<std::string> service = {
     "Crunchyroll",
     "Netflix",
@@ -95,10 +92,8 @@ const std::vector<std::string> media = {
     "Game"
 };
 
-
-
 void parseAnimeDATA(const std::string& file) {
-    std::ifstream source(file);
+        std::ifstream source(file);
     
     if (!source.is_open()) {
         std::cerr << "Failed to open: \t" << file << "\n";

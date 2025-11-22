@@ -57,13 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>247</string>
+					<string>195</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>246</string>
+					<string>194</string>
 					<key>Timestamp</key>
-					<string>784510410.7438509</string>
+					<string>785467600.207642</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -102,13 +102,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>401</string>
+					<string>301</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>400</string>
+					<string>300</string>
 					<key>Timestamp</key>
-					<string>784510410.74375</string>
+					<string>785467600.207626</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -124,16 +124,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>                    if (anime[i].rank &gt;= rank) {
+				<string>
 </string>
 				<key>leading</key>
-				<string>            if (rank &gt; 0) {
-                for (int i = 0; i &lt; anime.size(); i++) {
+				<string>
+
 </string>
 				<key>trailing</key>
-				<string>                        ++anime[i].rank;
-                    }
-                }
+				<string>
+
+// ============================================================================
 </string>
 			</dict>
 			<key>type</key>
@@ -147,13 +147,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>537</string>
+					<string>334</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>536</string>
+					<string>333</string>
 					<key>Timestamp</key>
-					<string>784510410.74383</string>
+					<string>785467600.2074701</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -169,16 +169,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>        std::cin &gt;&gt; new_rank;
+				<string>
 </string>
 				<key>leading</key>
-				<string>        
-        std::cout &lt;&lt; "What is its new rank" &lt;&lt; "\t";
+				<string>    }
+}
 </string>
 				<key>trailing</key>
-				<string>        
-        for (int i = 0; i &lt; anime.size(); i++) {
-            if (anime[i].rank &gt;= new_rank) {
+				<string>
+// ============================================================================
+// Main
 </string>
 			</dict>
 			<key>type</key>
@@ -192,13 +192,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>559</string>
+					<string>343</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>558</string>
+					<string>342</string>
 					<key>Timestamp</key>
-					<string>784510410.743807</string>
+					<string>785467600.20761</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>

@@ -65,17 +65,16 @@ struct Filters {
     std::array<Range, RK_COUNT> Ranges;
 };
 
-
-bool inVector(std::vector<int>& mDat, int& inFilter);
-
 void storeFilters(int phase, int slot_index, const std::vector<int>& slot_values, Filters& f);
 
-bool checkIncludes(Filters& f, int id);
+bool inVector(const std::vector<int>& mDat, const std::vector<int>& inFilter);
 
-bool checkExcludes(Filters& f, int id);
+bool checkIncludes(const Filters& f, const int id);
 
-bool checkRanges(Filters& f, int id);
+bool checkExcludes(const Filters& f, const int id);
 
-void filterChecks(Filters& f);
+bool checkRanges(const Filters& f, const int id);
+
+void filterChecks(const Filters& f);
 
 

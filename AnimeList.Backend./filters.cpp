@@ -42,34 +42,58 @@ void storeFilters(int phase, int slot_index, const std::vector<int>& slot_values
 }
 
 
-bool inVector(std::vector<int>& inData, int& inFilter) {
+// Logic COMPLETE
+bool inVector(const std::vector<int>& inData, const std::vector<int>& inFilter) {
     std::unordered_set<int> mDat(inData.begin(),inData.end());
-
-    if (mDat.count(inFilter)) {
-        return true;
+    
+    for (int i = 0; i < inFilter.size(); i++) {
+        if (mDat.count(inFilter[i])) {
+            return true;
+        }
     }
     return false;
 }
 
 
 
-
-bool checkIncludes(Filters& f, int id) {
-    return false;
+// Logic BROKEN -- Replace anime[id].genre_ids with anime[id].*pointer[i]
+bool checkIncludes(const Filters& f, const int id) {
+    for (int i = 0; i < SK_COUNT; i++) {
+        if (!inVector(anime[id].genre_ids, f.Sets[i].include)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
-bool checkExcludes(Filters& f, int id) {
-    return false;
+// Logic COMPLETE -- Replace anime[id].genre_ids with anime[id].*pointer[i]
+bool checkExcludes(const Filters& f, const int id) {
+    for (int i = 0; i < SK_COUNT; i++) {
+        if (f.Sets[i].exclude.empty()) continue;
+        
+        if (inVector(anime[id].genre_ids, f.Sets[i].exclude)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
-bool checkRanges(Filters& f, int id) {
-    return false;
+// Logic COMPLETE -- Replace anime[id].rank with anime[id].*pointer[i]
+bool checkRanges(const Filters& f, const int id) {
+    for (int i = 0; i < RK_COUNT; i++) {
+        if (!f.Ranges[i].max and !f.Ranges[i].min) continue;
+        
+        if (anime[id].rank > f.Ranges[i].max or anime[id].rank < f.Ranges[i].min) {
+            return false;
+        }
+    }
+    return true;
 }
 
-
-void filterChecks(Filters& f) {
+// Logic COMPLETE
+void filterChecks(const Filters& f) {
     std::vector<int> passed_ids;
     
     for (int i = 0; i < anime.size(); i++) {

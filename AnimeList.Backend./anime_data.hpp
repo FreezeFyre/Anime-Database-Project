@@ -16,6 +16,8 @@
 #include <variant>
 #include <unordered_map>
 
+#include "filters.hpp"
+
 #pragma once
 
 /* Anime_data_hpp */
@@ -33,7 +35,7 @@ struct animeDatabase {
     int fan_service_rating;
     int season_count;
     int episode_count;
-    float avg_episode_length;
+    int avg_episode_length;
     int hour_runtime;
     int min_runtime;
     std::vector<int> related_show_ids;
@@ -42,6 +44,40 @@ struct animeDatabase {
 
 extern std::unordered_map<size_t, animeDatabase> anime;
 
+using intMemberPTR = int animeDatabase::*;
+using vecMemberPTR = std::vector<int> animeDatabase::*;
+
+constexpr std::array<vecMemberPTR, SK_COUNT> setVecMembers = {
+    nullptr,
+    nullptr,
+    &animeDatabase::service_id,
+    &animeDatabase::genre_ids,
+    nullptr,
+    &animeDatabase::audio_lang_ids,
+    &animeDatabase::sub_lang_ids,
+    &animeDatabase::media_versions
+};
+
+constexpr std::array<intMemberPTR, SK_COUNT> setIntMembers = {
+    nullptr,
+    &animeDatabase::media_type,
+    nullptr,
+    nullptr,
+    &animeDatabase::status_id,
+    nullptr,
+    nullptr,
+    nullptr
+};
+
+constexpr std::array<intMemberPTR, RK_COUNT> rankMembers = {
+    &animeDatabase::rank,
+    &animeDatabase::fan_service_rating,
+    &animeDatabase::season_count,
+    &animeDatabase::episode_count,
+    &animeDatabase::avg_episode_length,
+    &animeDatabase::hour_runtime,
+    &animeDatabase::min_runtime
+};
 
 /* Convert Following to a File Parser (metadata types saved in file)*/
 extern const std::vector<std::string> service;
