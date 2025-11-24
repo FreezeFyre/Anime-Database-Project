@@ -97,3 +97,5 @@ extern const std::vector<std::string> media;
 
 
 void parseAnimeDATA(const std::string& file);
+
+bool continuityCheck();

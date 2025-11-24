@@ -7,6 +7,9 @@
 
 #include "anime_data.hpp"
 
+#include <vector>
+#include <unordered_map>
+
 std::unordered_map<size_t, animeDatabase> anime;
 
 const std::vector<std::string> service = {
@@ -110,3 +113,13 @@ void parseAnimeDATA(const std::string& file) {
         
     }
 };
+
+bool continuityCheck() {
+    for (size_t i = 0; i < anime.size(); i++) {
+        if (anime.find(i) == anime.end()) {
+            std::cerr << "Anime map is missing dense ID: " << i << "\n";
+            return false;
+        }
+    }
+    return true;
+}

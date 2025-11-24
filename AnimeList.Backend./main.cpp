@@ -26,11 +26,18 @@
 #include <limits>
 #include <variant>
 #include <climits>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 
 #include "anime_data.hpp"
 #include "client_io.hpp"
 #include "filters.hpp"
+#include "tcp.hpp"
+#include "http.hpp"
 
 std::vector<int> sorted_ids;
 
@@ -342,20 +349,10 @@ int main(int argc, char* argv[]) {
     // Release / Build code
     parseJson("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json");
 
+    sorted_ids.clear();
+    animeSorting(sorted_ids);
+    printAnimes(sorted_ids);
 
-    bool keepRunning = false;
-    while (keepRunning) {
-        sorted_ids.clear();
-        animeSorting(sorted_ids);
-        printAnimes(sorted_ids);
-
-        std::string again;
-        std::cout << "Would you like to continue modifying the list? Y / N | ";
-        std::cin >> again;
-        if (again != "Y" && again != "y") {
-            keepRunning = false;
-        }
-    }
     parseFilters("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./input.json");
     saveAnimeToJSON("/Users/lukeraykovitz/Documents/Projects/AnimeList.Backend./AnimeList.Backend./anime_data.json");
 

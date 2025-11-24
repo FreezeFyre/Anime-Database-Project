@@ -59,6 +59,8 @@ bool inVector(const std::vector<int>& inData, const std::vector<int>& inFilter) 
 // Logic BROKEN -- Replace anime[id].genre_ids with anime[id].*pointer[i]
 bool checkIncludes(const Filters& f, const int id) {
     for (int i = 0; i < SK_COUNT; i++) {
+        if (f.Sets[i].include.empty()) continue;
+        
         if (!inVector(anime[id].genre_ids, f.Sets[i].include)) {
             return false;
         }
