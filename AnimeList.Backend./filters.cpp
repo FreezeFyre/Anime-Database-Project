@@ -56,7 +56,7 @@ bool inVector(const std::vector<int>& inData, const std::vector<int>& inFilter) 
 
 
 
-// Logic BROKEN -- Replace anime[id].genre_ids with anime[id].*pointer[i]
+// Logic COMPLETE -- Replace anime[id].genre_ids with anime[id].*pointer[i]
 bool checkIncludes(const Filters& f, const int id) {
     for (int i = 0; i < SK_COUNT; i++) {
         if (f.Sets[i].include.empty()) continue;
@@ -85,10 +85,19 @@ bool checkExcludes(const Filters& f, const int id) {
 // Logic COMPLETE -- Replace anime[id].rank with anime[id].*pointer[i]
 bool checkRanges(const Filters& f, const int id) {
     for (int i = 0; i < RK_COUNT; i++) {
-        if (!f.Ranges[i].max and !f.Ranges[i].min) continue;
+        if (!f.Ranges[i].max.has_value() and !f.Ranges[i].min.has_value()) continue;
         
-        if (anime[id].rank > f.Ranges[i].max or anime[id].rank < f.Ranges[i].min) {
-            return false;
+        if (f.Ranges[i].min.has_value()) {
+            if (*f.Ranges[i].min > anime[id].rank) {
+                return false;
+            }
+        }
+        
+        
+        if (f.Ranges[i].max.has_value()) {
+            if (*f.Ranges[i].max < anime[id].rank) {
+                return false;
+            }
         }
     }
     return true;
