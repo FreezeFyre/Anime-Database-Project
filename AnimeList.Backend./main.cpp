@@ -38,8 +38,8 @@
 #include "filters.hpp"
 #include "tcp.hpp"
 #include "http.hpp"
-
-std::vector<int> sorted_ids;
+#include "console.hpp"
+#include "sorting.hpp"
 
 int arrayLevel = 0;
 
@@ -317,24 +317,24 @@ void parseJson(const std::string& file) {
 // Sorting Anime List By Rank
 void animeSorting(std::vector<int>& sorted_ids) {
     
-    for (size_t id = 0; id < anime.size(); ++id) {
+    for (int i = 0; i < anime.size(); ++i) {
         
         // Assign INT_MAX to unranked anime so they go at the bottom
-        int current_rank = (anime[id].rank == 0) ? INT_MAX : anime[id].rank;
+        int current_rank = (anime[i].rank == 0) ? INT_MAX : anime[i].rank;
         bool inserted = false;
         
-        for (size_t i = 0; i < sorted_ids.size(); ++i) {
-            int other_rank = (anime[sorted_ids[i]].rank == 0) ? INT_MAX : anime[sorted_ids[i]].rank;
+        for (int n = 0; n < sorted_ids.size(); ++n) {
+            int other_rank = (anime[sorted_ids[n]].rank == 0) ? INT_MAX : anime[sorted_ids[n]].rank;
             
             if (current_rank < other_rank) {
-                sorted_ids.insert(sorted_ids.begin() + i, id);
+                sorted_ids.insert(sorted_ids.begin() + n, i);
                 inserted = true;
                 break;
             }
         }
         
         if (!inserted) {
-            sorted_ids.push_back(id);
+            sorted_ids.push_back(i);
         }
     }
 }

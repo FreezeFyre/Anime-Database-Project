@@ -44,11 +44,19 @@ struct animeDatabase {
 
 extern std::unordered_map<size_t, animeDatabase> anime;
 
-using intMemberPTR = int animeDatabase::*;
-using vecMemberPTR = std::vector<int> animeDatabase::*;
 
-constexpr std::array<vecMemberPTR, SK_COUNT> setVecMembers = {
-    nullptr,
+
+// Pointers
+using intPTR = int animeDatabase::*;
+
+using vecPTR = std::vector<int> animeDatabase::*;
+
+using strPTR = std::string animeDatabase::*;
+
+
+
+/* Need to work on pointers for sets so it works with int and vec*/
+constexpr std::array<vecPTR, SK_COUNT> setsVecPTR = {
     nullptr,
     &animeDatabase::service_id,
     &animeDatabase::genre_ids,
@@ -58,8 +66,7 @@ constexpr std::array<vecMemberPTR, SK_COUNT> setVecMembers = {
     &animeDatabase::media_versions
 };
 
-constexpr std::array<intMemberPTR, SK_COUNT> setIntMembers = {
-    nullptr,
+constexpr std::array<intPTR, SK_COUNT> setsIntPTR = {
     &animeDatabase::media_type,
     nullptr,
     nullptr,
@@ -69,7 +76,11 @@ constexpr std::array<intMemberPTR, SK_COUNT> setIntMembers = {
     nullptr
 };
 
-constexpr std::array<intMemberPTR, RK_COUNT> rankMembers = {
+
+
+
+/* Range Pointers Are Completed*/
+constexpr std::array<intPTR, RK_COUNT> rangeIntPTR   = {
     &animeDatabase::rank,
     &animeDatabase::fan_service_rating,
     &animeDatabase::season_count,
@@ -78,6 +89,8 @@ constexpr std::array<intMemberPTR, RK_COUNT> rankMembers = {
     &animeDatabase::hour_runtime,
     &animeDatabase::min_runtime
 };
+
+
 
 /* Convert Following to a File Parser (metadata types saved in file)*/
 extern const std::vector<std::string> service;

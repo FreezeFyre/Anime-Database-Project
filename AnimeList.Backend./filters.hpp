@@ -25,7 +25,6 @@
 
 
 enum SetsKey : int {
-    SK_IDS,
     SK_MEDIA_TYPE,
     SK_SERVICES,
     SK_GENRES,
