@@ -61,7 +61,11 @@ bool checkIncludes(const Filters& f, const int id) {
     for (int i = 0; i < SK_COUNT; i++) {
         if (f.Sets[i].include.empty()) continue;
         
-        if (!inVector(anime[id].genre_ids, f.Sets[i].include)) {
+        if (!setsVecPTR[i]) {
+            continue;
+        }
+        
+        if (!inVector(anime[id].*setsVecPTR[i], f.Sets[i].include)) {
             return false;
         }
     }
@@ -74,7 +78,11 @@ bool checkExcludes(const Filters& f, const int id) {
     for (int i = 0; i < SK_COUNT; i++) {
         if (f.Sets[i].exclude.empty()) continue;
         
-        if (inVector(anime[id].genre_ids, f.Sets[i].exclude)) {
+        if (!setsVecPTR[i]) {
+            continue;
+        }
+        
+        if (inVector(anime[id].*setsVecPTR[i], f.Sets[i].exclude)) {
             return false;
         }
     }
