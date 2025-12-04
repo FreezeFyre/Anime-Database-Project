@@ -15,6 +15,7 @@
 #include <limits>
 #include <variant>
 #include <unordered_map>
+#include <array>
 
 #include "filters.hpp"
 
@@ -53,31 +54,17 @@ using vecPTR = std::vector<int> animeDatabase::*;
 
 using strPTR = std::string animeDatabase::*;
 
+using setsVariantPTR = std::variant<intPTR, vecPTR>;
 
-
-/* Need to work on pointers for sets so it works with int and vec*/
-constexpr std::array<vecPTR, SK_COUNT> setsVecPTR = {
-    nullptr,
-    &animeDatabase::service_id,
-    &animeDatabase::genre_ids,
-    nullptr,
-    &animeDatabase::audio_lang_ids,
-    &animeDatabase::sub_lang_ids,
-    &animeDatabase::media_versions
+constexpr std::array<setsVariantPTR, SK_COUNT> setsPTR = {
+    &animeDatabase::media_type,    // intPTR
+    &animeDatabase::service_id,    // vecPTR
+    &animeDatabase::genre_ids,     // vecPTR
+    &animeDatabase::status_id,     // intPTR
+    &animeDatabase::audio_lang_ids,// vecPTR
+    &animeDatabase::sub_lang_ids,  // vecPTR
+    &animeDatabase::media_versions // vecPTR
 };
-
-constexpr std::array<intPTR, SK_COUNT> setsIntPTR = {
-    &animeDatabase::media_type,
-    nullptr,
-    nullptr,
-    &animeDatabase::status_id,
-    nullptr,
-    nullptr,
-    nullptr
-};
-
-
-
 
 /* Range Pointers Are Completed*/
 constexpr std::array<intPTR, RK_COUNT> rangeIntPTR   = {

@@ -42,7 +42,7 @@ void storeFilters(int phase, int slot_index, const std::vector<int>& slot_values
 }
 
 
-// Logic COMPLETE
+// Logic COMPLETE -- should convert to templat instead of overload probably
 bool inVector(const std::vector<int>& inData, const std::vector<int>& inFilter) {
     std::unordered_set<int> mDat(inData.begin(),inData.end());
     
@@ -55,36 +55,56 @@ bool inVector(const std::vector<int>& inData, const std::vector<int>& inFilter) 
 }
 
 
+bool inVector(const int& inData, const std::vector<int>& inFilter) {
+    for (int i = 0; i < inFilter.size(); i++) {
+        if (inData == inFilter[i]) {
+            return true;
+        }
+    }
+    return false;
+}
 
-// Logic COMPLETE -- Replace anime[id].genre_ids with anime[id].*pointer[i]
+
+// Logic COMPLETE -- Should probably use template for inVector and use visit instead of holds_alternative
 bool checkIncludes(const Filters& f, const int id) {
     for (int i = 0; i < SK_COUNT; i++) {
         if (f.Sets[i].include.empty()) continue;
         
-        if (!setsVecPTR[i]) {
-            continue;
+        if (std::holds_alternative<intPTR>(setsPTR[i])) {
+            intPTR ptr = std::get<intPTR>(setsPTR[i]);
+            if (!inVector(anime[id].*ptr, f.Sets[i].include)) {
+                return false;
+            }
         }
-        
-        if (!inVector(anime[id].*setsVecPTR[i], f.Sets[i].include)) {
-            return false;
+        else if (std::holds_alternative<vecPTR>(setsPTR[i])) {
+            vecPTR ptr = std::get<vecPTR>(setsPTR[i]);
+            if (!inVector(anime[id].*ptr, f.Sets[i].include)) {
+                return false;
+            }
         }
     }
     return true;
 }
 
 
-// Logic COMPLETE -- Replace anime[id].genre_ids with anime[id].*pointer[i]
+// Logic COMPLETE -- Should probably use template for inVector and use visit instead of holds_alternative
 bool checkExcludes(const Filters& f, const int id) {
     for (int i = 0; i < SK_COUNT; i++) {
         if (f.Sets[i].exclude.empty()) continue;
-        
-        if (!setsVecPTR[i]) {
-            continue;
+
+        if (std::holds_alternative<intPTR>(setsPTR[i])) {
+            intPTR ptr = std::get<intPTR>(setsPTR[i]);
+            if (inVector(anime[id].*ptr, f.Sets[i].exclude)) {
+                return false;
+            }
         }
-        
-        if (inVector(anime[id].*setsVecPTR[i], f.Sets[i].exclude)) {
-            return false;
+        else if (std::holds_alternative<vecPTR>(setsPTR[i])) {
+            vecPTR ptr = std::get<vecPTR>(setsPTR[i]);
+            if (inVector(anime[id].*ptr, f.Sets[i].exclude)) {
+                return false;
+            }
         }
+
     }
     return true;
 }
