@@ -1,0 +1,54 @@
+# ========================
+# Visual Studio
+# ========================
+*.sln
+*.vcxproj
+*.vcxproj.*
+*.user
+*.cache
+*.pdb
+*.tlog
+*.obj
+*.log
+*.ipch
+*.opendb
+*.db
+
+# Build output
+Debug/
+Release/
+x64/
+x86/
+out/
+build/
+bin/
+lib/
+
+# ========================
+# Xcode
+# ========================
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# ========================
+# CMake (if used)
+# ========================
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+
+# ========================
+# macOS and Windows clutter
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# Editor backups
+# ========================
+*~
+*.swp
+/.vs
