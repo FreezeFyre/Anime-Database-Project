@@ -7,4 +7,6 @@
 
 #pragma once
 
+bool validFilter(int n, int slot_index);
+
 void parseFilters(const std::string& file);

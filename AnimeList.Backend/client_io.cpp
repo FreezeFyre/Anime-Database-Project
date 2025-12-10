@@ -21,6 +21,15 @@
 
 #include "client_io.hpp"
 #include "filters.hpp"
+#include "anime_data.hpp"
+
+bool validFilter(int n, int slot_index) {
+    if (n >= 0 and n < filterSets[slot_index]->size()) {
+        return true;
+    }
+    std::cerr << "Invalid filter value: " << n << " for slot index: " << slot_index << "\n";
+    return false;
+}
 
 
 void parseFilters(const std::string& file) {
@@ -70,6 +79,7 @@ void parseFilters(const std::string& file) {
                 }
                 if (slot_collection and c == ',' and nest_level == 3) {
                     if (!buffer.empty()) {
+                        validFilter(stoi(buffer), slot_index);
                         slot_values.push_back(stoi(buffer));
                         buffer.clear();
                     }

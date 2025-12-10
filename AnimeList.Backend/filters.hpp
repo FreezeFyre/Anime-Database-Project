@@ -23,9 +23,8 @@
 #include <optional>
 #include <array>
 
-
 enum SetsKey : int {
-    SK_MEDIA_TYPE,
+    SK_FORMATS,
     SK_SERVICES,
     SK_GENRES,
     SK_STATUSES,
@@ -45,7 +44,6 @@ enum RangeKey : int {
     RK_MIN_RUN,
     RK_COUNT
 };
-
 
 struct filterType {
     std::vector<int> include;

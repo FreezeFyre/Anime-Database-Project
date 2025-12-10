@@ -94,7 +94,17 @@ extern const std::vector<std::string> sub;
 
 extern const std::vector<std::string> media;
 
+using stringVec = const std::vector<std::string>;
 
+static const std::array<stringVec*, SK_COUNT> filterSets = {
+	&service,
+	&format,
+	&genre,
+	&status,
+	&audio,
+	&sub,
+	&media
+};
 
 void parseAnimeDATA(const std::string& file);
 
