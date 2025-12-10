@@ -86,6 +86,7 @@ void parseFilters(const std::string& file) {
                 }
                 if (slot_collection and c == '}' and nest_level == 3) {
                     if (!buffer.empty()) {
+                        validFilter(stoi(buffer), slot_index);
                         slot_values.push_back(stoi(buffer));
                         buffer.clear();
                     }
