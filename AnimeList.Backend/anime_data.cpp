@@ -95,9 +95,20 @@ const std::vector<std::string> media = {
     "Game"
 };
 
-void parseAnimeDATA(const std::string& file) {
-        std::ifstream source(file);
-    
+
+// Animes should have 18 phases (0-17)
+void parseAnimes(const std::string& file) {
+    int nest_level = 0;
+    int phase = 0;
+    int slot_index = 0;
+    bool slot_collection = 0;
+	bool in_string = 0;
+    std::string buffer;
+    std::string title_buffer;
+    std::vector<int> slot_values;
+    animeDatabase animeBuffer;
+
+    std::ifstream source(file);
     if (!source.is_open()) {
         std::cerr << "Failed to open: \t" << file << "\n";
         return;
@@ -107,12 +118,33 @@ void parseAnimeDATA(const std::string& file) {
     while (getline(source, line)) {
         
         if (!line.empty()) {
-            std::cout << line << "\n";
+            for (char c : line) {
+                if (c == '{') {
+                    nest_level += 1;
+                }
+
+                if (c == '"') {
+					in_string = !in_string;
+                }
+
+                if (!in_string) {
+                    if (nest_level == 2 and c == ',') {
+						phase++;
+                    }
+
+
+
+                }
+            }
         }
-        
-        
     }
-};
+}
+
+
+void storeAnimeDATA(int& phase, int& slot_index, std::vector<int>& slot_values) {
+
+}
+
 
 bool continuityCheck() {
     for (size_t i = 0; i < anime.size(); i++) {

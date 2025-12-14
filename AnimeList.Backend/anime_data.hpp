@@ -45,8 +45,6 @@ struct animeDatabase {
 
 extern std::unordered_map<size_t, animeDatabase> anime;
 
-
-
 // Pointers
 using intPTR = int animeDatabase::*;
 
@@ -77,6 +75,27 @@ constexpr std::array<intPTR, RK_COUNT> rangeIntPTR   = {
     &animeDatabase::min_runtime
 };
 
+using storeVariantPTR = std::variant<intPTR, vecPTR, strPTR>;
+
+constexpr std::array<storeVariantPTR, 17> animePtr = {
+    &animeDatabase::rank,
+    &animeDatabase::media_type,
+    &animeDatabase::name,
+    &animeDatabase::alt_name,
+    &animeDatabase::service_id,
+    &animeDatabase::genre_ids,
+    &animeDatabase::status_id,
+    &animeDatabase::audio_lang_ids,
+    &animeDatabase::sub_lang_ids,
+    &animeDatabase::fan_service_rating,
+    &animeDatabase::season_count,
+    &animeDatabase::episode_count,
+    &animeDatabase::avg_episode_length,
+    &animeDatabase::hour_runtime,
+    &animeDatabase::min_runtime,
+    &animeDatabase::related_show_ids,
+	&animeDatabase::media_versions
+};
 
 
 /* Convert Following to a File Parser (metadata types saved in file)*/
@@ -106,6 +125,8 @@ static const std::array<stringVec*, SK_COUNT> filterSets = {
 	&media
 };
 
-void parseAnimeDATA(const std::string& file);
+void parseAnimes(const std::string& file);
+
+void storeAnimeData(int phase);
 
 bool continuityCheck();

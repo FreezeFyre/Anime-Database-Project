@@ -57,7 +57,7 @@ struct Range {
 
 struct Filters {
     std::string ip;
-    int sorting;
+    int sorting = 0;
     std::array<filterType, SK_COUNT> Sets;
     std::array<Range, RK_COUNT> Ranges;
 };

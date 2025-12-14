@@ -7,4 +7,6 @@
 
 #pragma once
 
-std::vector<int> sorted_ids;
+extern std::vector<int> sorted_ids;
+
+void animeSorting(std::vector<int>& sorted_ids);

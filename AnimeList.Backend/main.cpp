@@ -44,13 +44,13 @@ int arrayLevel = 0;
 // ============================================================================
 
 // Array Level
-void arrayLeveler(char c) {
+static void arrayLeveler(char c) {
     if (c == '{') arrayLevel++;
     else if (c == '}') arrayLevel--;
 }
 
 // Parse Out Vectors
-std::vector<int> parseVector(const std::string& str) {
+static std::vector<int> parseVector(const std::string& str) {
     std::vector<int> result;
     std::string num;
     for (char c : str) {
@@ -66,7 +66,7 @@ std::vector<int> parseVector(const std::string& str) {
 }
 
 
-std::vector<std::vector<int>> parseNestedVECTOR(const std::string& str) {
+ static std::vector<std::vector<int>> parseNestedVECTOR(const std::string& str) {
     int level = 0;
     std::vector<std::vector<int>> result;
     std::string num;
@@ -94,7 +94,7 @@ std::vector<std::vector<int>> parseNestedVECTOR(const std::string& str) {
 
 
 // Print Animes From Map
-void printAnimes(const std::vector<int>& sorted_ids) {
+ static void printAnimes(const std::vector<int>& sorted_ids) {
     
     int maxNameLength = 0;
     for (const auto& pair : anime) {
@@ -147,24 +147,24 @@ void printAnimes(const std::vector<int>& sorted_ids) {
 
 
 // Save Anime Map to File
-void saveAnimeToJSON(const std::string& filename) {
+ static void saveAnimeToJSON(const std::string& filename) {
     std::ofstream outFile(filename);
     if (!outFile.is_open()) {
         std::cerr << "Failed to open file for writing: " << filename << "\n";
         return;
     }
 
-    outFile << "[\n";
+    outFile << "{\n";
     bool firstAnime = true;
 
     // Moved writeVector definition outside the loop (unchanged)
     auto writeVector = [](std::ofstream& out, const std::vector<int>& vec) {
-        out << "[";
+        out << "{";
         for (size_t i = 0; i < vec.size(); ++i) {
             out << vec[i];
             if (i < vec.size() - 1) out << ",";
         }
-        out << "]";
+        out << "}";
     };
 
     //  Changed from map-based loop to index-based loop to preserve order
@@ -174,7 +174,7 @@ void saveAnimeToJSON(const std::string& filename) {
         if (!firstAnime) outFile << "\n";
         firstAnime = false;
 
-        outFile << "  ["
+        outFile << "  {"
                 << i << "," // 🔧 Replaced 'id' with 'i' since we're using index now
                 << a.rank << ","
                 << a.media_type << ","
@@ -205,16 +205,16 @@ void saveAnimeToJSON(const std::string& filename) {
         outFile << ",";
         
         writeVector(outFile, a.media_versions);
-        outFile << "]";
+        outFile << "}";
     }
 
-    outFile << "\n]";
+    outFile << "\n}";
     outFile.close();
 }
 
 
 // Parse Out File to Anime Map
-void parseJson(const std::string& file) {
+static void parseJson(const std::string& file) {
     std::ifstream source(file);
     
     if (!source.is_open()) {
@@ -242,8 +242,8 @@ void parseJson(const std::string& file) {
         if (!line.empty()) {
             for (char c : line) {
                 if (c == '"') inQuotes = !inQuotes;
-                else if (c == '[') inVector = true;
-                else if (c == ']') inVector = false;
+                else if (c == '{') inVector = true;
+                else if (c == '}') inVector = false;
                 
                 if (c == ',' and !inQuotes and !inVector) {
                     
@@ -292,46 +292,6 @@ void parseJson(const std::string& file) {
     // Loop Through and tokenize based off of commas
 }
 
-
-
-// ============================================================================
-// Input Processing
-// ============================================================================
-
-
-
-
-
-// ============================================================================
-// Database Processing
-// ============================================================================
-
-
-
-// Sorting Anime List By Rank
-void animeSorting(std::vector<int>& sorted_ids) {
-    
-    for (int i = 0; i < anime.size(); ++i) {
-        
-        // Assign INT_MAX to unranked anime so they go at the bottom
-        int current_rank = (anime[i].rank == 0) ? INT_MAX : anime[i].rank;
-        bool inserted = false;
-        
-        for (int n = 0; n < sorted_ids.size(); ++n) {
-            int other_rank = (anime[sorted_ids[n]].rank == 0) ? INT_MAX : anime[sorted_ids[n]].rank;
-            
-            if (current_rank < other_rank) {
-                sorted_ids.insert(sorted_ids.begin() + n, i);
-                inserted = true;
-                break;
-            }
-        }
-        
-        if (!inserted) {
-            sorted_ids.push_back(i);
-        }
-    }
-}
 
 
 // ============================================================================
