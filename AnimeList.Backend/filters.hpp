@@ -23,7 +23,7 @@
 #include <optional>
 #include <array>
 
-enum SetsKey : int {
+enum animeSets : int {
     SK_FORMATS,
     SK_SERVICES,
     SK_GENRES,
@@ -34,7 +34,7 @@ enum SetsKey : int {
     SK_COUNT
 };
 
-enum RangeKey : int {
+enum animeRanges : int {
     RK_RANK,
     RK_FAN_SERVICE,
     RK_SEASONS,

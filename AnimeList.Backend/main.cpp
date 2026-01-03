@@ -116,7 +116,7 @@ static std::vector<int> parseVector(const std::string& str) {
 
     for (int count : sorted_ids) {
         if (anime.find(count) != anime.end()) {
-            animeDatabase& a = anime[count];
+            animeData& a = anime[count];
 
                 std::cout << "| "
                     << std::setw(3) << std::right << count << " | "

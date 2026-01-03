@@ -18,83 +18,91 @@
 #include <array>
 
 #include "filters.hpp"
+#include "Errors.h"
 
 #pragma once
 
-/* Anime_data_hpp */
-
-struct animeDatabase {
+struct animeData {
     int rank;
-    int media_type;
-    std::string name;
-    std::string alt_name;
-    std::vector<int> service_id;
-    std::vector<int> genre_ids;
-    int status_id;
-    std::vector<int> audio_lang_ids;
-    std::vector<int> sub_lang_ids;
+    std::string title;
+    std::string alt_title;
+    int format;
+    int status;
+    std::vector<int> genres;
+    std::vector<int> channels;
+    std::vector<int> audios;
+    std::vector<int> subtitles;
     int fan_service_rating;
-    int season_count;
     int episode_count;
-    int avg_episode_length;
-    int hour_runtime;
     int min_runtime;
-    std::vector<int> related_show_ids;
-    std::vector<int> media_versions;
+    std::vector<int> characters;
+    int ipGroup_id;
 };
 
-extern std::unordered_map<size_t, animeDatabase> anime;
+class animeDatabase {
+    public:
+        void loadAnimeDATA(std::string file);
+        
+        databaseErrors validateMap();
 
-// Pointers
-using intPTR = int animeDatabase::*;
 
-using vecPTR = std::vector<int> animeDatabase::*;
+    private:
 
-using strPTR = std::string animeDatabase::*;
+        std::unordered_map<int, animeData> anime;
 
-using setsVariantPTR = std::variant<intPTR, vecPTR>;
+        using intPTR = int animeData::*;
+
+        using vecPTR = std::vector<int> animeData::*;
+
+        using strPTR = std::string animeData::*;
+
+        using setsVariantPTR = std::variant<intPTR, vecPTR>;
+};
+
+
+
 
 constexpr std::array<setsVariantPTR, SK_COUNT> setsPTR = {
-    &animeDatabase::media_type,    // intPTR
-    &animeDatabase::service_id,    // vecPTR
-    &animeDatabase::genre_ids,     // vecPTR
-    &animeDatabase::status_id,     // intPTR
-    &animeDatabase::audio_lang_ids,// vecPTR
-    &animeDatabase::sub_lang_ids,  // vecPTR
-    &animeDatabase::media_versions // vecPTR
+    &animeData::media_type,    // intPTR
+    &animeData::service_id,    // vecPTR
+    &animeData::genre_ids,     // vecPTR
+    &animeData::status_id,     // intPTR
+    &animeData::audio_lang_ids,// vecPTR
+    &animeData::sub_lang_ids,  // vecPTR
+    &animeData::media_versions // vecPTR
 };
 
 /* Range Pointers Are Completed*/
 constexpr std::array<intPTR, RK_COUNT> rangeIntPTR   = {
-    &animeDatabase::rank,
-    &animeDatabase::fan_service_rating,
-    &animeDatabase::season_count,
-    &animeDatabase::episode_count,
-    &animeDatabase::avg_episode_length,
-    &animeDatabase::hour_runtime,
-    &animeDatabase::min_runtime
+    &animeData::rank,
+    &animeData::fan_service_rating,
+    &animeData::season_count,
+    &animeData::episode_count,
+    &animeData::avg_episode_length,
+    &animeData::hour_runtime,
+    &animeData::min_runtime
 };
 
 using storeVariantPTR = std::variant<intPTR, vecPTR, strPTR>;
 
 constexpr std::array<storeVariantPTR, 17> animePtr = {
-    &animeDatabase::rank,
-    &animeDatabase::media_type,
-    &animeDatabase::name,
-    &animeDatabase::alt_name,
-    &animeDatabase::service_id,
-    &animeDatabase::genre_ids,
-    &animeDatabase::status_id,
-    &animeDatabase::audio_lang_ids,
-    &animeDatabase::sub_lang_ids,
-    &animeDatabase::fan_service_rating,
-    &animeDatabase::season_count,
-    &animeDatabase::episode_count,
-    &animeDatabase::avg_episode_length,
-    &animeDatabase::hour_runtime,
-    &animeDatabase::min_runtime,
-    &animeDatabase::related_show_ids,
-	&animeDatabase::media_versions
+    &animeData::rank,
+    &animeData::media_type,
+    &animeData::name,
+    &animeData::alt_name,
+    &animeData::service_id,
+    &animeData::genre_ids,
+    &animeData::status_id,
+    &animeData::audio_lang_ids,
+    &animeData::sub_lang_ids,
+    &animeData::fan_service_rating,
+    &animeData::season_count,
+    &animeData::episode_count,
+    &animeData::avg_episode_length,
+    &animeData::hour_runtime,
+    &animeData::min_runtime,
+    &animeData::related_show_ids,
+	&animeData::media_versions
 };
 
 
