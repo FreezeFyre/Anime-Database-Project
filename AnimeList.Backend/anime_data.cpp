@@ -10,7 +10,12 @@
 #include <vector>
 #include <unordered_map>
 
-std::unordered_map<size_t, animeData> anime;
+
+void animeDatabase::loadAnimeDATA(std::string file) {
+    parseAnimes(file);
+}
+
+
 
 databaseErrors animeDatabase::validateMap() {
 
@@ -20,15 +25,14 @@ databaseErrors animeDatabase::validateMap() {
         if (!anime.count(i)) {
             errors.push_back({ mapError::errorType::NO_ID, i, "Missing dense ID" });
         }
-
-        if (i >= anime.size()) {
-            errors.push_back({ mapError::errorType::OUT_OF_RANGE, i, "Dense ID out of range" });
-        }
     }
 
     return errors;
 }
 
+filteredIDS animeDatabase::processFilters(const Filters& f) {
+    
+}
 
 const std::vector<std::string> service = {
     "Crunchyroll",
@@ -165,7 +169,7 @@ void storeAnimeDATA(int& phase, int& slot_index, std::vector<int>& slot_values) 
 
 
 bool continuityCheck() {
-    for (size_t i = 0; i < anime.size(); i++) {
+    for (int i = 0; i < anime.size(); i++) {
         if (anime.find(i) == anime.end()) {
             std::cerr << "Anime map is missing dense ID: " << i << "\n";
             return false;

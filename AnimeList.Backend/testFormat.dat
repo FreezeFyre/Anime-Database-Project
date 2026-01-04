@@ -1,0 +1,8 @@
+<Data type> | <record count> | <field count> |
+
+<schema line, says what each field is and its name ex: "id:U32,format:U8"  >
+
+<Record 1, Ex: anime entree 1>
+
+<Record 2, Ex: anime entree 2>
+

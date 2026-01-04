@@ -17,7 +17,6 @@
 #include <unordered_map>
 #include <array>
 
-#include "filters.hpp"
 #include "Errors.h"
 
 #pragma once
@@ -32,18 +31,22 @@ struct animeData {
     std::vector<int> channels;
     std::vector<int> audios;
     std::vector<int> subtitles;
-    int fan_service_rating;
+    int fan_service;
     int episode_count;
     int min_runtime;
     std::vector<int> characters;
-    int ipGroup_id;
+    int ipGroup;
 };
+
+using filteredIDS = std::vector<int>;
 
 class animeDatabase {
     public:
         void loadAnimeDATA(std::string file);
         
         databaseErrors validateMap();
+
+		filteredIDS processFilters(const Filters& f);
 
 
     private:
