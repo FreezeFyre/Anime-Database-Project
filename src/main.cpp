@@ -301,14 +301,7 @@ static void parseJson(const std::string& file) {
 int main(int argc, char* argv[]) {
 
     // Release / Build code
-    parseJson("anime_data.json");
-
-    sorted_ids.clear();
-    animeSorting(sorted_ids);
-    printAnimes(sorted_ids);
-
-    parseFilters("input.json");
-    saveAnimeToJSON("anime_data.json");
+	std::cout << "AnimeList.Backend. Build Date: " << __DATE__ << " Time: " << __TIME__ << "\n";
 
     return 0;
 }

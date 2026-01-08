@@ -36,6 +36,8 @@ xcuserdata/
 # ========================
 # CMake (if used)
 # ========================
+out/
+build/
 CMakeFiles/
 CMakeCache.txt
 cmake-build-*/
