@@ -6,6 +6,24 @@ inline bool isDigit(char c) {
 }
 
 
+// ChatGPT Codex code for debug printing
+const char* typeToString(schemaField::dataType t) {
+	switch (t) {
+	case schemaField::dataType::U8:    return "U8";
+	case schemaField::dataType::U16:   return "U16";
+	case schemaField::dataType::U32:   return "U32";
+	case schemaField::dataType::STR:   return "STR";
+	case schemaField::dataType::VECU8: return "VECU8";
+	case schemaField::dataType::VECU16: return "VECU16";
+	case schemaField::dataType::UNKOWN: return "UNKOWN";
+	}
+	return "UNKNOWNtoPrint";
+}
+// End of ChatGPT Codex code for debug printing
+
+
+
+
 fileHeader fileParsing::readHeader(std::string& line) {
 	fileHeader header;
 
@@ -29,18 +47,73 @@ fileHeader fileParsing::readHeader(std::string& line) {
 	return header;
 }
 
+
+schemaField::dataType fileParsing::readDataType(std::string& dataField) {
+	schemaField::dataType type;
+
+	if (dataField == "U8") type = schemaField::dataType::U8;
+	else if (dataField == "U16") type = schemaField::dataType::U16;
+	else if (dataField == "U32") type = schemaField::dataType::U32;
+	else if (dataField == "STR") type = schemaField::dataType::STR;
+	else if (dataField == "VECU8") type = schemaField::dataType::VECU8;
+	else if (dataField == "VECU16") type = schemaField::dataType::VECU16;
+	else type = schemaField::dataType::UNKOWN;
+
+	return type;
+}
+
+
 schemaData fileParsing::readSchema(std::string& line) {
 
 	schemaData schema;
 	schemaField fBuffer;
 	std::string buffer;
 	int phase = 0;
+	bool readingName = true;
 	for (char& c : line) {
-		if (c == ',') { phase++; }
+		if (c == ',') {
+			fBuffer.type = readDataType(buffer);
+			schema.push_back(fBuffer);
+			fBuffer.name.clear();
+			buffer.clear();
+			phase++;
+		}
 
+		if (c == ':') {
+			fBuffer.name = buffer;
+			buffer.clear();
+		}
+		if (c != ':' and c != ',')
+		{
+			buffer.push_back(c);
+		}
+		if (c == ':') {
+			readingName = false;
+		}
+		if (c == ',') {
+			readingName = true;
+		}
 	}
 
 	return schema;
+}
+
+recordData fileParsing::readRecord(schemaData& schema, std::string& line) {
+	recordData record;
+	recordField fieldBuffer;
+
+	int nestLevel = 0;
+	int phase = 0;
+
+	for (char& c : line) {
+		if (c == '{') { nestLevel++; }
+		if (c == '}') { nestLevel++; }
+		if (c == ',' and nestLevel == 0) { phase++; }
+
+
+	}
+
+	return record;
 }
 
 void fileParsing::parseFile(std::string file) {
@@ -51,7 +124,7 @@ void fileParsing::parseFile(std::string file) {
 	}
 
 	schemaData schema;
-	fileHeader header;
+	fileHeader header{};
 
 	int lineCount = 0;
 	std::string line;
@@ -81,7 +154,7 @@ void fileParsing::parseFile(std::string file) {
 	std::cout << header.type << "\n" << header.recordCount << "\n" << header.fieldCount << "\n";
 	for (int i = 0; i < schema.size(); i++)
 	{
-		std::cout << schema[i].name << "\n";
+		std::cout << schema[i].name << typeToString(schema[i].type) << "\n";
 	}
 }
 

@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(anime_database_project
 	"src/tempMain.cpp"
-	"src/tempmain.cpp"
+	"src/fileParsing.cpp"
+	"src/Errors.cpp"
 )
 
 

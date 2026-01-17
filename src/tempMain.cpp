@@ -1,6 +1,11 @@
 #include <iostream>
+#include "fileParsing.h"
+#include "errors.h"
 
 int main() {
-    std::cout << "sanity check ok\n";
+	fileParsing parser;
+
+	parser.parseFile("E:/Projects/Git/Anime-Database-Project/src/testFile.dat");
+
     return 0;
 }
