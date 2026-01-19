@@ -63,7 +63,7 @@ schemaField::dataType fileParsing::readDataType(std::string& dataField) {
 }
 
 
-schemaData fileParsing::readSchema(std::string& line) {
+schemaData fileParsing::readSchema(std::string& line, int& fieldCount) {
 
 	schemaData schema;
 	schemaField fBuffer;
@@ -93,6 +93,11 @@ schemaData fileParsing::readSchema(std::string& line) {
 		if (c == ',') {
 			readingName = true;
 		}
+
+		if (phase > fieldCount)
+		{
+			// Return Non-Fatal Error -- More Fields Than Expected//
+		}
 	}
 
 	return schema;
@@ -115,6 +120,33 @@ recordData fileParsing::readRecord(schemaData& schema, std::string& line) {
 
 	return record;
 }
+
+
+void fileParsing::storeRecord(char& fileType, schemaData& schema, recordData& record) {
+	if (fileType == 'A') // Anime Database
+	{
+		animeDB::addAnime(schema, record);
+	}
+	else if (fileType == 'G') // IP Group Database
+	{
+
+	}
+	else if (fileType == 'C') // Character Database
+	{
+
+	}
+	else if (fileType == 'I') // Input File
+	{
+
+	}
+	else if (fileType == 'T') // Tag Lookup File
+	{
+
+	}
+
+	// Return Fatal Error -- Unknown File Type //
+}
+
 
 void fileParsing::parseFile(std::string file) {
 	std::ifstream source(file);
@@ -145,17 +177,32 @@ void fileParsing::parseFile(std::string file) {
 				//Return Error -- Schema Line Empty//
 				continue;
 			}
-			schema = readSchema(line);
+			schema = readSchema(line, header.fieldCount);
 			continue;
+		}
+
+		if (lineCount >= 4)
+		{
+			if (line.empty()) {
+				//Return Error -- Record Line Empty//
+				continue;
+			}
+			if (!line.empty() and lineCount >= (4+ header.recordCount))
+			{
+				//Return Non-Fatal Error -- More Records Than Expected
+			}
+			recordData record = readRecord(schema, line);
+
+			storeRecord(header.type, schema, record);
 		}
 	}
 
 	// Debug Printing 
-	std::cout << header.type << "\n" << header.recordCount << "\n" << header.fieldCount << "\n";
+	/*std::cout << header.type << "\n" << header.recordCount << "\n" << header.fieldCount << "\n";
 	for (int i = 0; i < schema.size(); i++)
 	{
 		std::cout << schema[i].name << typeToString(schema[i].type) << "\n";
-	}
+	}*/
 }
 
 void fileParsing::saveFile(std::string file) {

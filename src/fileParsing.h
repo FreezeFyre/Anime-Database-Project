@@ -13,6 +13,11 @@
 #include <unordered_map>
 #include <array>
 
+#include "errors.h"
+#include "anime_data.hpp"
+#include "Characters.h"
+#include "Series.h"
+
 inline bool isDigit(char c);
 
 struct fileHeader {
@@ -56,11 +61,11 @@ class fileParsing {
 
 		schemaField::dataType readDataType(std::string& dataField);
 
-		schemaData readSchema(std::string& line);
+		schemaData readSchema(std::string& line, int& fieldCount);
 
 		recordData readRecord(schemaData& schema, std::string& line);
 
-		void storeRecord();
+		void storeRecord(char& fileType, schemaData& schema, recordData& record);
 
 };
 

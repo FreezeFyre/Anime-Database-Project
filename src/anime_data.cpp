@@ -11,13 +11,17 @@
 #include <unordered_map>
 
 
-void animeDatabase::loadAnimeDATA(std::string file) {
+void animeDB::loadAnimes(std::string file) {
     parseAnimes(file);
+	fileParsing::parseFile(file);
 }
 
+void animeDB::addAnimeENTRY() {
 
 
-databaseErrors animeDatabase::validateMap() {
+}
+
+databaseErrors animeDB::validateMap() {
 
     databaseErrors errors;
 
@@ -30,7 +34,7 @@ databaseErrors animeDatabase::validateMap() {
     return errors;
 }
 
-filteredIDS animeDatabase::processFilters(const Filters& f) {
+filteredIDS animeDB::processFilters(const Filters& f) {
     
 }
 
