@@ -14,9 +14,9 @@
 #include <array>
 
 #include "errors.h"
-#include "anime_data.hpp"
-#include "Characters.h"
-#include "Series.h"
+//#include "anime_data.hpp"
+//#include "Characters.h"
+//#include "Series.h"
 
 inline bool isDigit(char c);
 
@@ -63,9 +63,13 @@ class fileParsing {
 
 		schemaData readSchema(std::string& line, int& fieldCount);
 
+		bool recordVector(std::string& line, std::vector<int>& vec);
+
 		recordData readRecord(schemaData& schema, std::string& line);
 
 		void storeRecord(char& fileType, schemaData& schema, recordData& record);
+
+		void debugRecordData(recordData& record);
 
 };
 

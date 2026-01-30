@@ -36,7 +36,32 @@ struct animeData {
 	int episode_count;
 	int min_runtime;
 	std::vector<int> characters;
-	int ipGroup;
+	int ip_group;
+};
+
+using intPTR = int animeData::*;
+
+using vecPTR = std::vector<int> animeData::*;
+
+using strPTR = std::string animeData::*;
+
+using animeMemPTR = std::variant<intPTR, vecPTR, strPTR>;
+
+std::unordered_map<std::string, animeMemPTR> animeFieldMap = {
+	{"rank",&animeData::rank},
+	{"title",&animeData::title},
+	{"alt_title",&animeData::alt_title},
+	{"format",&animeData::format},
+	{"status",&animeData::status},
+	{"genres",&animeData::genres},
+	{"channels",&animeData::channels},
+	{"audios",&animeData::audios},
+	{"subtitles",&animeData::subtitles},
+	{"fan_service",&animeData::fan_service},
+	{"episode_count",&animeData::episode_count},
+	{"min_runtime",&animeData::min_runtime},
+	{"characters",&animeData::characters},
+	{"ip_group",&animeData::ip_group}
 };
 
 using filteredIDS = std::vector<int>;
@@ -54,12 +79,6 @@ class animeDB {
 	private:
 
 		using animeMap = std::unordered_map<int, animeData>;
-
-		using intPTR = int animeData::*;
-
-		using vecPTR = std::vector<int> animeData::*;
-
-		using strPTR = std::string animeData::*;
 
 		using setsVariantPTR = std::variant<intPTR, vecPTR>;
 
