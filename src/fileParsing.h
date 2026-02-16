@@ -45,7 +45,7 @@ const char* typeToString(schemaField::dataType t);
 
 using schemaData = std::vector<schemaField>;
 
-using recordField = std::variant<std::string, int, std::vector<int>>;
+using recordField = std::variant<std::monostate, std::string, int, std::vector<int>>;
 
 using recordData = std::vector<recordField>;
 

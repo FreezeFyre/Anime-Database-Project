@@ -2,9 +2,17 @@
 #include "errors.h"
 
 inline bool isDigit(char c) {
-	return c >= '0' && c <= '9';
+	return std::isdigit(static_cast<unsigned char>(c));
 }
 
+inline bool isNumber(std::string& str) {
+	for (int i = 0; i < str.size(); i++)
+	{
+		if (!isDigit(str[i]) and str[i] != '-') { return false; }
+	}
+
+	return true;
+}
 
 fileHeader fileParsing::readHeader(std::string& line) {
 	fileHeader header;
@@ -86,12 +94,24 @@ schemaData fileParsing::readSchema(std::string& line, int& fieldCount) {
 }
 
 
-// Possible input {1,2,3,4,5,8} etc or {}
+// Takes a input string of integers seperated by commas and enclosed in {} and updates the passed vector
 bool fileParsing::recordVector(std::string& inBuffer, std::vector<int>& vec) {
 	std::string buffer;
+	vec.clear();
 
 	for (char c : inBuffer) {
-		
+		if (isdigit(c) or c == '-') {
+			buffer.push_back(c);
+		}
+		if (c == ',' or c == '}') {
+			if (!buffer.empty()) {
+				vec.push_back(stoi(buffer));
+				buffer.clear();
+			}
+		}
+		else {
+			// Invlaid Character
+		}
 	}
 
 	return true;
@@ -111,59 +131,105 @@ recordData fileParsing::readRecord(schemaData& schema, std::string& line) {
 
 	for (char c : line) {
 		if (c == '{') { nestLevel++; }
-		if (c == ',' and nestLevel == 1) { phase++; }
 
-		if (nestLevel >= 1) {
+		if (nestLevel == 1 and c!= '{' and c != ',' and c != '"' and c != '}') {
 			buffer.push_back(c);
 		}
-		if (nestLevel == 1 and c == ',') {
-			if (!vecBuffer.empty()) {
-				fieldBuffer = vecBuffer;
-				record[phase] = fieldBuffer;
-				vecBuffer.clear();
-				buffer.clear();
-			}
-			else if (!inString) {
-				fieldBuffer = std::stoi(buffer);
-				record[phase] = fieldBuffer;
-				buffer.clear();
-			}
-			else if (inString) {
-				fieldBuffer = buffer;
-				record[phase] = fieldBuffer;
-				buffer.clear();
-			}
-		}
-		if (nestLevel == 2 and c == '}') {
-			recordVector(buffer, vecBuffer);
+		if (nestLevel >= 2)
+		{
+			buffer.push_back(c);
 		}
 
+		if (nestLevel == 1 and !inString and (c == ',' or c == '}')) {
+			if (buffer.empty()) { fieldBuffer = std::monostate{}; }
+			else {
+				switch (schema[phase].type) {
+
+				// Integer Handling
+				case schemaField::dataType::U8: {
+					fieldBuffer = stoi(buffer);
+					record[phase] = fieldBuffer;
+					fieldBuffer = std::monostate{};
+					buffer.clear();
+					break;
+				}
+				case schemaField::dataType::U16: {
+					fieldBuffer = stoi(buffer);
+					record[phase] = fieldBuffer;
+					fieldBuffer = std::monostate{};
+					buffer.clear();
+					break;
+				}
+				case schemaField::dataType::U32: {
+					fieldBuffer = stoi(buffer);
+					record[phase] = fieldBuffer;
+					fieldBuffer = std::monostate{};
+					buffer.clear();
+					break;
+				}
+
+
+				// String Handling
+				case schemaField::dataType::STR: {
+					fieldBuffer = buffer;
+					record[phase] = fieldBuffer;
+					fieldBuffer = std::monostate{};
+					buffer.clear();
+					break;
+				}
+
+
+				// Vector Handling
+				case schemaField::dataType::VECU8: {
+					recordVector(buffer, vecBuffer);
+					fieldBuffer = vecBuffer;
+
+					record[phase] = fieldBuffer;
+					fieldBuffer = std::monostate{};
+					vecBuffer.clear();
+					buffer.clear();
+					break;
+				}
+				case schemaField::dataType::VECU16: {
+					recordVector(buffer, vecBuffer);
+					fieldBuffer = vecBuffer;
+
+					record[phase] = fieldBuffer;
+					fieldBuffer = std::monostate{};
+					vecBuffer.clear();
+					buffer.clear();
+					break;
+				}
+
+				default:
+					throw std::runtime_error("Unknown Data Type in Schema! \n");
+				}
+			}
+		}
+
+		if (c == ',' and nestLevel == 1 and !inString) { phase++; }
 		if (c == '"') { inString = !inString; }
 		if (c == '}') { nestLevel--; }
 	}
+
 	return record;
 }
 
-//                                                                                                                  | | | | |         |     |                
-//{0,0,"Rascal Does Not Dream of Bunny Girl Senpai","Seishun Buta Yarō wa Bunny Girl Senpai no Yume wo Minai",0,0,{1,2,3,4,5,8},{0},{0,1},{0,1},2,13,325,{},}
-// _ _ ____________________________________________ _________________________________________________________ _ _ _____________ ___ _____ _____ _ __ ___ __ _
-//                                                                                                                ^^^^^^^^^^^^^ ^^^ ^^^^^ ^^^^^          ^^  
 
 void fileParsing::storeRecord(char& fileType, schemaData& schema, recordData& record) {
-	if (fileType == 'A') // Anime Database
-	{
+	if (fileType == 'A') { // Anime Database
 
 	}
-	else if (fileType == 'G') // IP Group Database
-	{
+	else if (fileType == 'G') { // IP Group Database
 
 	}
-	else if (fileType == 'C') // Character Database
-	{
+	else if (fileType == 'C') { // Character Database
 
 	}
-	else if (fileType == 'T') // Tag Lookup File
-	{
+	else if (fileType == 'T') { // Tag Lookup File
+
+	}
+	else {
 
 	}
 
@@ -172,21 +238,31 @@ void fileParsing::storeRecord(char& fileType, schemaData& schema, recordData& re
 
 
 void fileParsing::debugRecordData(recordData& record) {
+	std::cout << "Record Field Count: " << record.size() << "\n";
+
+
 	for (int i = 0; i < record.size(); i++) {
-		if (!std::holds_alternative<std::string>(record[i])) {
-			std::cout << std::get<std::string>(record[i]) << "\n";
+		if (std::holds_alternative<std::monostate>(record[i])) {
+			std::cout << "Monostate! \n";
 		}
-		else if (!std::holds_alternative<int>(record[i])) {
-			std::cout << std::get<int>(record[i]) << "\n";
+		else if (std::holds_alternative<std::string>(record[i])) {
+			std::cout << std::get<std::string>(record[i]) << " : Type String\n";
+		}
+		else if (std::holds_alternative<int>(record[i])) {
+			std::cout << std::get<int>(record[i]) << " : Type Int\n";
 
 		}
-		else if (!std::holds_alternative<std::vector<int>>(record[i])) {
+		else if (std::holds_alternative<std::vector<int>>(record[i])) {
 			for (int n = 0; n < std::get<std::vector<int>>(record[i]).size(); n++) {
-				std::cout << std::get<std::vector<int>>(record[i])[n] << ",";
+				std::cout << std::get<std::vector<int>>(record[i])[n] << " ";
 			}
-			std::cout << '\n';
+			std::cout << " : Type Int Vector\n";
+		}
+		else {
+			std::cerr << "Unknown Type in Record Data! \n";
 		}
 	}
+
 }
 
 
@@ -234,6 +310,13 @@ void fileParsing::parseFile(std::string file) {
 				//Return Non-Fatal Error -- More Records Than Expected
 			}
 			recordData record = readRecord(schema, line);
+
+
+			if (lineCount ==4)
+			{
+				debugRecordData(record);
+			}
+
 
 			storeRecord(header.type, schema, record);
 		}

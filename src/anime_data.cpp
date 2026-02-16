@@ -16,7 +16,7 @@ void animeDB::loadAnimes(std::string file) {
 	fileParsing::parseFile(file);
 }
 
-void animeDB::addAnimeENTRY() {
+void animeDB::addAnime(schemaData& schema, recordData& record) {
 
 
 }

@@ -1,5 +1,5 @@
-﻿A|50|19
-id:U32,rank:U32,title:STR,alt_title:STR,format:U8,status:U8,genres:VECU8,channels:VECU8,audios:VECU8,subtitles:VECU8,fan_service:U8,episode_count:U8,min_runtime:U16,characters:VECU16,ip_group:U8
+﻿A|50|15
+id:U32,rank:U32,title:STR,alt_title:STR,format:U8,status:U8,genres:VECU8,channels:VECU8,audios:VECU8,subtitles:VECU8,fan_service:U8,episode_count:U8,min_runtime:U16,characters:VECU16,ip_group:U8,
 
 {0,0,"Rascal Does Not Dream of Bunny Girl Senpai","Seishun Buta Yarō wa Bunny Girl Senpai no Yume wo Minai",0,0,{1,2,3,4,5,8},{0},{0,1},{0,1},2,13,325,{},}
 {1,1,"Eighty Six 86","",0,0,{},{},{},{},,,,{},},}
