@@ -1,11 +1,12 @@
 #include <iostream>
 #include "fileParsing.h"
 #include "errors.h"
+#include "anime_data.hpp"
 
 int main() {
-	fileParsing parser;
+	animeDB anime;
 
-	parser.parseFile("E:/Projects/Git/Anime-Database-Project/src/testFile.dat");
+	anime.loadAnimes("E:/Projects/Git/Anime-Database-Project/src/testFile.dat");
 
     return 0;
 }

@@ -12,6 +12,7 @@
 #include <variant>
 #include <unordered_map>
 #include <array>
+#include <functional>
 
 #include "errors.h"
 //#include "anime_data.hpp"
@@ -41,8 +42,6 @@ struct schemaField {
 	dataType type;
 };
 
-const char* typeToString(schemaField::dataType t);
-
 using schemaData = std::vector<schemaField>;
 
 using recordField = std::variant<std::monostate, std::string, int, std::vector<int>>;
@@ -52,7 +51,10 @@ using recordData = std::vector<recordField>;
 class fileParsing {
 
 	public:
-		void parseFile(std::string file);
+		template<typename f>
+		void parseFile(std::string file,f& handler);
+
+		fileHeader readFileHeader(std::string file);
 
 		void saveFile(std::string file);
 
@@ -66,8 +68,6 @@ class fileParsing {
 		bool recordVector(std::string& line, std::vector<int>& vec);
 
 		recordData readRecord(schemaData& schema, std::string& line);
-
-		void storeRecord(char& fileType, schemaData& schema, recordData& record);
 
 		void debugRecordData(recordData& record);
 

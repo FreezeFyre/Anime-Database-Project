@@ -45,9 +45,9 @@ using vecPTR = std::vector<int> animeData::*;
 
 using strPTR = std::string animeData::*;
 
-using animeMemPTR = std::variant<intPTR, vecPTR, strPTR>;
+using memPTR = std::variant<intPTR, vecPTR, strPTR>;
 
-std::unordered_map<std::string, animeMemPTR> animeFieldMap = {
+std::unordered_map<std::string, memPTR> animeFieldMap = {
 	{"rank",&animeData::rank},
 	{"title",&animeData::title},
 	{"alt_title",&animeData::alt_title},
@@ -64,71 +64,28 @@ std::unordered_map<std::string, animeMemPTR> animeFieldMap = {
 	{"ip_group",&animeData::ip_group}
 };
 
-using filteredIDS = std::vector<int>;
+std::vector<memPTR> orderedMemPTRS;
 
 class animeDB {
 	public:
 		void loadAnimes(std::string file);
 
-		void addAnime(schemaData& schema, recordData& record);
+		void record(recordData& record);
 
-		databaseErrors validateMap();
+		void schema(schemaData& schema);
 
-		filteredIDS processFilters(const Filters& f);
+		void header(fileHeader& header);
 
+		std::vector<int> getFilteredIDS(const Filters& f);
+
+		std::vector<int> getSortedIDS();
+
+		void getData();
 	private:
 
-		using animeMap = std::unordered_map<int, animeData>;
+		using data = std::vector<animeData>;
 
-		using setsVariantPTR = std::variant<intPTR, vecPTR>;
-
-		animeMap animeDatabase;
-};
-
-
-
-
-constexpr std::array<setsVariantPTR, SK_COUNT> setsPTR = {
-	&animeData::media_type,    // intPTR
-	&animeData::service_id,    // vecPTR
-	&animeData::genre_ids,     // vecPTR
-	&animeData::status_id,     // intPTR
-	&animeData::audio_lang_ids,// vecPTR
-	&animeData::sub_lang_ids,  // vecPTR
-	&animeData::media_versions // vecPTR
-};
-
-/* Range Pointers Are Completed*/
-constexpr std::array<intPTR, RK_COUNT> rangeIntPTR   = {
-	&animeData::rank,
-	&animeData::fan_service_rating,
-	&animeData::season_count,
-	&animeData::episode_count,
-	&animeData::avg_episode_length,
-	&animeData::hour_runtime,
-	&animeData::min_runtime
-};
-
-using storeVariantPTR = std::variant<intPTR, vecPTR, strPTR>;
-
-constexpr std::array<storeVariantPTR, 17> animePtr = {
-	&animeData::rank,
-	&animeData::media_type,
-	&animeData::name,
-	&animeData::alt_name,
-	&animeData::service_id,
-	&animeData::genre_ids,
-	&animeData::status_id,
-	&animeData::audio_lang_ids,
-	&animeData::sub_lang_ids,
-	&animeData::fan_service_rating,
-	&animeData::season_count,
-	&animeData::episode_count,
-	&animeData::avg_episode_length,
-	&animeData::hour_runtime,
-	&animeData::min_runtime,
-	&animeData::related_show_ids,
-	&animeData::media_versions
+		data database;
 };
 
 
@@ -146,21 +103,3 @@ extern const std::vector<std::string> audio;
 extern const std::vector<std::string> sub;
 
 extern const std::vector<std::string> media;
-
-using stringVec = const std::vector<std::string>;
-
-static const std::array<stringVec*, SK_COUNT> filterSets = {
-	&service,
-	&format,
-	&genre,
-	&status,
-	&audio,
-	&sub,
-	&media
-};
-
-void parseAnimes(const std::string& file);
-
-void storeAnimeData(int phase);
-
-bool continuityCheck();

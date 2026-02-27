@@ -37,6 +37,17 @@ fileHeader fileParsing::readHeader(std::string& line) {
 	return header;
 }
 
+fileHeader fileParsing::readFileHeader(std::string file) {
+	std::ifstream source(file);
+	if (!source.is_open()) {
+		std::cerr << "Failed to open: \t" << file << "\n";
+		return {};
+	}
+	std::string line;
+	getline(source, line);
+	return readHeader(line);
+}
+
 
 schemaField::dataType fileParsing::readDataType(std::string& dataField) {
 	schemaField::dataType type;
@@ -92,7 +103,6 @@ schemaData fileParsing::readSchema(std::string& line, int& fieldCount) {
 
 	return schema;
 }
-
 
 // Takes a input string of integers seperated by commas and enclosed in {} and updates the passed vector
 bool fileParsing::recordVector(std::string& inBuffer, std::vector<int>& vec) {
@@ -216,27 +226,6 @@ recordData fileParsing::readRecord(schemaData& schema, std::string& line) {
 }
 
 
-void fileParsing::storeRecord(char& fileType, schemaData& schema, recordData& record) {
-	if (fileType == 'A') { // Anime Database
-
-	}
-	else if (fileType == 'G') { // IP Group Database
-
-	}
-	else if (fileType == 'C') { // Character Database
-
-	}
-	else if (fileType == 'T') { // Tag Lookup File
-
-	}
-	else {
-
-	}
-
-	// Return Fatal Error -- Unknown File Type //
-}
-
-
 void fileParsing::debugRecordData(recordData& record) {
 	std::cout << "Record Field Count: " << record.size() << "\n";
 
@@ -266,7 +255,18 @@ void fileParsing::debugRecordData(recordData& record) {
 }
 
 
-void fileParsing::parseFile(std::string file) {
+
+
+
+/*
+Parse File Templated Function is designed to parse a file that contains database data in my file format.
+The function takes a input of a file path and a class object that is expected to have header, schema, and record handlers.
+The function will read a file with the proper format and split it into its Header, Schema and Records
+The header provides the database type, the amount of records and the amount of fields each record has.
+The schema provides the name and data type for each field in a record
+*/
+template<typename f >
+void fileParsing::parseFile(std::string file, f& handler) {
 	std::ifstream source(file);
 	if (!source.is_open()) {
 		std::cerr << "Failed to open: \t" << file << "\n";
@@ -287,6 +287,7 @@ void fileParsing::parseFile(std::string file) {
 				continue;
 			}
 			header = readHeader(line);
+			handler.header(header);
 			continue;
 		}
 
@@ -296,6 +297,7 @@ void fileParsing::parseFile(std::string file) {
 				continue;
 			}
 			schema = readSchema(line, header.fieldCount);
+			handler.schema(schema);
 			continue;
 		}
 
@@ -305,29 +307,15 @@ void fileParsing::parseFile(std::string file) {
 				//Return Error -- Record Line Empty//
 				continue;
 			}
-			if (!line.empty() and lineCount >= (4+ header.recordCount))
+			if (!line.empty() and lineCount >= (4 + header.recordCount))
 			{
 				//Return Non-Fatal Error -- More Records Than Expected
 			}
 			recordData record = readRecord(schema, line);
-
-
-			if (lineCount ==4)
-			{
-				debugRecordData(record);
-			}
-
-
-			storeRecord(header.type, schema, record);
+			handler.record(record);
 		}
-	}
 
-	// Debug Printing 
-	/*std::cout << header.type << "\n" << header.recordCount << "\n" << header.fieldCount << "\n";
-	for (int i = 0; i < schema.size(); i++)
-	{
-		std::cout << schema[i].name << typeToString(schema[i].type) << "\n";
-	}*/
+	}
 }
 
 void fileParsing::saveFile(std::string file) {
