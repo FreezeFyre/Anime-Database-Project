@@ -14,11 +14,6 @@
 #include <array>
 #include <functional>
 
-#include "errors.h"
-//#include "anime_data.hpp"
-//#include "Characters.h"
-//#include "Series.h"
-
 inline bool isDigit(char c);
 
 struct fileHeader {
@@ -35,11 +30,18 @@ struct schemaField {
 		STR,
 		VECU8,
 		VECU16,
-		UNKOWN
+		UNKNOWN
 	};
-
+	enum class filterMode {
+		FM_NONE,
+		FM_RANGE,
+		FM_MULTI_VALUE,
+		FM_RMV, // Range and Multi Value
+		FM_UNKNOWN
+	};
 	std::string name;
 	dataType type;
+	filterMode mode;
 };
 
 using schemaData = std::vector<schemaField>;
@@ -48,20 +50,23 @@ using recordField = std::variant<std::monostate, std::string, int, std::vector<i
 
 using recordData = std::vector<recordField>;
 
-class fileParsing {
+class fileHandler {
 
 	public:
-		template<typename f>
-		void parseFile(std::string file,f& handler);
+		template<typename f >
+		void readFile(std::string file, f& handler);
 
 		fileHeader readFileHeader(std::string file);
 
-		void saveFile(std::string file);
+		//template<typename f>
+		//void saveFile(std::string file, f& handler);
 
 	private:
 		fileHeader readHeader(std::string& line);
 
 		schemaField::dataType readDataType(std::string& dataField);
+
+		schemaField::filterMode readFilterMode(std::string& filterField);
 
 		schemaData readSchema(std::string& line, int& fieldCount);
 
@@ -72,4 +77,6 @@ class fileParsing {
 		void debugRecordData(recordData& record);
 
 };
+
+#include "fileHandling.tpp"
 

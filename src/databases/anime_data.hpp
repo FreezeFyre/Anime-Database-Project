@@ -1,5 +1,5 @@
 //
-//  Anime_data.hpp
+//  AnimeData.hpp
 //  Anime List
 //
 //  Created by Luke Raykovitz on 10/24/25.
@@ -16,9 +16,11 @@
 #include <variant>
 #include <unordered_map>
 #include <array>
+#include <typeinfo>
 
-#include "Errors.h"
-#include "fileParsing.h"
+#include "../io/fileHandling.hpp"
+#include "../filtering/filterProcessor.hpp"
+#include "../net/data.hpp"
 
 #pragma once
 
@@ -47,7 +49,7 @@ using strPTR = std::string animeData::*;
 
 using memPTR = std::variant<intPTR, vecPTR, strPTR>;
 
-std::unordered_map<std::string, memPTR> animeFieldMap = {
+inline const std::unordered_map<std::string, memPTR> animeFieldMap = {
 	{"rank",&animeData::rank},
 	{"title",&animeData::title},
 	{"alt_title",&animeData::alt_title},
@@ -64,23 +66,59 @@ std::unordered_map<std::string, memPTR> animeFieldMap = {
 	{"ip_group",&animeData::ip_group}
 };
 
-std::vector<memPTR> orderedMemPTRS;
+
+//extern std::vector<memPTR> orderedMemPTRS;
+
+
+// TEMPORARY VECTOR REPLACE WITH DYNAMIC VECTOR BUILT IN SCHEMA FUNCTION
+inline std::vector<memPTR> orderedMemPTRS = {
+	&animeData::rank,
+	&animeData::title,
+	&animeData::alt_title,
+	&animeData::format,
+	&animeData::status,
+	&animeData::genres,
+	&animeData::channels,
+	&animeData::audios,
+	&animeData::subtitles,
+	&animeData::fan_service,
+	&animeData::episode_count,
+	&animeData::min_runtime,
+	&animeData::characters,
+	& animeData::ip_group
+};
+
 
 class animeDB {
 	public:
 		void loadAnimes(std::string file);
 
-		void record(recordData& record);
+		void record(recordData& record, schemaData& schema);
 
 		void schema(schemaData& schema);
 
 		void header(fileHeader& header);
 
-		std::vector<int> getFilteredIDS(const Filters& f);
+		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
 
 		std::vector<int> getSortedIDS();
 
-		void getData();
+		fileHeader getHeader();
+
+		schemaData getSchema();
+
+		recordData getRecord();
+
+		size_t getSize() {
+			return database.size();
+		}
+
+		recordField getField(size_t id, size_t fieldIndex);
+
+		size_t getFieldCount() {
+			return orderedMemPTRS.size();
+		}
+
 	private:
 
 		using data = std::vector<animeData>;
@@ -88,6 +126,13 @@ class animeDB {
 		data database;
 };
 
+
+class SerializeAnime {
+	public:
+		static std::vector<uint8_t> pack(const animeData& anime);
+
+		static animeData unpack(const std::vector<uint8_t>& bytes);
+};
 
 /* Convert Following to a File Parser (metadata types saved in file)*/
 extern const std::vector<std::string> service;

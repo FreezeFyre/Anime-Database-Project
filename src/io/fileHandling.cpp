@@ -1,5 +1,4 @@
-﻿#include "fileParsing.h"
-#include "errors.h"
+﻿#include "fileHandling.hpp"
 
 inline bool isDigit(char c) {
 	return std::isdigit(static_cast<unsigned char>(c));
@@ -14,7 +13,8 @@ inline bool isNumber(std::string& str) {
 	return true;
 }
 
-fileHeader fileParsing::readHeader(std::string& line) {
+
+fileHeader fileHandler::readHeader(std::string& line) {
 	fileHeader header;
 
 	int phase = 0;
@@ -37,7 +37,7 @@ fileHeader fileParsing::readHeader(std::string& line) {
 	return header;
 }
 
-fileHeader fileParsing::readFileHeader(std::string file) {
+fileHeader fileHandler::readFileHeader(std::string file) {
 	std::ifstream source(file);
 	if (!source.is_open()) {
 		std::cerr << "Failed to open: \t" << file << "\n";
@@ -49,7 +49,7 @@ fileHeader fileParsing::readFileHeader(std::string file) {
 }
 
 
-schemaField::dataType fileParsing::readDataType(std::string& dataField) {
+schemaField::dataType fileHandler::readDataType(std::string& dataField) {
 	schemaField::dataType type;
 
 	if (dataField == "U8") type = schemaField::dataType::U8;
@@ -58,13 +58,26 @@ schemaField::dataType fileParsing::readDataType(std::string& dataField) {
 	else if (dataField == "STR") type = schemaField::dataType::STR;
 	else if (dataField == "VECU8") type = schemaField::dataType::VECU8;
 	else if (dataField == "VECU16") type = schemaField::dataType::VECU16;
-	else type = schemaField::dataType::UNKOWN;
+	else type = schemaField::dataType::UNKNOWN;
 
 	return type;
 }
 
 
-schemaData fileParsing::readSchema(std::string& line, int& fieldCount) {
+schemaField::filterMode fileHandler::readFilterMode(std::string& filterField) {
+	schemaField::filterMode mode;
+
+	if (filterField == "N") mode = schemaField::filterMode::FM_NONE;
+	else if (filterField == "R") mode = schemaField::filterMode::FM_RANGE;
+	else if (filterField == "MV") mode = schemaField::filterMode::FM_MULTI_VALUE;
+	else if (filterField == "RMV") mode = schemaField::filterMode::FM_RMV;
+	else mode = schemaField::filterMode::FM_UNKNOWN;
+
+	return mode;
+}
+
+
+schemaData fileHandler::readSchema(std::string& line, int& fieldCount) {
 
 	schemaData schema;
 	schemaField fBuffer;
@@ -73,7 +86,7 @@ schemaData fileParsing::readSchema(std::string& line, int& fieldCount) {
 	bool readingName = true;
 	for (char& c : line) {
 		if (c == ',') {
-			fBuffer.type = readDataType(buffer);
+			fBuffer.mode = readFilterMode(buffer);
 			schema.push_back(fBuffer);
 			fBuffer.name.clear();
 			buffer.clear();
@@ -84,7 +97,11 @@ schemaData fileParsing::readSchema(std::string& line, int& fieldCount) {
 			fBuffer.name = buffer;
 			buffer.clear();
 		}
-		if (c != ':' and c != ',')
+		if (c == ';') {
+			fBuffer.type = readDataType(buffer);
+			buffer.clear();
+		}
+		if (c != ':' and c != ',' and c != ';')
 		{
 			buffer.push_back(c);
 		}
@@ -105,7 +122,7 @@ schemaData fileParsing::readSchema(std::string& line, int& fieldCount) {
 }
 
 // Takes a input string of integers seperated by commas and enclosed in {} and updates the passed vector
-bool fileParsing::recordVector(std::string& inBuffer, std::vector<int>& vec) {
+bool fileHandler::recordVector(std::string& inBuffer, std::vector<int>& vec) {
 	std::string buffer;
 	vec.clear();
 
@@ -128,7 +145,7 @@ bool fileParsing::recordVector(std::string& inBuffer, std::vector<int>& vec) {
 }
 
 
-recordData fileParsing::readRecord(schemaData& schema, std::string& line) {
+recordData fileHandler::readRecord(schemaData& schema, std::string& line) {
 	recordData record;
 	record.resize(schema.size());
 	recordField fieldBuffer;
@@ -226,7 +243,7 @@ recordData fileParsing::readRecord(schemaData& schema, std::string& line) {
 }
 
 
-void fileParsing::debugRecordData(recordData& record) {
+void fileHandler::debugRecordData(recordData& record) {
 	std::cout << "Record Field Count: " << record.size() << "\n";
 
 
@@ -253,73 +270,3 @@ void fileParsing::debugRecordData(recordData& record) {
 	}
 
 }
-
-
-
-
-
-/*
-Parse File Templated Function is designed to parse a file that contains database data in my file format.
-The function takes a input of a file path and a class object that is expected to have header, schema, and record handlers.
-The function will read a file with the proper format and split it into its Header, Schema and Records
-The header provides the database type, the amount of records and the amount of fields each record has.
-The schema provides the name and data type for each field in a record
-*/
-template<typename f >
-void fileParsing::parseFile(std::string file, f& handler) {
-	std::ifstream source(file);
-	if (!source.is_open()) {
-		std::cerr << "Failed to open: \t" << file << "\n";
-		return;
-	}
-
-	schemaData schema;
-	fileHeader header{};
-
-	int lineCount = 0;
-	std::string line;
-	while (getline(source, line)) {
-
-		lineCount++;
-		if (lineCount == 1) {
-			if (line.empty()) {
-				//Return Error -- Header Line Empty//
-				continue;
-			}
-			header = readHeader(line);
-			handler.header(header);
-			continue;
-		}
-
-		if (lineCount == 2) {
-			if (line.empty()) {
-				//Return Error -- Schema Line Empty//
-				continue;
-			}
-			schema = readSchema(line, header.fieldCount);
-			handler.schema(schema);
-			continue;
-		}
-
-		if (lineCount >= 4)
-		{
-			if (line.empty()) {
-				//Return Error -- Record Line Empty//
-				continue;
-			}
-			if (!line.empty() and lineCount >= (4 + header.recordCount))
-			{
-				//Return Non-Fatal Error -- More Records Than Expected
-			}
-			recordData record = readRecord(schema, line);
-			handler.record(record);
-		}
-
-	}
-}
-
-void fileParsing::saveFile(std::string file) {
-
-
-}
-
