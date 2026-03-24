@@ -89,9 +89,6 @@ void animeDB::header(fileHeader& header) {
 	database.reserve(header.recordCount);
 }
 
-void animeDB::schema(schemaData& schema) {
-	// should take the schema and use it to create a ordered vector of member pointers that can be used to assign data in the record function
-}
 
 std::vector<size_t> animeDB::getFilteredIDS(const indexFilters& filters) {
 	std::vector<size_t> result;
@@ -144,7 +141,7 @@ recordField animeDB::getField(size_t id, size_t fieldIndex)
 	recordField result;
 
 	const animeData& record = database[id];
-	memPTR& ptr = orderedMemPTRS[fieldIndex];
+	const memPTR& ptr = animeMeta[fieldIndex].ptr;
 
 	std::visit([&](auto memberPtr) {
 			result = record.*memberPtr;
@@ -157,7 +154,7 @@ recordField animeDB::getField(size_t id, size_t fieldIndex)
 std::vector<uint8_t> SerializeAnime::pack(const animeData& anime) {
 	ByteWriter w;
 
-	for (size_t i = 0; i < orderedMemPTRS.size(); i++) {
+	for (size_t i = 0; i < animeMeta.size(); i++) {
 
 
 

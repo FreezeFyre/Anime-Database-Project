@@ -7,8 +7,6 @@
 
 #include "io/fileHandling.hpp"
 #include "databases/anime_data.hpp"
-#include "filtering/filterProcessor.hpp"
-#include "net/data.hpp"
 
 
 
@@ -19,17 +17,6 @@ int main() {
 	animeDB anime;
 
 	anime.loadAnimes("E:/Projects/Git/Anime-Database-Project/src/testFile.dat");
-
-	ByteWriter w;
-
-	uint32_t v = 12578;
-
-	w.U32(v);
-
-	for (size_t i = 0; i < w.buffer.size(); i++)
-	{
-		std::cout << w.buffer[i] << std::endl;
-	}
 
 	return 0;
 }

@@ -66,26 +66,31 @@ inline const std::unordered_map<std::string, memPTR> animeFieldMap = {
 	{"ip_group",&animeData::ip_group}
 };
 
+using fMode = schemaField::filterMode;
+using dType = schemaField::dataType;
 
-//extern std::vector<memPTR> orderedMemPTRS;
+struct fieldData {
+	std::string name;
+	memPTR ptr;
+	dType type;
+	fMode mode;
+};
 
-
-// TEMPORARY VECTOR REPLACE WITH DYNAMIC VECTOR BUILT IN SCHEMA FUNCTION
-inline std::vector<memPTR> orderedMemPTRS = {
-	&animeData::rank,
-	&animeData::title,
-	&animeData::alt_title,
-	&animeData::format,
-	&animeData::status,
-	&animeData::genres,
-	&animeData::channels,
-	&animeData::audios,
-	&animeData::subtitles,
-	&animeData::fan_service,
-	&animeData::episode_count,
-	&animeData::min_runtime,
-	&animeData::characters,
-	& animeData::ip_group
+inline const std::array<fieldData, 14> animeMeta = {
+	{"rank",          &animeData::rank,          dType::U32,     fMode::FM_RMV},
+	{"title",         &animeData::title,         dType::STR,     fMode::FM_NONE},
+	{"alt_title",     &animeData::alt_title,     dType::STR,     fMode::FM_NONE},
+	{"format",        &animeData::format,        dType::U8,      fMode::FM_MULTI_VALUE},
+	{"status",        &animeData::status,        dType::U8,      fMode::FM_MULTI_VALUE},
+	{"genres",        &animeData::genres,        dType::VECU8,   fMode::FM_MULTI_VALUE},
+	{"channels",      &animeData::channels,      dType::VECU8,   fMode::FM_MULTI_VALUE},
+	{"audios",        &animeData::audios,        dType::VECU8,   fMode::FM_MULTI_VALUE},
+	{"subtitles",     &animeData::subtitles,     dType::VECU8,   fMode::FM_MULTI_VALUE},
+	{"fan_service",   &animeData::fan_service,   dType::U8,      fMode::FM_RANGE},
+	{"episode_count", &animeData::episode_count, dType::U8,      fMode::FM_RANGE},
+	{"min_runtime",   &animeData::min_runtime,   dType::U16,     fMode::FM_RANGE},
+	{"characters",    &animeData::characters,    dType::VECU16,  fMode::FM_MULTI_VALUE},
+	{"ip_group",      &animeData::ip_group,      dType::U8,      fMode::FM_MULTI_VALUE}
 };
 
 
@@ -94,8 +99,6 @@ class animeDB {
 		void loadAnimes(std::string file);
 
 		void record(recordData& record, schemaData& schema);
-
-		void schema(schemaData& schema);
 
 		void header(fileHeader& header);
 
@@ -116,7 +119,7 @@ class animeDB {
 		recordField getField(size_t id, size_t fieldIndex);
 
 		size_t getFieldCount() {
-			return orderedMemPTRS.size();
+			return animeMeta.size();
 		}
 
 	private:
@@ -125,6 +128,8 @@ class animeDB {
 
 		data database;
 };
+
+
 
 
 class SerializeAnime {

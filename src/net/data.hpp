@@ -1,6 +1,9 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <cstdint>
+
+#pragma once
 
 
 class ByteWriter {
@@ -12,8 +15,9 @@ public:
 	void U32(uint32_t value); 
 	void F32(float value);
 	void F64(float value);
+	void CHAR(char c);
 	void String(const std::string& str);
-	void Vector(const std::vector<uint32_t>& vec);
+	void VEC32(const std::vector<uint32_t>& vec);
 
 	template<typename T>
 	void writeOptional(const std::optional<T>& opt);
