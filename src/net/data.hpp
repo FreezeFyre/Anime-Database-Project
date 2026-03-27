@@ -16,23 +16,33 @@ public:
 	void F32(float value);
 	void F64(float value);
 	void CHAR(char c);
-	void String(const std::string& str);
+	void STR(const std::string& str);
 	void VEC32(const std::vector<uint32_t>& vec);
+	void VEC16(const std::vector<uint16_t>& vec);
+	void VEC8(const std::vector<uint8_t>& vec);
+
 
 	template<typename T>
-	void writeOptional(const std::optional<T>& opt);
+	void OPTIONAL(const std::optional<T>& opt);
 };
 
 
 class ByteReader {
 public:
-	const std::vector<uint8_t>& buffer;
+	const std::vector<uint8_t>& input;
 	size_t offset = 0;
 
-	uint32_t readU32();
-	std::string readString();
-	std::vector<uint32_t> readVector();
+	size_t U8();
+	size_t U16();
+	size_t U32();
+	float F32();
+	float F64();
+	char CHAR();
+	std::string STR();
+	std::vector<size_t> VEC8();
+	std::vector<size_t> VEC16();
+	std::vector<size_t> VEC32();
 
 	template<typename T>
-	std::optional<T> readOptional();
+	std::optional<T> OPTIONAL();
 };

@@ -13,6 +13,8 @@ void animeDB::loadAnimes(std::string file) {
 	fileHandler parser;
 
 	parser.readFile(file, *this);
+
+	parser.
 }
 
 void animeDB::record(recordData& record, schemaData& schema) {
@@ -89,6 +91,9 @@ void animeDB::header(fileHeader& header) {
 	database.reserve(header.recordCount);
 }
 
+void animeDB::schema(schemaData& schema) {
+	// should take the schema and use it to create a ordered vector of member pointers that can be used to assign data in the record function
+}
 
 std::vector<size_t> animeDB::getFilteredIDS(const indexFilters& filters) {
 	std::vector<size_t> result;
@@ -109,7 +114,7 @@ fileHeader animeDB::getHeader() {
 	fileHeader result;
 	result.type = 'A';
 	result.recordCount = database.size();
-	result.fieldCount = animeFieldMap.size();
+	result.fieldCount = animeMeta.size();
 
 	return result;
 }
@@ -118,7 +123,7 @@ fileHeader animeDB::getHeader() {
 schemaData animeDB::getSchema() {
 	schemaData result;
 
-	for (size_t i = 0; i < animeFieldMap.size(); i++)
+	for (size_t i = 0; i < animeMeta.size(); i++)
 	{
 
 	}
@@ -151,19 +156,26 @@ recordField animeDB::getField(size_t id, size_t fieldIndex)
 }
 
 
-std::vector<uint8_t> SerializeAnime::pack(const animeData& anime) {
+
+std::vector<uint8_t> animeSerializer::pack(const animeData& anime) {
 	ByteWriter w;
 
-	for (size_t i = 0; i < animeMeta.size(); i++) {
 
-
-
-
-
-	}
 
 	return w.buffer;
 }
+
+animeData unpack(const std::vector<uint8_t>& bytes) {
+	animeData entree;
+
+	std::vector<uint8_t> buffer;
+	for (size_t i = 0; i < bytes.size(); i++) {
+
+	}
+
+	return entree;
+}
+
 
 
 

@@ -22,7 +22,7 @@ void ByteWriter::CHAR(char c) {
 	buffer.push_back(static_cast<unsigned char>(c));
 }
 
-void ByteWriter::String(const std::string& str) {
+void ByteWriter::STR(const std::string& str) {
 	U32(str.size());
 	for (char c : str) {
 		CHAR(c);
@@ -33,5 +33,19 @@ void ByteWriter::VEC32(const std::vector<uint32_t>& vec) {
 	U32(vec.size());
 	for (uint32_t value : vec) {
 		U32(value);
+	}
+}
+
+void ByteWriter::VEC16(const std::vector<uint16_t>& vec) {
+	U32(vec.size());
+	for (uint32_t value : vec) {
+		U16(value);
+	}
+}
+
+void ByteWriter::VEC8(const std::vector<uint8_t>& vec) {
+	U32(vec.size());
+	for (uint32_t value : vec) {
+		U8(value);
 	}
 }

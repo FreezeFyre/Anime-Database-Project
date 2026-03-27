@@ -24,6 +24,7 @@
 
 #pragma once
 
+
 struct animeData {
 	int rank;
 	std::string title;
@@ -49,49 +50,29 @@ using strPTR = std::string animeData::*;
 
 using memPTR = std::variant<intPTR, vecPTR, strPTR>;
 
-inline const std::unordered_map<std::string, memPTR> animeFieldMap = {
-	{"rank",&animeData::rank},
-	{"title",&animeData::title},
-	{"alt_title",&animeData::alt_title},
-	{"format",&animeData::format},
-	{"status",&animeData::status},
-	{"genres",&animeData::genres},
-	{"channels",&animeData::channels},
-	{"audios",&animeData::audios},
-	{"subtitles",&animeData::subtitles},
-	{"fan_service",&animeData::fan_service},
-	{"episode_count",&animeData::episode_count},
-	{"min_runtime",&animeData::min_runtime},
-	{"characters",&animeData::characters},
-	{"ip_group",&animeData::ip_group}
-};
-
-using fMode = schemaField::filterMode;
-using dType = schemaField::dataType;
-
 struct fieldData {
 	std::string name;
 	memPTR ptr;
-	dType type;
-	fMode mode;
+	schemaField::dataType type;
+	schemaField::filterMode mode;
 };
 
-inline const std::array<fieldData, 14> animeMeta = {
-	{"rank",          &animeData::rank,          dType::U32,     fMode::FM_RMV},
-	{"title",         &animeData::title,         dType::STR,     fMode::FM_NONE},
-	{"alt_title",     &animeData::alt_title,     dType::STR,     fMode::FM_NONE},
-	{"format",        &animeData::format,        dType::U8,      fMode::FM_MULTI_VALUE},
-	{"status",        &animeData::status,        dType::U8,      fMode::FM_MULTI_VALUE},
-	{"genres",        &animeData::genres,        dType::VECU8,   fMode::FM_MULTI_VALUE},
-	{"channels",      &animeData::channels,      dType::VECU8,   fMode::FM_MULTI_VALUE},
-	{"audios",        &animeData::audios,        dType::VECU8,   fMode::FM_MULTI_VALUE},
-	{"subtitles",     &animeData::subtitles,     dType::VECU8,   fMode::FM_MULTI_VALUE},
-	{"fan_service",   &animeData::fan_service,   dType::U8,      fMode::FM_RANGE},
-	{"episode_count", &animeData::episode_count, dType::U8,      fMode::FM_RANGE},
-	{"min_runtime",   &animeData::min_runtime,   dType::U16,     fMode::FM_RANGE},
-	{"characters",    &animeData::characters,    dType::VECU16,  fMode::FM_MULTI_VALUE},
-	{"ip_group",      &animeData::ip_group,      dType::U8,      fMode::FM_MULTI_VALUE}
-};
+inline const std::array<fieldData, 14> animeMeta = { {
+	{"rank",          &animeData::rank,          schemaField::dataType::U32,     schemaField::filterMode::FM_RMV},
+	{"title",         &animeData::title,         schemaField::dataType::STR,     schemaField::filterMode::FM_NONE},
+	{"alt_title",     &animeData::alt_title,     schemaField::dataType::STR,     schemaField::filterMode::FM_NONE},
+	{"format",        &animeData::format,        schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE},
+	{"status",        &animeData::status,        schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE},
+	{"genres",        &animeData::genres,        schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE},
+	{"channels",      &animeData::channels,      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE},
+	{"audios",        &animeData::audios,        schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE},
+	{"subtitles",     &animeData::subtitles,     schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE},
+	{"fan_service",   &animeData::fan_service,   schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE},
+	{"episode_count", &animeData::episode_count, schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE},
+	{"min_runtime",   &animeData::min_runtime,   schemaField::dataType::U16,     schemaField::filterMode::FM_RANGE},
+	{"characters",    &animeData::characters,    schemaField::dataType::VECU16,  schemaField::filterMode::FM_MULTI_VALUE},
+	{"ip_group",      &animeData::ip_group,      schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE}
+} };
 
 
 class animeDB {
@@ -99,6 +80,8 @@ class animeDB {
 		void loadAnimes(std::string file);
 
 		void record(recordData& record, schemaData& schema);
+
+		void schema(schemaData& schema);
 
 		void header(fileHeader& header);
 
@@ -129,15 +112,15 @@ class animeDB {
 		data database;
 };
 
-
-
-
-class SerializeAnime {
+class animeSerializer {
 	public:
 		static std::vector<uint8_t> pack(const animeData& anime);
 
 		static animeData unpack(const std::vector<uint8_t>& bytes);
 };
+
+
+
 
 /* Convert Following to a File Parser (metadata types saved in file)*/
 extern const std::vector<std::string> service;

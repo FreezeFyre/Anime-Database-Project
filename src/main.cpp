@@ -18,5 +18,6 @@ int main() {
 
 	anime.loadAnimes("E:/Projects/Git/Anime-Database-Project/src/testFile.dat");
 
+
 	return 0;
 }
