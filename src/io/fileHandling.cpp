@@ -14,26 +14,57 @@ inline bool isNumber(std::string& str) {
 }
 
 
+bool checkMagic(std::string& magic) {
+	return magic == MAGIC_REFERENCE;
+}
+
+bool checkVersion(std::string& version) {
+	if (!isNumber(version)) { return false; }
+	return std::stoi(version) == FILE_PROCESS_VERSION;
+}
+
 fileHeader fileHandler::readHeader(std::string& line) {
 	fileHeader header;
 
 	int phase = 0;
 	std::string buffer;
-	std::string fieldBuffer;
 
 	for (char& c : line) {
 		if (c == '|') {
 			phase++;
 			continue;
 		}
-		if (phase == 0) { header.type = c; }
-		if (isDigit(c) and phase == 1) { buffer.push_back(c); }
-		if (isDigit(c) and phase == 2) { fieldBuffer.push_back(c); }
+		if (phase == 0) { buffer.push_back(c); }
+		if (phase == 1 and c == '|') {
+			if (!checkMagic(buffer)) { /* Throw Error Wrong File */ }
+			else {
+				header.magic = buffer;
+				buffer.clear();
+			}
+		}
+		if (c != '|' and phase == 1) { buffer.push_back(c); }
+		if (phase == 2 and c == '|') {
+			if (!checkVersion(buffer)) { /* Throw Deprechiated Versioning, Wrong File Formating Version */ }
+			else {
+				header.version = std::stoi(buffer);
+				buffer.clear();
+			}
+		}
+		if (isDigit(c) and phase == 2) { buffer.push_back(c); }
+		if (phase == 3 and c == '|') {
+			header.type = std::stoi(buffer);
+			buffer.clear();
+		}
+		if (isDigit(c) and phase == 3)
+		{
+			buffer.push_back(c);
+		}
+		if (c == '|' and phase == 3)
+		{
+			header.sectionCount = std::stoi(buffer);
+			buffer.clear();
+		}
 	}
-
-	if (!buffer.empty()) header.recordCount = stoi(buffer);
-	if (!fieldBuffer.empty()) header.fieldCount = stoi(fieldBuffer);
-
 	return header;
 }
 
@@ -240,33 +271,4 @@ recordData fileHandler::readRecord(schemaData& schema, std::string& line) {
 	}
 
 	return record;
-}
-
-
-void fileHandler::debugRecordData(recordData& record) {
-	std::cout << "Record Field Count: " << record.size() << "\n";
-
-
-	for (int i = 0; i < record.size(); i++) {
-		if (std::holds_alternative<std::monostate>(record[i])) {
-			std::cout << "Monostate! \n";
-		}
-		else if (std::holds_alternative<std::string>(record[i])) {
-			std::cout << std::get<std::string>(record[i]) << " : Type String\n";
-		}
-		else if (std::holds_alternative<int>(record[i])) {
-			std::cout << std::get<int>(record[i]) << " : Type Int\n";
-
-		}
-		else if (std::holds_alternative<std::vector<int>>(record[i])) {
-			for (int n = 0; n < std::get<std::vector<int>>(record[i]).size(); n++) {
-				std::cout << std::get<std::vector<int>>(record[i])[n] << " ";
-			}
-			std::cout << " : Type Int Vector\n";
-		}
-		else {
-			std::cerr << "Unknown Type in Record Data! \n";
-		}
-	}
-
 }

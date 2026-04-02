@@ -1,0 +1,14 @@
+ADP0|1001|1|2|
+
+1|ANIME_TAG_SERVICE|7|1|0|
+{"Crunchyroll"}
+{"Netflix"}
+{"Hulu"}
+{"Disney Plus"}
+{"Amazon Prime Video"}
+{"HiDive"}
+{"Youtube"}
+
+1|ANIME_TAG_FORMAT|2|1|0|
+{"Series"}
+{"Movie"}

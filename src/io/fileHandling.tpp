@@ -17,7 +17,7 @@ void fileHandler::readFile(std::string file, f& handler) {
     }
 
     schemaData schema;
-    fileHeader header{};
+    fileHeader header;
 
     int lineCount = 0;
     std::string line;
@@ -27,7 +27,7 @@ void fileHandler::readFile(std::string file, f& handler) {
         lineCount++;
 
         if (lineCount == 1) {
-            if (line.empty()) continue;
+            if (line.empty()) continue; // Replace With Error
             header = readHeader(line);
             handler.header(header);
             continue;

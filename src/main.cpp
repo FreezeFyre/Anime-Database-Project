@@ -16,8 +16,7 @@ int main() {
 
 	animeDB anime;
 
-	anime.loadAnimes("E:/Projects/Git/Anime-Database-Project/src/testFile.dat");
-
+	anime.loadAnimes("E:/Projects/Git/Anime-Database-Project/src/io/formatTest.1.dat");
 
 	return 0;
 }

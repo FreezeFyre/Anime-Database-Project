@@ -42,6 +42,15 @@ struct animeData {
 	int ip_group;
 };
 
+struct animeTables {
+	std::vector<std::string> genres;
+	std::vector<std::string> channels;
+	std::vector<std::string> audios;
+	std::vector<std::string> subtitles;
+	std::vector<std::string> formats;
+	std::vector<std::string> statuses;
+};
+
 using intPTR = int animeData::*;
 
 using vecPTR = std::vector<int> animeData::*;
@@ -85,6 +94,8 @@ class animeDB {
 
 		void header(fileHeader& header);
 
+		void table(std::string& table, std::string& title);
+
 		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
 
 		std::vector<int> getSortedIDS();
@@ -110,6 +121,8 @@ class animeDB {
 		using data = std::vector<animeData>;
 
 		data database;
+
+		animeTables lookup;
 };
 
 class animeSerializer {

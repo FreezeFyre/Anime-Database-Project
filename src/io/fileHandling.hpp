@@ -16,11 +16,34 @@
 
 inline bool isDigit(char c);
 
+static const std::string MAGIC_REFERENCE = "ADP0";
+static const uint32_t FILE_PROCESS_VERSION = 1001;
+
+enum class fileType : uint8_t {
+	HEADER_DATABASE,
+	HEADER_TABLE
+}; // Currently Unused in Header
+
 struct fileHeader {
-	char type;
-	int recordCount;
-	int fieldCount;
+	std::string magic;
+	uint32_t version;
+	uint8_t type;
+	uint32_t sectionCount;
 };
+
+
+enum class sectionType : uint8_t {
+	SECTION_DATABASE_RECORDS,
+	SECTION_TAG_LOOKUP
+};
+struct sectionHeader {
+	uint8_t type;
+	std::string title;
+	uint32_t recordCount;
+	uint32_t fieldCount;
+	bool hasSchema;
+};
+
 
 struct schemaField {
 	enum class dataType {
@@ -54,15 +77,21 @@ class fileHandler {
 
 	public:
 		template<typename f >
-		void readFile(std::string file, f& handler);
+		void readFile(std::string file, f& handler, fileHeader& expected_type);
 
 		fileHeader readFileHeader(std::string file);
 
-		//template<typename f>
-		//void saveFile(std::string file, f& handler);
+		template<typename f>
+		void saveFile(std::string file, f& handler);
 
 	private:
+		bool checkMagic(std::string& line);
+
+		bool checkVersion(std::string& line);
+
 		fileHeader readHeader(std::string& line);
+
+		sectionHeader readSection(std::string& line);
 
 		schemaField::dataType readDataType(std::string& dataField);
 
@@ -73,8 +102,6 @@ class fileHandler {
 		bool recordVector(std::string& line, std::vector<int>& vec);
 
 		recordData readRecord(schemaData& schema, std::string& line);
-
-		void debugRecordData(recordData& record);
 
 };
 
