@@ -10,11 +10,10 @@
 
 
 void animeDB::loadAnimes(std::string file) {
-	fileHandler parser;
+	fileProcessor parser;
 
-	parser.readFile(file, *this);
+	parser.readFile(file, *this, fileType::HEADER_DATABASE);
 
-	parser.
 }
 
 void animeDB::record(recordData& record, schemaData& schema) {
@@ -83,10 +82,7 @@ void animeDB::record(recordData& record, schemaData& schema) {
 	database.emplace_back(std::move(anime));
 }
 
-void animeDB::header(fileHeader& header) {
-	if (header.type != 'A') {
-		throw std::runtime_error("Wrong File Type!");
-	}
+void animeDB::section(sectionHeader& header) {
 
 	database.reserve(header.recordCount);
 }
@@ -112,9 +108,18 @@ std::vector<int> animeDB::getSortedIDS() {
 
 fileHeader animeDB::getHeader() {
 	fileHeader result;
-	result.type = 'A';
+
+	return result;
+}
+
+sectionHeader animeDB::getSection() {
+	sectionHeader result;
+
+	result.type = sectionType::SECTION_DATABASE_RECORDS; // Placeholder
+	result.title = "ANIME_DATA";
 	result.recordCount = database.size();
 	result.fieldCount = animeMeta.size();
+	result.hasSchema = true;
 
 	return result;
 }
@@ -157,6 +162,12 @@ recordField animeDB::getField(size_t id, size_t fieldIndex)
 
 
 
+void animeDB::table(std::string& table, std::string& title) {
+	// I need to add a switch and function to handle conversion from title string to select the correct lookup table to pushback the string to.
+	
+}
+
+
 std::vector<uint8_t> animeSerializer::pack(const animeData& anime) {
 	ByteWriter w;
 
@@ -165,7 +176,7 @@ std::vector<uint8_t> animeSerializer::pack(const animeData& anime) {
 	return w.buffer;
 }
 
-animeData unpack(const std::vector<uint8_t>& bytes) {
+animeData animeSerializer::unpack(const std::vector<uint8_t>& bytes) {
 	animeData entree;
 
 	std::vector<uint8_t> buffer;

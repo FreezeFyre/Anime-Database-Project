@@ -1,6 +1,5 @@
 #pragma once
 
-
 /*
 Parse File Templated Function is designed to parse a file that contains database data in my file format.
 The function takes a input of a file path and a class object that is expected to have header, schema, and record handlers.
@@ -8,45 +7,73 @@ The function will read a file with the proper format and split it into its Heade
 The header provides the database type, the amount of records and the amount of fields each record has.
 The schema provides the name and data type for each field in a record
 */
-template<typename f> 
-void fileHandler::readFile(std::string file, f& handler) {
-    std::ifstream source(file);
-    if (!source.is_open()) {
-        std::cerr << "Failed to open: \t" << file << "\n";
-        return;
-    }
+template<typename f>
+	requires FileHandler<f>
+void fileProcessor::readFile(std::string file, f& handler, const fileType& expected_type) {
+	std::ifstream source(file);
+	if (!source.is_open()) {
+		std::cerr << "Failed to open: \t" << file << "\n";
+		return;
+	}
 
-    schemaData schema;
-    fileHeader header;
+	fileHeader header;
+	sectionHeader section;
+	schemaData schema;
+	recordData record;
 
-    int lineCount = 0;
-    std::string line;
+	std::string line;
+	std::string buffer;
 
-    while (getline(source, line)) {
+	int section_count = 0;
+	int record_pos = 0;
 
-        lineCount++;
 
-        if (lineCount == 1) {
-            if (line.empty()) continue; // Replace With Error
-            header = readHeader(line);
-            handler.header(header);
-            continue;
-        }
+	bool readHeaderLine = true;
+	bool readSectionLine = false;
+	bool readRecordLine = false;
+	bool readSchemaLine = false;
 
-        if (lineCount == 2) {
-            if (line.empty()) continue;
-            schema = readSchema(line, header.fieldCount);
-            handler.schema(schema);
-            continue;
-        }
 
-        if (lineCount >= 4) {
-            if (line.empty()) continue;
-            recordData record = readRecord(schema, line);
-            handler.record(record, schema);
-        }
-    }
+	while (getline(source, line)) {
+		if (line.empty()) { continue; }
+		if (readHeaderLine) {
+			header = readHeader(line);
+			readHeaderLine = false;
+			readSectionLine = true;
+		}
+		if (header.type != expected_type) { /*ERROR*/ }
+		if (readSectionLine) {
+			section_count++;
+			section = readSection(line);
+			handler.section(section);
+			if (section.hasSchema) { readSchemaLine = true; }
+			else { readRecordLine = true; }
+			readHeaderLine = false;
+			continue;
+		}
+		if (readSchemaLine) {
+			schema = readSchema(line, section.fieldCount);
+			handler.schema(schema);
+			readRecordLine = true;
+			readSchemaLine = false;
+		}
+		if (readRecordLine) {
+			record_pos++;
+			if (section.type == sectionType::SECTION_DATABASE_RECORDS) {
+				record = readRecord(schema, line);
+				handler.record(record, schema);
+			}
+			if (section.type == sectionType::SECTION_TAG_LOOKUP) {
+				buffer = line;
+				buffer.erase(0, 2);
+				buffer.erase(buffer.size() - 2, 2);
+				handler.table(buffer, section.title);
+			}
+		}
+		if (record_pos == section.recordCount)
+		{
+			readSectionLine = true;
+			record_pos = 0;
+		}
+	}
 }
-
-
-

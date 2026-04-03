@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <array>
 #include <functional>
+#include <concepts>
 
 inline bool isDigit(char c);
 
@@ -22,12 +23,16 @@ static const uint32_t FILE_PROCESS_VERSION = 1001;
 enum class fileType : uint8_t {
 	HEADER_DATABASE,
 	HEADER_TABLE
-}; // Currently Unused in Header
-
+};
+inline fileType STR_TO_FTYPE(const std::string& str) {
+	if (str == "0") return fileType::HEADER_DATABASE;
+	else if (str == "1") return fileType::HEADER_TABLE;
+	else throw std::invalid_argument("Invalid file type string: " + str);
+}
 struct fileHeader {
 	std::string magic;
 	uint32_t version;
-	uint8_t type;
+	fileType type;
 	uint32_t sectionCount;
 };
 
@@ -36,8 +41,13 @@ enum class sectionType : uint8_t {
 	SECTION_DATABASE_RECORDS,
 	SECTION_TAG_LOOKUP
 };
+inline sectionType STR_TO_STYPE(const std::string& str) {
+	if (str == "0") return sectionType::SECTION_DATABASE_RECORDS;
+	else if (str == "1") return sectionType::SECTION_TAG_LOOKUP;
+	else throw std::invalid_argument("Invalid section type string: " + str);
+}
 struct sectionHeader {
-	uint8_t type;
+	sectionType type;
 	std::string title;
 	uint32_t recordCount;
 	uint32_t fieldCount;
@@ -73,31 +83,52 @@ using recordField = std::variant<std::monostate, std::string, int, std::vector<i
 
 using recordData = std::vector<recordField>;
 
-class fileHandler {
+
+// Ensures Handler Class Functions
+template<typename f>
+concept FileHandler = requires(
+	f h,
+	sectionHeader section,
+	schemaData schema,
+	recordData record,
+	std::string str
+	) {
+		{ h.section(section) } -> std::same_as<void>;
+		{ h.schema(schema) } -> std::same_as<void>;
+		{ h.record(record, schema) } -> std::same_as<void>;
+		{ h.table(str, str) } -> std::same_as<void>;
+};
+
+class fileProcessor {
 
 	public:
-		template<typename f >
-		void readFile(std::string file, f& handler, fileHeader& expected_type);
-
-		fileHeader readFileHeader(std::string file);
+		template<typename f>
+			requires FileHandler<f>
+		void readFile(std::string file, f& handler, const fileType& expected_type);
 
 		template<typename f>
 		void saveFile(std::string file, f& handler);
 
 	private:
-		bool checkMagic(std::string& line);
+		inline bool checkMagic(std::string& line) {
+			if (line == MAGIC_REFERENCE) { return true; }
+			else { return false; }
+		}
 
-		bool checkVersion(std::string& line);
+		inline bool checkVersion(std::string& line) {
+			if (line == std::to_string(FILE_PROCESS_VERSION)) { return true; }
+			else { return false; }
+		}
 
 		fileHeader readHeader(std::string& line);
 
-		sectionHeader readSection(std::string& line);
+		sectionHeader readSection(const std::string& line);
 
 		schemaField::dataType readDataType(std::string& dataField);
 
 		schemaField::filterMode readFilterMode(std::string& filterField);
 
-		schemaData readSchema(std::string& line, int& fieldCount);
+		schemaData readSchema(std::string& line, const int& fieldCount);
 
 		bool recordVector(std::string& line, std::vector<int>& vec);
 

@@ -4,7 +4,7 @@ inline bool isDigit(char c) {
 	return std::isdigit(static_cast<unsigned char>(c));
 }
 
-inline bool isNumber(std::string& str) {
+inline static bool isNumber(std::string& str) {
 	for (int i = 0; i < str.size(); i++)
 	{
 		if (!isDigit(str[i]) and str[i] != '-') { return false; }
@@ -13,17 +13,7 @@ inline bool isNumber(std::string& str) {
 	return true;
 }
 
-
-bool checkMagic(std::string& magic) {
-	return magic == MAGIC_REFERENCE;
-}
-
-bool checkVersion(std::string& version) {
-	if (!isNumber(version)) { return false; }
-	return std::stoi(version) == FILE_PROCESS_VERSION;
-}
-
-fileHeader fileHandler::readHeader(std::string& line) {
+fileHeader fileProcessor::readHeader(std::string& line) {
 	fileHeader header;
 
 	int phase = 0;
@@ -52,7 +42,7 @@ fileHeader fileHandler::readHeader(std::string& line) {
 		}
 		if (isDigit(c) and phase == 2) { buffer.push_back(c); }
 		if (phase == 3 and c == '|') {
-			header.type = std::stoi(buffer);
+			header.type = STR_TO_FTYPE(buffer);
 			buffer.clear();
 		}
 		if (isDigit(c) and phase == 3)
@@ -68,19 +58,52 @@ fileHeader fileHandler::readHeader(std::string& line) {
 	return header;
 }
 
-fileHeader fileHandler::readFileHeader(std::string file) {
-	std::ifstream source(file);
-	if (!source.is_open()) {
-		std::cerr << "Failed to open: \t" << file << "\n";
-		return {};
+
+
+sectionHeader fileProcessor::readSection(const std::string& line) {
+	sectionHeader section;
+	std::string buffer;
+	int phase = 0;
+	for (char c : line) {
+		if (c == '|') {
+			phase++;
+			continue;
+		}
+		if (c != '|') {
+			buffer.push_back(c);
+		}
+		if (c == '|' and phase == 1) {
+			section.type = STR_TO_STYPE(buffer);
+			buffer.clear();
+		}
+		if (c == '|' and phase == 2) {
+			section.title = buffer;
+			buffer.clear();
+		}
+		if (c == '|' and phase == 3) {
+			section.recordCount = std::stoi(buffer);
+		}
+		if (c == '|' and phase == 4) {
+			section.fieldCount = std::stoi(buffer);
+		}
+		if (c == '|' and phase == 5) {
+			if (buffer == "1") {
+				section.hasSchema = true;
+			}
+			else {
+				section.hasSchema = false;
+			}
+			buffer.clear();
+		}
+
+
 	}
-	std::string line;
-	getline(source, line);
-	return readHeader(line);
+	return section;
 }
 
 
-schemaField::dataType fileHandler::readDataType(std::string& dataField) {
+
+schemaField::dataType fileProcessor::readDataType(std::string& dataField) {
 	schemaField::dataType type;
 
 	if (dataField == "U8") type = schemaField::dataType::U8;
@@ -95,7 +118,7 @@ schemaField::dataType fileHandler::readDataType(std::string& dataField) {
 }
 
 
-schemaField::filterMode fileHandler::readFilterMode(std::string& filterField) {
+schemaField::filterMode fileProcessor::readFilterMode(std::string& filterField) {
 	schemaField::filterMode mode;
 
 	if (filterField == "N") mode = schemaField::filterMode::FM_NONE;
@@ -108,7 +131,7 @@ schemaField::filterMode fileHandler::readFilterMode(std::string& filterField) {
 }
 
 
-schemaData fileHandler::readSchema(std::string& line, int& fieldCount) {
+schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 
 	schemaData schema;
 	schemaField fBuffer;
@@ -153,7 +176,7 @@ schemaData fileHandler::readSchema(std::string& line, int& fieldCount) {
 }
 
 // Takes a input string of integers seperated by commas and enclosed in {} and updates the passed vector
-bool fileHandler::recordVector(std::string& inBuffer, std::vector<int>& vec) {
+bool fileProcessor::recordVector(std::string& inBuffer, std::vector<int>& vec) {
 	std::string buffer;
 	vec.clear();
 
@@ -176,7 +199,7 @@ bool fileHandler::recordVector(std::string& inBuffer, std::vector<int>& vec) {
 }
 
 
-recordData fileHandler::readRecord(schemaData& schema, std::string& line) {
+recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 	recordData record;
 	record.resize(schema.size());
 	recordField fieldBuffer;

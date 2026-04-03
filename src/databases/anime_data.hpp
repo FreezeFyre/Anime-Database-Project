@@ -92,7 +92,7 @@ class animeDB {
 
 		void schema(schemaData& schema);
 
-		void header(fileHeader& header);
+		void section(sectionHeader& header);
 
 		void table(std::string& table, std::string& title);
 
@@ -101,6 +101,8 @@ class animeDB {
 		std::vector<int> getSortedIDS();
 
 		fileHeader getHeader();
+
+		sectionHeader getSection();
 
 		schemaData getSchema();
 
