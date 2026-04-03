@@ -4,7 +4,6 @@
 //
 //  Created by Luke Raykovitz on 10/24/25.
 //
-
 #include "anime_data.hpp"
 
 
@@ -12,8 +11,12 @@
 void animeDB::loadAnimes(std::string file) {
 	fileProcessor parser;
 
-	parser.readFile(file, *this, fileType::HEADER_DATABASE);
-
+	try {
+		parser.readFile(file, *this, fileType::HEADER_DATABASE);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error loading anime data: " << e.what() << "\n";
+	}
 }
 
 void animeDB::record(recordData& record, schemaData& schema) {
@@ -105,7 +108,6 @@ std::vector<int> animeDB::getSortedIDS() {
 	return {};
 }
 
-
 fileHeader animeDB::getHeader() {
 	fileHeader result;
 
@@ -124,7 +126,6 @@ sectionHeader animeDB::getSection() {
 	return result;
 }
 
-
 schemaData animeDB::getSchema() {
 	schemaData result;
 
@@ -135,7 +136,6 @@ schemaData animeDB::getSchema() {
 
 	return result;
 }
-
 
 recordData animeDB::getRecord() {
 	recordData result;
@@ -160,13 +160,10 @@ recordField animeDB::getField(size_t id, size_t fieldIndex)
 	return result;
 }
 
-
-
 void animeDB::table(std::string& table, std::string& title) {
 	// I need to add a switch and function to handle conversion from title string to select the correct lookup table to pushback the string to.
 	
 }
-
 
 std::vector<uint8_t> animeSerializer::pack(const animeData& anime) {
 	ByteWriter w;
@@ -189,7 +186,7 @@ animeData animeSerializer::unpack(const std::vector<uint8_t>& bytes) {
 
 
 
-
+/*-----	All of my lookup tables	-----*/
 const std::vector<std::string> service = {
 	"Crunchyroll",
 	"Netflix",

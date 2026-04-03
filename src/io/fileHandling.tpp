@@ -38,10 +38,12 @@ void fileProcessor::readFile(std::string file, f& handler, const fileType& expec
 		if (line.empty()) { continue; }
 		if (readHeaderLine) {
 			header = readHeader(line);
+			if (header.type != expected_type) { throw std::exception("Wrong File Type In Header"); }
+
 			readHeaderLine = false;
 			readSectionLine = true;
+			continue;
 		}
-		if (header.type != expected_type) { /*ERROR*/ }
 		if (readSectionLine) {
 			section_count++;
 			section = readSection(line);
@@ -49,6 +51,9 @@ void fileProcessor::readFile(std::string file, f& handler, const fileType& expec
 			if (section.hasSchema) { readSchemaLine = true; }
 			else { readRecordLine = true; }
 			readHeaderLine = false;
+			if (section_count > header.sectionCount) {
+				throw std::exception("Inaccurate Section Count in Header or Parsing Logic Error");
+			}
 			continue;
 		}
 		if (readSchemaLine) {

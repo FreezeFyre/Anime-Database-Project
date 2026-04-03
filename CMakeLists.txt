@@ -5,11 +5,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(anime_database_project
-	"src/Main.cpp"
+
+	"src/main.cpp"
 	"src/io/fileHandling.cpp"
 	"src/databases/anime_data.cpp"
 	"src/filtering/filterProcessor.cpp"
- "src/net/tcp.cpp" "src/net/http.cpp" "src/net/http.hpp" "src/net/data.cpp")
+	"src/net/tcp.cpp"
+	"src/net/http.cpp"
+	"src/net/data.cpp"
+
+)
 
 
 target_include_directories(anime_database_project PRIVATE include)

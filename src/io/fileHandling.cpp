@@ -16,45 +16,31 @@ inline static bool isNumber(std::string& str) {
 fileHeader fileProcessor::readHeader(std::string& line) {
 	fileHeader header;
 
-	int phase = 0;
 	std::string buffer;
+	std::vector<std::string> tokens; 
 
-	for (char& c : line) {
+	for (char c : line) {
 		if (c == '|') {
-			phase++;
-			continue;
-		}
-		if (phase == 0) { buffer.push_back(c); }
-		if (phase == 1 and c == '|') {
-			if (!checkMagic(buffer)) { /* Throw Error Wrong File */ }
-			else {
-				header.magic = buffer;
-				buffer.clear();
-			}
-		}
-		if (c != '|' and phase == 1) { buffer.push_back(c); }
-		if (phase == 2 and c == '|') {
-			if (!checkVersion(buffer)) { /* Throw Deprechiated Versioning, Wrong File Formating Version */ }
-			else {
-				header.version = std::stoi(buffer);
-				buffer.clear();
-			}
-		}
-		if (isDigit(c) and phase == 2) { buffer.push_back(c); }
-		if (phase == 3 and c == '|') {
-			header.type = STR_TO_FTYPE(buffer);
+			tokens.push_back(buffer);
 			buffer.clear();
 		}
-		if (isDigit(c) and phase == 3)
-		{
+		else {
 			buffer.push_back(c);
 		}
-		if (c == '|' and phase == 3)
-		{
-			header.sectionCount = std::stoi(buffer);
-			buffer.clear();
-		}
 	}
+
+	if (!checkMagic(tokens[0])) { throw std::exception("Invalid File Magic"); }
+	header.magic = tokens[0];
+	if (!checkVersion(tokens[1])) { throw std::exception("Depreciated File Versioning"); }
+	header.version = std::stoi(tokens[1]);
+	try {
+		header.type = STR_TO_FTYPE(tokens[2]);
+	}
+	catch (const std::exception& e) {
+		throw std::runtime_error(e.what() + std::string("In File Header \n"));
+	}
+	header.sectionCount = std::stoi(tokens[3]);
+
 	return header;
 }
 
@@ -62,47 +48,43 @@ fileHeader fileProcessor::readHeader(std::string& line) {
 
 sectionHeader fileProcessor::readSection(const std::string& line) {
 	sectionHeader section;
+
 	std::string buffer;
-	int phase = 0;
+	std::vector<std::string> tokens;
+
 	for (char c : line) {
 		if (c == '|') {
-			phase++;
-			continue;
+			tokens.push_back(buffer);
+			buffer.clear();
 		}
-		if (c != '|') {
+		else {
 			buffer.push_back(c);
 		}
-		if (c == '|' and phase == 1) {
-			section.type = STR_TO_STYPE(buffer);
-			buffer.clear();
-		}
-		if (c == '|' and phase == 2) {
-			section.title = buffer;
-			buffer.clear();
-		}
-		if (c == '|' and phase == 3) {
-			section.recordCount = std::stoi(buffer);
-		}
-		if (c == '|' and phase == 4) {
-			section.fieldCount = std::stoi(buffer);
-		}
-		if (c == '|' and phase == 5) {
-			if (buffer == "1") {
-				section.hasSchema = true;
-			}
-			else {
-				section.hasSchema = false;
-			}
-			buffer.clear();
-		}
-
-
 	}
+
+
+	try {
+		section.type = STR_TO_STYPE(tokens[0]);
+	}
+	catch (const std::exception& e) {
+		throw std::runtime_error(e.what() + std::string("In Section Header \n"));
+	}
+	section.title = tokens[1];
+	section.recordCount = std::stoi(tokens[2]);
+	section.fieldCount = std::stoi(tokens[3]);
+	if (tokens[4] == "1") {
+		section.hasSchema = true;
+	}
+	else {
+		section.hasSchema = false;
+	}
+
+
 	return section;
 }
 
 
-
+/*-----	Should now have error throwing	-----*/
 schemaField::dataType fileProcessor::readDataType(std::string& dataField) {
 	schemaField::dataType type;
 
@@ -112,12 +94,12 @@ schemaField::dataType fileProcessor::readDataType(std::string& dataField) {
 	else if (dataField == "STR") type = schemaField::dataType::STR;
 	else if (dataField == "VECU8") type = schemaField::dataType::VECU8;
 	else if (dataField == "VECU16") type = schemaField::dataType::VECU16;
-	else type = schemaField::dataType::UNKNOWN;
+	else throw std::exception("Invalid Field Data Type");
 
 	return type;
 }
 
-
+/*-----	Should now have error throwing	-----*/
 schemaField::filterMode fileProcessor::readFilterMode(std::string& filterField) {
 	schemaField::filterMode mode;
 
@@ -125,12 +107,12 @@ schemaField::filterMode fileProcessor::readFilterMode(std::string& filterField) 
 	else if (filterField == "R") mode = schemaField::filterMode::FM_RANGE;
 	else if (filterField == "MV") mode = schemaField::filterMode::FM_MULTI_VALUE;
 	else if (filterField == "RMV") mode = schemaField::filterMode::FM_RMV;
-	else mode = schemaField::filterMode::FM_UNKNOWN;
+	else throw std::runtime_error("Invalid Filter Mode");
 
 	return mode;
 }
 
-
+/*-----	Should now have error throwing	-----*/
 schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 
 	schemaData schema;
@@ -139,8 +121,12 @@ schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 	int phase = 0;
 	bool readingName = true;
 	for (char& c : line) {
-		if (c == ',') {
-			fBuffer.mode = readFilterMode(buffer);
+		if (c == ',' or c == ']') {
+			try {
+				fBuffer.mode = readFilterMode(buffer);
+			} catch (const std::runtime_error& e) { // Throw Error if filter mode is invalid
+				throw std::runtime_error(e.what() + std::string("In Schema Field ") + std::to_string(phase));
+			}
 			schema.push_back(fBuffer);
 			fBuffer.name.clear();
 			buffer.clear();
@@ -152,10 +138,15 @@ schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 			buffer.clear();
 		}
 		if (c == ';') {
-			fBuffer.type = readDataType(buffer);
+			try {
+				fBuffer.type = readDataType(buffer);
+			}
+			catch (const std::runtime_error& e) { // Throw Error if field data type is invalid
+				throw std::runtime_error(e.what() + std::string("In Schema Field ") + std::to_string(phase));
+			}
 			buffer.clear();
 		}
-		if (c != ':' and c != ',' and c != ';')
+		if (c != ':' and c != ',' and c != ';' and c != '[' and c!= ']')
 		{
 			buffer.push_back(c);
 		}
@@ -166,14 +157,15 @@ schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 			readingName = true;
 		}
 
-		if (phase > fieldCount)
-		{
-			// Return Non-Fatal Error -- More Fields Than Expected//
+		if (phase > fieldCount) {
+			throw std::runtime_error("Too many fields in schema line! Expected " + std::to_string(fieldCount) + " fields, but got at least " + std::to_string(phase));
 		}
 	}
 
 	return schema;
 }
+
+
 
 // Takes a input string of integers seperated by commas and enclosed in {} and updates the passed vector
 bool fileProcessor::recordVector(std::string& inBuffer, std::vector<int>& vec) {
