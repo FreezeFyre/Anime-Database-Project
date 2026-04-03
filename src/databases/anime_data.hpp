@@ -49,6 +49,7 @@ struct animeTables {
 	std::vector<std::string> subtitles;
 	std::vector<std::string> formats;
 	std::vector<std::string> statuses;
+	std::vector<std::string> medias;
 };
 
 using intPTR = int animeData::*;
@@ -84,9 +85,12 @@ inline const std::array<fieldData, 14> animeMeta = { {
 } };
 
 
+
 class animeDB {
 	public:
 		void loadAnimes(std::string file);
+
+		void loadLookupTables(std::string file);
 
 		void record(recordData& record, schemaData& schema);
 
@@ -133,21 +137,3 @@ class animeSerializer {
 
 		static animeData unpack(const std::vector<uint8_t>& bytes);
 };
-
-
-
-
-/* Convert Following to a File Parser (metadata types saved in file)*/
-extern const std::vector<std::string> service;
-
-extern const std::vector<std::string> format;
-
-extern const std::vector<std::string> genre;
-
-extern const std::vector<std::string> status;
-
-extern const std::vector<std::string> audio;
-
-extern const std::vector<std::string> sub;
-
-extern const std::vector<std::string> media;

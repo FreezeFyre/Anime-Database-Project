@@ -15,7 +15,45 @@ void animeDB::loadAnimes(std::string file) {
 		parser.readFile(file, *this, fileType::HEADER_DATABASE);
 	}
 	catch (const std::exception& e) {
-		std::cerr << "Error loading anime data: " << e.what() << "\n";
+		std::cerr << "Error Loading Anime Database: " << e.what() << "\n";
+	}
+}
+
+void animeDB::loadLookupTables(std::string file) {
+	fileProcessor parser;
+
+	try {
+		parser.readFile(file, *this, fileType::HEADER_TABLE);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error Loading Anime Lookup Tables: " << e.what() << "\n";
+	}
+}
+
+void animeDB::table(std::string& table, std::string& title) {
+	if (title == "ANIME_TAG_GENRES") {
+		lookup.genres.push_back(table);
+	}
+	else if (title == "ANIME_TAG_CHANNELS") {
+		lookup.channels.push_back(table);
+	}
+	else if (title == "ANIME_TAG_AUDIOS") {
+		lookup.audios.push_back(table);
+	}
+	else if (title == "ANIME_TAG_SUBTITLES") {
+		lookup.subtitles.push_back(table);
+	}
+	else if (title == "ANIME_TAG_FORMATS") {
+		lookup.formats.push_back(table);
+	}
+	else if (title == "ANIME_TAG_STATUSES") {
+		lookup.statuses.push_back(table);
+	}
+	else if (title == "ANIME_TAG_MEDIAS") {
+		lookup.medias.push_back(table);
+	}
+	else {
+		throw std::runtime_error("Unknown Table Title: " + title);
 	}
 }
 
@@ -160,10 +198,9 @@ recordField animeDB::getField(size_t id, size_t fieldIndex)
 	return result;
 }
 
-void animeDB::table(std::string& table, std::string& title) {
-	// I need to add a switch and function to handle conversion from title string to select the correct lookup table to pushback the string to.
-	
-}
+
+
+
 
 std::vector<uint8_t> animeSerializer::pack(const animeData& anime) {
 	ByteWriter w;
@@ -183,89 +220,3 @@ animeData animeSerializer::unpack(const std::vector<uint8_t>& bytes) {
 
 	return entree;
 }
-
-
-
-/*-----	All of my lookup tables	-----*/
-const std::vector<std::string> service = {
-	"Crunchyroll",
-	"Netflix",
-	"Hulu",
-	"Disney Plus",
-	"Amazon Prime Video",
-	"HiDive",
-	"Youtube"
-};
-
-const std::vector<std::string> format = {
-	"Series",
-	"Movie"
-};
-
-const std::vector<std::string> genre = {
-	"Action",
-	"Romance",
-	"Slice of Life",
-	"Comedy",
-	"Drama",
-	"Highschool",
-	"College",
-	"SciFi",
-	"Modern Day",
-	"Fantasy",
-	"Ecchi",
-	"Moving",
-	"Magic",
-	"Coming of Age",
-	"Adventure",
-	"Mystery",
-	"Thriller",
-	"Horror",
-	"Supernatural",
-	"Historical",
-	"Mech",
-	"Psychological",
-	"Military",
-	"Sports",
-	"Music",
-	"Martial Arts",
-	"Shounen",
-	"Shoujo",
-	"Seinen",
-	"Josei",
-	"Isekai"
-};
-
-const std::vector<std::string> status = {
-	"Ongoing",
-	"Completed",
-	"Limbo",
-	"Cancelled",
-	"Un-Released"
-};
-
-const std::vector<std::string> audio = {
-	"Japanese",
-	"English",
-	"Korean",
-	"Chinese",
-	"Spanish",
-	"French"
-};
-
-const std::vector<std::string> sub = {
-	"Japanese",
-	"English",
-	"Korean",
-	"Chinese",
-	"Spanish",
-	"French"
-};
-
-const std::vector<std::string> media = {
-	"Manga",
-	"Light Novel",
-	"Movie",
-	"Series",
-	"Game"
-};

@@ -1,4 +1,4 @@
-﻿#include "fileHandling.hpp"
+#include "fileHandling.hpp"
 
 inline bool isDigit(char c) {
 	return std::isdigit(static_cast<unsigned char>(c));
@@ -13,6 +13,8 @@ inline static bool isNumber(std::string& str) {
 	return true;
 }
 
+
+/*-----	The Following Functions Have Partial Error Handling and Validation Checks	-----*/
 fileHeader fileProcessor::readHeader(std::string& line) {
 	fileHeader header;
 
@@ -29,22 +31,22 @@ fileHeader fileProcessor::readHeader(std::string& line) {
 		}
 	}
 
-	if (!checkMagic(tokens[0])) { throw std::exception("Invalid File Magic"); }
+	if (!checkMagic(tokens[0])) { throw std::exception("Invalid File Magic"); } // Handle Wrong Magic (Versioning and File Type Identifier)
 	header.magic = tokens[0];
-	if (!checkVersion(tokens[1])) { throw std::exception("Depreciated File Versioning"); }
+	if (!checkVersion(tokens[1])) { throw std::exception("Depreciated File Versioning"); } // Handle Wrong Versioning
 	header.version = std::stoi(tokens[1]);
+
 	try {
 		header.type = STR_TO_FTYPE(tokens[2]);
 	}
-	catch (const std::exception& e) {
-		throw std::runtime_error(e.what() + std::string("In File Header \n"));
+	catch (const std::exception& e) { /* Invalid File Type Handling */
+		throw std::runtime_error(e.what() + std::string("In File Header: ") + line);
 	}
+
 	header.sectionCount = std::stoi(tokens[3]);
 
 	return header;
 }
-
-
 
 sectionHeader fileProcessor::readSection(const std::string& line) {
 	sectionHeader section;
@@ -62,29 +64,23 @@ sectionHeader fileProcessor::readSection(const std::string& line) {
 		}
 	}
 
-
 	try {
 		section.type = STR_TO_STYPE(tokens[0]);
 	}
-	catch (const std::exception& e) {
+	catch (const std::exception& e) {  /* Invalid Section Type Handling */
 		throw std::runtime_error(e.what() + std::string("In Section Header \n"));
-	}
+	} 
+
 	section.title = tokens[1];
 	section.recordCount = std::stoi(tokens[2]);
 	section.fieldCount = std::stoi(tokens[3]);
-	if (tokens[4] == "1") {
-		section.hasSchema = true;
-	}
-	else {
-		section.hasSchema = false;
-	}
 
+	if (tokens[4] == "1") { section.hasSchema = true; }
+	else { section.hasSchema = false; }
 
 	return section;
 }
 
-
-/*-----	Should now have error throwing	-----*/
 schemaField::dataType fileProcessor::readDataType(std::string& dataField) {
 	schemaField::dataType type;
 
@@ -99,7 +95,6 @@ schemaField::dataType fileProcessor::readDataType(std::string& dataField) {
 	return type;
 }
 
-/*-----	Should now have error throwing	-----*/
 schemaField::filterMode fileProcessor::readFilterMode(std::string& filterField) {
 	schemaField::filterMode mode;
 
@@ -112,7 +107,6 @@ schemaField::filterMode fileProcessor::readFilterMode(std::string& filterField) 
 	return mode;
 }
 
-/*-----	Should now have error throwing	-----*/
 schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 
 	schemaData schema;
@@ -165,14 +159,12 @@ schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 	return schema;
 }
 
-
-
 // Takes a input string of integers seperated by commas and enclosed in {} and updates the passed vector
-bool fileProcessor::recordVector(std::string& inBuffer, std::vector<int>& vec) {
+std::vector<int> fileProcessor::recordVector(std::string& str) {
 	std::string buffer;
-	vec.clear();
+	std::vector<int> vec;
 
-	for (char c : inBuffer) {
+	for (char c : str) {
 		if (isdigit(c) or c == '-') {
 			buffer.push_back(c);
 		}
@@ -182,14 +174,12 @@ bool fileProcessor::recordVector(std::string& inBuffer, std::vector<int>& vec) {
 				buffer.clear();
 			}
 		}
-		else {
-			// Invlaid Character
+		if (!isdigit(c) and c != '-' and c != '{' and c != '}' and c != ',') {
+			throw std::runtime_error("Invalid Character in Vector Field! Expected only digits, commas, and curly braces: " + str);
 		}
 	}
-
-	return true;
+	return vec;
 }
-
 
 recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 	recordData record;
@@ -200,12 +190,11 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 	int phase = 0;
 	bool inString = false;
 	std::string buffer;
-	std::vector<int> vecBuffer;
 
 	for (char c : line) {
 		if (c == '{') { nestLevel++; }
 
-		if (nestLevel == 1 and c!= '{' and c != ',' and c != '"' and c != '}') {
+		if (nestLevel == 1 and c != '{' and c != ',' and c != '"' and c != '}') {
 			buffer.push_back(c);
 		}
 		if (nestLevel >= 2)
@@ -218,7 +207,7 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 			else {
 				switch (schema[phase].type) {
 
-				// Integer Handling
+					// Integer Handling
 				case schemaField::dataType::U8: {
 					fieldBuffer = stoi(buffer);
 					record[phase] = fieldBuffer;
@@ -242,7 +231,7 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 				}
 
 
-				// String Handling
+											   // String Handling
 				case schemaField::dataType::STR: {
 					fieldBuffer = buffer;
 					record[phase] = fieldBuffer;
@@ -252,24 +241,20 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 				}
 
 
-				// Vector Handling
+											   // Vector Handling
 				case schemaField::dataType::VECU8: {
-					recordVector(buffer, vecBuffer);
-					fieldBuffer = vecBuffer;
+					fieldBuffer = recordVector(buffer);
 
 					record[phase] = fieldBuffer;
 					fieldBuffer = std::monostate{};
-					vecBuffer.clear();
 					buffer.clear();
 					break;
 				}
 				case schemaField::dataType::VECU16: {
-					recordVector(buffer, vecBuffer);
-					fieldBuffer = vecBuffer;
+					fieldBuffer = recordVector(buffer);
 
 					record[phase] = fieldBuffer;
 					fieldBuffer = std::monostate{};
-					vecBuffer.clear();
 					buffer.clear();
 					break;
 				}
@@ -287,3 +272,4 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 
 	return record;
 }
+/*-----	End of Functions With Partial Error Handling and Validation Checks	-----*/

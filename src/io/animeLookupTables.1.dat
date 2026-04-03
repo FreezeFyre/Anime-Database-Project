@@ -1,0 +1,77 @@
+ADP0|1001|1|7|
+
+1|ANIME_TAG_CHANNELS|7|1|0|
+{"Crunchyroll"}
+{"Netflix"}
+{"Hulu"}
+{"Disney Plus"}
+{"Amazon Prime Video"}
+{"HiDive"}
+{"Youtube"}
+
+1|ANIME_TAG_FORMATS|2|1|0|
+{"Series"}
+{"Movie"}
+
+1|ANIME_TAG_GENRES|31|1|0|
+{"Action"}
+{"Romance"}
+{"Slice of Life"}
+{"Comedy"}
+{"Drama"}
+{"Highschool"}
+{"College"}
+{"SciFi"}
+{"Modern Day"}
+{"Fantasy"}
+{"Ecchi"}
+{"Moving"}
+{"Magic"}
+{"Coming of Age"}
+{"Adventure"}
+{"Mystery"}
+{"Thriller"}
+{"Horror"}
+{"Supernatural"}
+{"Historical"}
+{"Mech"}
+{"Psychological"}
+{"Military"}
+{"Sports"}
+{"Music"}
+{"Martial Arts"}
+{"Shounen"}
+{"Shoujo"}
+{"Seinen"}
+{"Josei"}
+{"Isekai"}
+
+1|ANIME_TAG_STATUSES|5|1|0|
+{"Ongoing"}
+{"Completed"}
+{"Limbo"}
+{"Cancelled"}
+{"Un-Released"}
+
+1|ANIME_TAG_AUDIOS|6|1|0|
+{"Japanese"}
+{"English"}
+{"Korean"}
+{"Chinese"}
+{"Spanish"}
+{"French"}
+
+1|ANIME_TAG_SUBTITLES|6|1|0|
+{"Japanese"}
+{"English"}
+{"Korean"}
+{"Chinese"}
+{"Spanish"}
+{"French"}
+
+1|ANIME_TAG_MEDIAS|5|1|0|
+{"Manga"}
+{"Light Novel"}
+{"Movie"}
+{"Series"}
+{"Game"}

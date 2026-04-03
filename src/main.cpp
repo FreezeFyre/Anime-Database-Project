@@ -16,7 +16,9 @@ int main() {
 
 	animeDB anime;
 
-	anime.loadAnimes("E:/Projects/Git/Anime-Database-Project/src/io/formatTest.1.dat");
+	anime.loadAnimes("E:/Projects/Git/Anime-Database-Project/src/io/animeDatabase.1.dat");
+
+	anime.loadLookupTables("E:/Projects/Git/Anime-Database-Project/src/io/animeLookupTables.1.dat");
 
 	return 0;
 }

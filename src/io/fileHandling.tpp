@@ -12,7 +12,7 @@ template<typename f>
 void fileProcessor::readFile(std::string file, f& handler, const fileType& expected_type) {
 	std::ifstream source(file);
 	if (!source.is_open()) {
-		std::cerr << "Failed to open: \t" << file << "\n";
+		throw std::runtime_error("Failed to Open File: " + file);
 		return;
 	}
 
@@ -50,7 +50,7 @@ void fileProcessor::readFile(std::string file, f& handler, const fileType& expec
 			handler.section(section);
 			if (section.hasSchema) { readSchemaLine = true; }
 			else { readRecordLine = true; }
-			readHeaderLine = false;
+			readSectionLine = false;
 			if (section_count > header.sectionCount) {
 				throw std::exception("Inaccurate Section Count in Header or Parsing Logic Error");
 			}
@@ -61,11 +61,17 @@ void fileProcessor::readFile(std::string file, f& handler, const fileType& expec
 			handler.schema(schema);
 			readRecordLine = true;
 			readSchemaLine = false;
+			continue;
 		}
 		if (readRecordLine) {
 			record_pos++;
 			if (section.type == sectionType::SECTION_DATABASE_RECORDS) {
-				record = readRecord(schema, line);
+				try {
+					record = readRecord(schema, line);
+				}
+				catch (const std::exception& e) { /* Invalid Record Handling */
+					throw std::runtime_error(e.what() + std::string(" In Record ") + std::to_string(record_pos) + " of Section " + section.title);
+				}
 				handler.record(record, schema);
 			}
 			if (section.type == sectionType::SECTION_TAG_LOOKUP) {

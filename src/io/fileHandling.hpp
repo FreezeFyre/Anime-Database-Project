@@ -130,7 +130,7 @@ class fileProcessor {
 
 		schemaData readSchema(std::string& line, const int& fieldCount);
 
-		bool recordVector(std::string& line, std::vector<int>& vec);
+		std::vector<int> recordVector(std::string& line);
 
 		recordData readRecord(schemaData& schema, std::string& line);
 
