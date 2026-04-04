@@ -18,8 +18,8 @@ public:
 	void CHAR(char c);
 	void STR(const std::string& str);
 	void VEC32(const std::vector<uint32_t>& vec);
-	void VEC16(const std::vector<uint16_t>& vec);
-	void VEC8(const std::vector<uint8_t>& vec);
+	void VECU16(const std::vector<uint16_t>& vec);
+	void VECU8(const std::vector<uint8_t>& vec);
 
 
 	template<typename T>
@@ -39,8 +39,8 @@ public:
 	float F64();
 	char CHAR();
 	std::string STR();
-	std::vector<size_t> VEC8();
-	std::vector<size_t> VEC16();
+	std::vector<size_t> VECU8();
+	std::vector<size_t> VECU16();
 	std::vector<size_t> VEC32();
 
 	template<typename T>

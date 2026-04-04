@@ -36,14 +36,14 @@ void ByteWriter::VEC32(const std::vector<uint32_t>& vec) {
 	}
 }
 
-void ByteWriter::VEC16(const std::vector<uint16_t>& vec) {
+void ByteWriter::VECU16(const std::vector<uint16_t>& vec) {
 	U32(vec.size());
 	for (uint32_t value : vec) {
 		U16(value);
 	}
 }
 
-void ByteWriter::VEC8(const std::vector<uint8_t>& vec) {
+void ByteWriter::VECU8(const std::vector<uint8_t>& vec) {
 	U32(vec.size());
 	for (uint32_t value : vec) {
 		U8(value);

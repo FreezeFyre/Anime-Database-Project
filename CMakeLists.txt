@@ -4,6 +4,8 @@ project(anime_database_project LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+enable_testing()
+
 add_executable(anime_database_project
 
 	"src/main.cpp"
@@ -18,3 +20,17 @@ add_executable(anime_database_project
 
 
 target_include_directories(anime_database_project PRIVATE include)
+
+add_executable(parser_stress_test
+	"src/tests/parser_stress_test.cpp"
+	"src/io/fileHandling.cpp"
+)
+
+add_test(NAME parser_stress_test COMMAND parser_stress_test)
+
+add_executable(parser_fuzz_test
+	"src/tests/parser_fuzz_test.cpp"
+	"src/io/fileHandling.cpp"
+)
+
+add_test(NAME parser_fuzz_test COMMAND parser_fuzz_test)

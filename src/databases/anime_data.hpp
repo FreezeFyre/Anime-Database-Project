@@ -42,16 +42,6 @@ struct animeData {
 	int ip_group;
 };
 
-struct animeTables {
-	std::vector<std::string> genres;
-	std::vector<std::string> channels;
-	std::vector<std::string> audios;
-	std::vector<std::string> subtitles;
-	std::vector<std::string> formats;
-	std::vector<std::string> statuses;
-	std::vector<std::string> medias;
-};
-
 using intPTR = int animeData::*;
 
 using vecPTR = std::vector<int> animeData::*;
@@ -67,6 +57,7 @@ struct fieldData {
 	schemaField::filterMode mode;
 };
 
+// This Provides the Meta Data for each field in the animeData for use in other processes
 inline const std::array<fieldData, 14> animeMeta = { {
 	{"rank",          &animeData::rank,          schemaField::dataType::U32,     schemaField::filterMode::FM_RMV},
 	{"title",         &animeData::title,         schemaField::dataType::STR,     schemaField::filterMode::FM_NONE},
@@ -84,14 +75,25 @@ inline const std::array<fieldData, 14> animeMeta = { {
 	{"ip_group",      &animeData::ip_group,      schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE}
 } };
 
-
+struct animeTables {
+	std::vector<std::string> genres;
+	std::vector<std::string> channels;
+	std::vector<std::string> audios;
+	std::vector<std::string> subtitles;
+	std::vector<std::string> formats;
+	std::vector<std::string> statuses;
+	std::vector<std::string> medias;
+};
 
 class animeDB {
 	public:
+
+		// File Parsing Functions
 		void loadAnimes(std::string file);
 
 		void loadLookupTables(std::string file);
 
+		// File Handlers
 		void record(recordData& record, schemaData& schema);
 
 		void schema(schemaData& schema);
@@ -100,10 +102,13 @@ class animeDB {
 
 		void table(std::string& table, std::string& title);
 
+
+
 		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
 
 		std::vector<int> getSortedIDS();
 
+		// File Saving Functions
 		fileHeader getHeader();
 
 		sectionHeader getSection();
@@ -112,6 +117,8 @@ class animeDB {
 
 		recordData getRecord();
 
+
+		// Utility and Filtering Functions
 		size_t getSize() {
 			return database.size();
 		}

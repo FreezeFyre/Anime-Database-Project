@@ -57,6 +57,7 @@ void animeDB::table(std::string& table, std::string& title) {
 	}
 }
 
+// Still Need to Add Dynamic Assignment Based on Schema, Currently Just a Placeholder for Testing
 void animeDB::record(recordData& record, schemaData& schema) {
 	int id = std::get<int>(record[0]);
 	int expectedID = database.size();
@@ -123,13 +124,13 @@ void animeDB::record(recordData& record, schemaData& schema) {
 	database.emplace_back(std::move(anime));
 }
 
+// Reserves the space for all records in th at database
 void animeDB::section(sectionHeader& header) {
 
 	database.reserve(header.recordCount);
 }
 
 void animeDB::schema(schemaData& schema) {
-	// should take the schema and use it to create a ordered vector of member pointers that can be used to assign data in the record function
 }
 
 std::vector<size_t> animeDB::getFilteredIDS(const indexFilters& filters) {
@@ -200,12 +201,39 @@ recordField animeDB::getField(size_t id, size_t fieldIndex)
 
 
 
-
-
 std::vector<uint8_t> animeSerializer::pack(const animeData& anime) {
 	ByteWriter w;
 
-
+	for (size_t i = 0; i < animeMeta.size(); i++) {
+		switch (animeMeta[i].type) {
+			case schemaField::dataType::U8: {
+				w.U8(anime.*std::get<0>(animeMeta[i].ptr));
+				break;
+			}
+			case schemaField::dataType::U16: {
+				w.U16(anime.*std::get<0>(animeMeta[i].ptr));
+				break;
+			}
+			case schemaField::dataType::U32: {
+				w.U32(anime.*std::get<0>(animeMeta[i].ptr));
+				break;
+			}
+			case schemaField::dataType::STR: {
+				w.STR(anime.*std::get<2>(animeMeta[i].ptr));
+				break;
+			}
+			case schemaField::dataType::VECU8: {
+				w.VECU8(anime.*std::get<1>(animeMeta[i].ptr));
+				break;
+			}
+			case schemaField::dataType::VECU16: {
+				w.VECU16(anime.*std::get<1>(animeMeta[i].ptr));
+				break;
+			}
+			default:
+				throw std::runtime_error("Unknown Data Type in animeMeta field index: " + std::to_string(i));
+		}
+	}
 
 	return w.buffer;
 }
