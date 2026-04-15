@@ -72,7 +72,13 @@ void fileProcessor::readFile(std::string file, f& handler, const fileType& expec
 				catch (const std::exception& e) { /* Invalid Record Handling */
 					throw std::runtime_error(e.what() + std::string(" In Record ") + std::to_string(record_pos) + " of Section " + section.title);
 				}
-				handler.record(record, schema);
+
+				try {
+					handler.record(record, schema);
+				}
+				catch (const std::exception& e) {
+					throw std::runtime_error(e.what() + std::string(" In Record ") + std::to_string(record_pos) + " of Section " + section.title);
+				}
 			}
 			if (section.type == sectionType::SECTION_TAG_LOOKUP) {
 				buffer = line;

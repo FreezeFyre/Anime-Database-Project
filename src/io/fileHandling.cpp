@@ -273,3 +273,56 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 	return record;
 }
 /*-----	End of Functions With Partial Error Handling and Validation Checks	-----*/
+
+
+
+
+// All of the following needs error handling
+std::string schemaDataType(const schemaField::dataType& type) {
+	switch (type) {
+	case schemaField::dataType::U8: return "U8";
+	case schemaField::dataType::U16: return "U16";
+	case schemaField::dataType::U32: return "U32";
+	case schemaField::dataType::STR: return "STR";
+	case schemaField::dataType::VECU8: return "VECU8";
+	case schemaField::dataType::VECU16: return "VECU16";
+	default: throw std::runtime_error("Unknown Data Type in Schema! \n");
+	}
+}
+
+std::string schemaFilterMode(const schemaField::filterMode& mode) {
+	switch (mode) {
+	case schemaField::filterMode::FM_NONE: return "N";
+	case schemaField::filterMode::FM_RANGE: return "R";
+	case schemaField::filterMode::FM_MULTI_VALUE: return "MV";
+	case schemaField::filterMode::FM_RMV: return "RMV";
+	default: throw std::runtime_error("Unknown Filter Mode in Schema! \n");
+	}
+}
+
+
+std::string printSchema(const schemaData& schema) {
+	std::string result;
+	result.push_back('[');
+	for (size_t i = 0; i < schema.size(); i++) {
+		result.push_back(schema[i].name[0]);
+		result.push_back(':');
+		try {
+			result.append(schemaDataType(schema[i].type));
+		}
+		catch (const std::runtime_error& e) { // Throw Error if filter mode is invalid
+			throw std::runtime_error(e.what() + std::string(" When Trying to Print Schema Field ") + std::to_string(i));
+		}
+		result.push_back(';');
+		try {
+			result.append(schemaFilterMode(schema[i].mode));
+		}
+		catch (const std::runtime_error& e) { // Throw Error if filter mode is invalid
+			throw std::runtime_error(e.what() + std::string(" When Trying to Print Schema Field ") + std::to_string(i));
+		}
+		result.push_back(',');
+
+	}
+	result.push_back(']');
+	return result;
+};

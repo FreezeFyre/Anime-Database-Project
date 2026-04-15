@@ -134,6 +134,11 @@ class fileProcessor {
 
 		recordData readRecord(schemaData& schema, std::string& line);
 
+		std::string printSchema(const schemaData& schema);
+
+		std::string schemaDataType(const schemaField::dataType& type);
+
+		std::string schemaFilterMode(const schemaField::filterMode& mode);
 };
 
 #include "fileHandling.tpp"
