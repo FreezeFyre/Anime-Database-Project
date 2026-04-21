@@ -18,8 +18,8 @@ public:
 	void CHAR(char c);
 	void STR(const std::string& str);
 	void VEC32(const std::vector<uint32_t>& vec);
-	void VECU16(const std::vector<uint16_t>& vec);
-	void VECU8(const std::vector<uint8_t>& vec);
+	void VECU16(const std::vector<int>& vec);
+	void VECU8(const std::vector<int>& vec);
 
 
 	template<typename T>

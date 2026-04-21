@@ -16,7 +16,7 @@ add_executable(anime_database_project
 	"src/net/http.cpp"
 	"src/net/data.cpp"
 
-)
+ "src/net/net_stack.cpp")
 
 
 target_include_directories(anime_database_project PRIVATE include)
@@ -24,13 +24,13 @@ target_include_directories(anime_database_project PRIVATE include)
 add_executable(parser_stress_test
 	"src/tests/parser_stress_test.cpp"
 	"src/io/fileHandling.cpp"
-)
+ "src/net/net_stack.cpp")
 
 add_test(NAME parser_stress_test COMMAND parser_stress_test)
 
 add_executable(parser_fuzz_test
 	"src/tests/parser_fuzz_test.cpp"
 	"src/io/fileHandling.cpp"
-)
+ "src/net/net_stack.cpp")
 
 add_test(NAME parser_fuzz_test COMMAND parser_fuzz_test)

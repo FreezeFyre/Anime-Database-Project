@@ -14,11 +14,11 @@ int main() {
 	// Release / Build code 
 	std::cout << "AnimeList.Backend. Build Date: " << __DATE__ << " Time: " << __TIME__ << "\n";
 
-	animeDB anime;
+	entryDB entry;
 
-	anime.loadAnimes("E:/Projects/Git/Anime-Database-Project/src/io/animeDatabase.1.dat");
+	entry.loadEntries("E:/Projects/Git/Anime-Database-Project/src/io/animeDatabase.1.dat");
 
-	anime.loadLookupTables("E:/Projects/Git/Anime-Database-Project/src/io/animeLookupTables.1.dat");
+	entry.loadLookupTables("E:/Projects/Git/Anime-Database-Project/src/io/animeLookupTables.1.dat");
 
 	return 0;
 }
