@@ -4,7 +4,7 @@
 //
 //  Created by Luke Raykovitz on 10/24/25.
 //
-#include "anime_data.hpp"
+#include "entry_data.hpp"
 
 std::unordered_map<std::string, size_t> buildFieldNames() {
 	std::unordered_map<std::string, size_t> result;
@@ -218,7 +218,30 @@ recordField entryDB::getField(size_t id, size_t fieldIndex)
 }
 
 
-std::vector<uint8_t> entrySerializer::serializeEntry(const entryData& entry) {
+std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<size_t>& ids) {
+	std::vector<uint8_t> result;
+	
+	std::vector<uint8_t> buffer = Section(db.getSection());
+
+	result.insert(result.end(), buffer.begin(), buffer.end());
+
+	buffer.clear();
+	buffer = Schema(db.getSchema());
+
+	result.insert(result.end(), buffer.begin(), buffer.end());
+	buffer.clear();
+
+	for (size_t i = 0; i < ids.size(); i++)	{
+		buffer = Entry(db.getEntry(ids[i]));
+		result.insert(result.end(), buffer.begin(), buffer.end());
+		buffer.clear();
+	}
+
+	return result;
+}
+
+
+std::vector<uint8_t> entrySerializer::Entry(const entryData& entry) {
 	ByteWriter writer;
 
 	// Need to replace this with dynamic serialization

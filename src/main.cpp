@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "io/fileHandling.hpp"
-#include "databases/anime_data.hpp"
+#include "databases/entry_data.hpp"
 
 
 

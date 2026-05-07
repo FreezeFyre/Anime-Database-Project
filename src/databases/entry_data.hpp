@@ -125,6 +125,8 @@ class entryDB {
 		schemaData getSchema();
 		recordData getRecord();
 
+		entryData getEntry(size_t id) { return database[id]; }
+
 		// Utility and Filtering Functions
 		size_t getSize() { return database.size(); }
 		recordField getField(size_t id, size_t fieldIndex);
@@ -144,5 +146,11 @@ class entryDB {
 class entrySerializer {
 
 	public:
-		std::vector<uint8_t> serializeEntry(const entryData& entry);
+		std::vector<uint8_t> payload(entryDB& db, const std::vector<size_t>& ids);
+
+		std::vector<uint8_t> Entry(const entryData& entry);
+
+		std::vector<uint8_t> Schema(const schemaData& schema);
+		std::vector<uint8_t> Section(const sectionHeader& header);
+
 };

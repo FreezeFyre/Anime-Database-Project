@@ -10,7 +10,7 @@ add_executable(anime_database_project
 
 	"src/main.cpp"
 	"src/io/fileHandling.cpp"
-	"src/databases/anime_data.cpp"
+	"src/databases/entry_data.cpp"
 	"src/filtering/filterProcessor.cpp"
 	"src/net/tcp.cpp"
 	"src/net/http.cpp"
