@@ -241,6 +241,16 @@ std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<siz
 }
 
 
+std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
+	return {};
+}
+
+
+std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
+	return {};
+}
+
+
 std::vector<uint8_t> entrySerializer::Entry(const entryData& entry) {
 	ByteWriter writer;
 

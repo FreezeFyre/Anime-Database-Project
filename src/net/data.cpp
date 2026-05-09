@@ -49,3 +49,45 @@ void ByteWriter::VECU8(const std::vector<int>& vec) {
 		U8(value);
 	}
 }
+
+
+
+uint8_t ByteReader::U8() {
+	uint8_t value = input[offset];
+	offset += 1;
+	return value;
+}
+
+uint16_t ByteReader::U16() {
+	uint16_t value = 0;
+	value |= static_cast<uint16_t>(input[offset]) << 8;
+	value |= static_cast<uint16_t>(input[offset + 1]);
+	offset += 2;
+	return value;
+}
+
+uint32_t ByteReader::U32() {
+	uint32_t value = 0;
+	value |= static_cast<uint32_t>(input[offset]) << 24;
+	value |= static_cast<uint32_t>(input[offset + 1]) << 16;
+	value |= static_cast<uint32_t>(input[offset + 2]) << 8;
+	value |= static_cast<uint32_t>(input[offset + 3]);
+	offset += 4;
+	return value;
+}
+
+std::string ByteReader::STR() {
+	uint32_t length = U32();
+	std::string str;
+	str.reserve(length);
+	for (uint32_t i = 0; i < length; i++) {
+		str.push_back(CHAR());
+	}
+	return str;
+}
+
+char ByteReader::CHAR() {
+	char c = static_cast<char>(input[offset]);
+	offset += 1;
+	return c;
+}

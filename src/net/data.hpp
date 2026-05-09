@@ -5,6 +5,10 @@
 
 #pragma once
 
+#ifdef OPTIONAL
+#undef OPTIONAL
+#endif
+
 
 class ByteWriter {
 public:
@@ -32,9 +36,9 @@ public:
 	const std::vector<uint8_t>& input;
 	size_t offset = 0;
 
-	size_t U8();
-	size_t U16();
-	size_t U32();
+	uint8_t U8();
+	uint16_t U16();
+	uint32_t U32();
 	float F32();
 	float F64();
 	char CHAR();

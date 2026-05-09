@@ -1,4 +1,4 @@
-#include "http.hpp"
+#include "messenger.hpp"
 
 Message MessageConstructor::construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload) {
 	Message message;
@@ -32,7 +32,22 @@ std::vector<uint8_t> MessageCodec::encode(const Message& message) {
 Message MessageCodec::decode(std::vector<uint8_t>& byteStream) {
 	Message message;
 
+	ByteReader r(byteStream);
 
+	message.encodeVersion = r.U32();
+	if (message.encodeVersion != ENCODE_VERSION) {
+		throw std::exception(" Unsupported encode version!");
+	}
+	message.comType = static_cast<COM_TYPE>(r.U8());
+	message.domain = static_cast<DOMAIN_TYPE>(r.U8());
+	message.action = static_cast<ACTION_TYPE>(r.U8());
+	message.id = r.U32();
+	message.payloadSize = r.U32();
+
+	message.payload.clear();
+	for (size_t i = 0; i < message.payloadSize; i++) {
+		message.payload.push_back(r.U8());
+	}
 
 	return message;
 }

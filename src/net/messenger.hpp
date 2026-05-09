@@ -5,6 +5,32 @@
 
 #include "data.hpp"
 
+#pragma once
+
+#define ENCODE_VERSION 1001
+
+
+enum class COM_TYPE : uint8_t {
+	REQ = 1,
+	RESP = 2,
+	STATUS = 3,
+	PING = 4
+};
+enum class ACTION_TYPE : uint8_t {
+	ACT_GET = 1,
+	ACT_UPDATE = 2,
+	ACT_DELETE = 3,
+	ACT_SEARCH = 4,
+	ACT_FILTER = 5,
+	ACT_SORT = 6,
+};
+enum class DOMAIN_TYPE : uint8_t {
+	ENTRY = 1,
+	CHARACTERS = 2,
+	FILTERS = 3,
+	AUTH = 4
+};
+
 struct Message {
 	uint32_t encodeVersion;
 	COM_TYPE comType;
@@ -15,27 +41,7 @@ struct Message {
 	std::vector<uint8_t> payload;
 };
 
-static const uint32_t ENCODE_VERSION = 1001;
 
-enum class COM_TYPE : uint8_t {
-	QUERY = 1,
-	RESPONSE = 2,
-	STATUS = 3
-};
-enum class ACTION_TYPE : uint8_t {
-	GET = 1,
-	UPDATE = 2,
-	DELETE = 3,
-	SEARCH = 4,
-	FILTER = 5,
-	SORT = 6,
-};
-enum class DOMAIN_TYPE : uint8_t {
-	ENTRY = 1,
-	CHARACTERS = 2,
-	FILTERS = 3,
-	AUTH = 4
-};
 /*
 
 REQUEST FORMAT
@@ -45,15 +51,12 @@ REQUEST FORMAT
 [COM_TYPE]
 [DOMAIN]
 [ACTION]
+[ID]
 [PAYLOAD_SIZE]
 [PAYLOAD]
 
 
 */
-
-class Router {
-
-};
 
 class MessageConstructor {
 	public:
