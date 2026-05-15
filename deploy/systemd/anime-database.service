@@ -8,7 +8,7 @@ Type=simple
 User=lukeraykovitz
 Group=lukeraykovitz
 WorkingDirectory=/home/lukeraykovitz/prod/Anime-Database-Project
-ExecStart=/home/lukeraykovitz/prod/Anime-Database-Project/build-release/anime_database_project
+ExecStart=/home/lukeraykovitz/prod/Anime-Database-Project/build-release/anime_database_project --server --port 8080
 Restart=on-failure
 RestartSec=5
 
