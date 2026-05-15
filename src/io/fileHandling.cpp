@@ -278,7 +278,78 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 
 
 // All of the following needs error handling
-std::string schemaDataType(const schemaField::dataType& type) {
+std::string fileProcessor::printHeader(const fileHeader& header) {
+	std::ostringstream out;
+
+	out << header.magic << '|'
+		<< header.version << '|'
+		<< static_cast<int>(header.type) << '|'
+		<< header.sectionCount << '|';
+
+	return out.str();
+}
+
+std::string fileProcessor::printSection(const sectionHeader& section) {
+	std::ostringstream out;
+
+	out << static_cast<int>(section.type) << '|'
+		<< section.title << '|'
+		<< section.recordCount << '|'
+		<< section.fieldCount << '|'
+		<< (section.hasSchema ? 1 : 0) << '|';
+
+	return out.str();
+}
+
+std::string fileProcessor::printRecord(const recordData& record, const schemaData& schema) {
+	std::ostringstream out;
+
+	out << '{';
+	for (size_t i = 0; i < record.size(); i++) {
+		if (i > 0) {
+			out << ',';
+		}
+
+		if (std::holds_alternative<std::monostate>(record[i])) {
+			continue;
+		}
+
+		switch (schema[i].type) {
+		case schemaField::dataType::U8:
+		case schemaField::dataType::U16:
+		case schemaField::dataType::U32:
+			out << std::get<int>(record[i]);
+			break;
+		case schemaField::dataType::STR:
+			out << '"' << std::get<std::string>(record[i]) << '"';
+			break;
+		case schemaField::dataType::VECU8:
+		case schemaField::dataType::VECU16: {
+			const std::vector<int>& vec = std::get<std::vector<int>>(record[i]);
+			out << '{';
+			for (size_t j = 0; j < vec.size(); j++) {
+				if (j > 0) {
+					out << ',';
+				}
+				out << vec[j];
+			}
+			out << '}';
+			break;
+		}
+		default:
+			throw std::runtime_error("Unknown Data Type in Record Field " + std::to_string(i));
+		}
+	}
+	out << '}';
+
+	return out.str();
+}
+
+std::string fileProcessor::printTableRow(const std::string& row) {
+	return "{\"" + row + "\"}";
+}
+
+std::string fileProcessor::schemaDataType(const schemaField::dataType& type) {
 	switch (type) {
 	case schemaField::dataType::U8: return "U8";
 	case schemaField::dataType::U16: return "U16";
@@ -290,7 +361,7 @@ std::string schemaDataType(const schemaField::dataType& type) {
 	}
 }
 
-std::string schemaFilterMode(const schemaField::filterMode& mode) {
+std::string fileProcessor::schemaFilterMode(const schemaField::filterMode& mode) {
 	switch (mode) {
 	case schemaField::filterMode::FM_NONE: return "N";
 	case schemaField::filterMode::FM_RANGE: return "R";
@@ -301,11 +372,14 @@ std::string schemaFilterMode(const schemaField::filterMode& mode) {
 }
 
 
-std::string printSchema(const schemaData& schema) {
+std::string fileProcessor::printSchema(const schemaData& schema) {
 	std::string result;
 	result.push_back('[');
 	for (size_t i = 0; i < schema.size(); i++) {
-		result.push_back(schema[i].name[0]);
+		if (i > 0) {
+			result.push_back(',');
+		}
+		result.append(schema[i].name);
 		result.push_back(':');
 		try {
 			result.append(schemaDataType(schema[i].type));
@@ -320,7 +394,6 @@ std::string printSchema(const schemaData& schema) {
 		catch (const std::runtime_error& e) { // Throw Error if filter mode is invalid
 			throw std::runtime_error(e.what() + std::string(" When Trying to Print Schema Field ") + std::to_string(i));
 		}
-		result.push_back(',');
 
 	}
 	result.push_back(']');

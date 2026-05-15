@@ -86,7 +86,7 @@ using recordData = std::vector<recordField>;
 
 // Ensures Handler Class Functions
 template<typename f>
-concept FileHandler = requires(
+concept FileReadHandler = requires(
 	f h,
 	sectionHeader section,
 	schemaData schema,
@@ -99,15 +99,30 @@ concept FileHandler = requires(
 		{ h.table(str, str) } -> std::same_as<void>;
 };
 
+template<typename f>
+concept FileWriteSource = requires(
+	f h,
+	fileType type,
+	size_t sectionIndex,
+	size_t recordIndex
+	) {
+		{ h.getHeader(type) } -> std::same_as<fileHeader>;
+		{ h.getSection(type, sectionIndex) } -> std::same_as<sectionHeader>;
+		{ h.getSchema(type, sectionIndex) } -> std::same_as<schemaData>;
+		{ h.getRecord(type, sectionIndex, recordIndex) } -> std::same_as<recordData>;
+		{ h.getTableRecord(type, sectionIndex, recordIndex) } -> std::same_as<recordData>;
+};
+
 class fileProcessor {
 
 	public:
 		template<typename f>
-			requires FileHandler<f>
+			requires FileReadHandler<f>
 		void readFile(std::string file, f& handler, const fileType& expected_type);
 
-		template<typename f>
-		void saveFile(std::string file, f& handler);
+		template<typename Source>
+			requires FileWriteSource<Source>
+		void saveFile(std::string file, Source& source, fileType type);
 
 	private:
 		inline bool checkMagic(std::string& line) {
@@ -134,12 +149,22 @@ class fileProcessor {
 
 		recordData readRecord(schemaData& schema, std::string& line);
 
+		std::string printHeader(const fileHeader& header);
+
+		std::string printSection(const sectionHeader& section);
+
 		std::string printSchema(const schemaData& schema);
+
+		std::string printRecord(const recordData& record, const schemaData& schema);
+
+		std::string printTableRow(const std::string& row);
 
 		std::string schemaDataType(const schemaField::dataType& type);
 
 		std::string schemaFilterMode(const schemaField::filterMode& mode);
+
 };
 
-#include "fileHandling.tpp"
+#include "readFile.tpp"
 
+#include "saveFile.tpp"

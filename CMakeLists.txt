@@ -20,7 +20,10 @@ add_executable(anime_database_project
 
 
 target_include_directories(anime_database_project PRIVATE include)
-target_link_libraries(anime_database_project PRIVATE Ws2_32)
+
+if(WIN32)
+	target_link_libraries(anime_database_project PRIVATE Ws2_32)
+endif()
 
 add_executable(parser_stress_test
 	"src/tests/parser_stress_test.cpp"

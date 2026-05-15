@@ -58,11 +58,6 @@ REQUEST FORMAT
 
 */
 
-class MessageConstructor {
-	public:
-		Message construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload);
-};
-
 class MessageCodec {
 
 	/*
@@ -78,5 +73,6 @@ class MessageCodec {
 
 		Message decode(std::vector<uint8_t>& byteStream);
 
+		Message construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload);
 
 };

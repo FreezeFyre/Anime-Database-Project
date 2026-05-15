@@ -29,7 +29,7 @@ void ByteWriter::STR(const std::string& str) {
 	}
 }
 
-void ByteWriter::VEC32(const std::vector<uint32_t>& vec) {
+void ByteWriter::VECU32(const std::vector<uint32_t>& vec) {
 	U32(vec.size());
 	for (uint32_t value : vec) {
 		U32(value);
@@ -90,4 +90,34 @@ char ByteReader::CHAR() {
 	char c = static_cast<char>(input[offset]);
 	offset += 1;
 	return c;
+}
+
+std::vector<size_t> ByteReader::VECU8() {
+	uint32_t length = U32();
+	std::vector<size_t> vec;
+	vec.reserve(length);
+	for (uint32_t i = 0; i < length; i++) {
+		vec.push_back(U8());
+	}
+	return vec;
+}
+
+std::vector<size_t> ByteReader::VECU16() {
+	uint32_t length = U32();
+	std::vector<size_t> vec;
+	vec.reserve(length);
+	for (uint32_t i = 0; i < length; i++) {
+		vec.push_back(U16());
+	}
+	return vec;
+}
+
+std::vector<size_t> ByteReader::VECU32() {
+	uint32_t length = U32();
+	std::vector<size_t> vec;
+	vec.reserve(length);
+	for (uint32_t i = 0; i < length; i++) {
+		vec.push_back(U32());
+	}
+	return vec;
 }

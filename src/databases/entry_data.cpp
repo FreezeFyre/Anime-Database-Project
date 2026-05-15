@@ -5,6 +5,7 @@
 //  Created by Luke Raykovitz on 10/24/25.
 //
 #include "entry_data.hpp"
+#include "../net/router.hpp"
 
 std::unordered_map<std::string, size_t> buildFieldNames() {
 	std::unordered_map<std::string, size_t> result;
@@ -35,6 +36,16 @@ void entryDB::loadLookupTables(std::string file) {
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error Loading Anime Lookup Tables: " << e.what() << "\n";
+	}
+}
+
+void entryDB::saveEntries(std::string file) {
+	fileProcessor saver;
+	try {
+		saver.saveFile(file, *this, fileType::HEADER_DATABASE);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error Saving Anime Database: " << e.what() << "\n";
 	}
 }
 
@@ -158,9 +169,26 @@ std::vector<int> entryDB::getSortedIDS() {
 	return {};
 }
 
+fileHeader entryDB::getHeader(fileType type) {
+	fileHeader result;
+	result.type = type;
+
+	switch (type) {
+		case fileType::HEADER_DATABASE:
+			result.sectionCount = 1;
+			break;
+		case fileType::HEADER_TABLE:
+			result.sectionCount = lookupCount;
+			break;
+		default:
+			throw std::runtime_error("Unknown file type for header: " + std::to_string(static_cast<int>(type)));
+	}
+	return result;
+}
+
 
 // Currently Only Valid for Database Sections not Lookup Tables
-sectionHeader entryDB::getSection() {
+sectionHeader entryDB::getSection(fileType type, size_t sectionIndex) {
 	sectionHeader result;
 
 	result.type = sectionType::SECTION_DATABASE_RECORDS; // Placeholder
@@ -174,7 +202,7 @@ sectionHeader entryDB::getSection() {
 
 
 // Should Function
-schemaData entryDB::getSchema() {
+schemaData entryDB::getSchema(fileType type, size_t sectionIndex) {
 	schemaData result;
 	schemaField buffer;
 
@@ -191,15 +219,27 @@ schemaData entryDB::getSchema() {
 }
 
 
-// Needs  Work
-recordData entryDB::getRecord() {
+// Needs  Work, only works for entries and dosent use file type descrimination
+recordData entryDB::getRecord(fileType type, size_t sectionIndex, size_t recordIndex) {
+	recordData result;
+
+	recordField buffer;
+	for (size_t i = 0; i < animeMeta.size(); i++) {
+		buffer = getField(recordIndex, i);
+		result.push_back(buffer);
+	}
+
+	return result;
+}
+
+recordData entryDB::getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex) {
 	recordData result;
 
 
-	
-	
+
 	return result;
 }
+
 
 
 // Kinda want to re-write cause this uses ai code
@@ -221,12 +261,12 @@ recordField entryDB::getField(size_t id, size_t fieldIndex)
 std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<size_t>& ids) {
 	std::vector<uint8_t> result;
 	
-	std::vector<uint8_t> buffer = Section(db.getSection());
+	std::vector<uint8_t> buffer = Section(db.getSection(fileType::HEADER_DATABASE, 0));
 
 	result.insert(result.end(), buffer.begin(), buffer.end());
 
 	buffer.clear();
-	buffer = Schema(db.getSchema());
+	buffer = Schema(db.getSchema(fileType::HEADER_DATABASE, 0));
 
 	result.insert(result.end(), buffer.begin(), buffer.end());
 	buffer.clear();
@@ -282,3 +322,40 @@ std::vector<uint8_t> entrySerializer::Entry(const entryData& entry) {
 	return writer.buffer;
 }
 
+RouteResult entryRouter::route(Message& message, Context& context) {
+	RouteResult result;
+
+	MessageCodec codec;
+	entrySerializer serializer;
+	ByteReader reader{ message.payload };
+	std::vector<uint8_t> buffer;
+
+	switch (message.action) {
+		case ACTION_TYPE::ACT_GET:
+		{
+			// Handle get action for entry domain
+			// Convert payload to get parameters, get parameters in this case should probably be a vector of ids to get or single id 0 for all E.X. [1, 2, 3] or [0]
+			
+			std::vector<size_t> reqIds = reader.VECU32(); // Convert into a usable vector of ids or single id
+
+			buffer = serializer.payload(context.entries, reqIds); // Get the payload for the requested ids and serialize it
+
+			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_GET, message.id, buffer.size(), buffer), false };
+			break;
+		}
+		case ACTION_TYPE::ACT_UPDATE:
+			// Handle update action for entry domain
+
+			break;
+		case ACTION_TYPE::ACT_DELETE:
+			// Handle delete action for entry domain
+			break;
+		case ACTION_TYPE::ACT_SEARCH:
+			// Handle search action for entry domain
+			break;
+		default:
+			std::cerr << "Unknown action type: " << static_cast<int>(message.action) << "\n";
+			break;
+	}
+	return result;
+}

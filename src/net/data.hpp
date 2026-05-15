@@ -21,7 +21,7 @@ public:
 	void F64(float value);
 	void CHAR(char c);
 	void STR(const std::string& str);
-	void VEC32(const std::vector<uint32_t>& vec);
+	void VECU32(const std::vector<uint32_t>& vec);
 	void VECU16(const std::vector<int>& vec);
 	void VECU8(const std::vector<int>& vec);
 
@@ -45,7 +45,7 @@ public:
 	std::string STR();
 	std::vector<size_t> VECU8();
 	std::vector<size_t> VECU16();
-	std::vector<size_t> VEC32();
+	std::vector<size_t> VECU32();
 
 	template<typename T>
 	std::optional<T> OPTIONAL();

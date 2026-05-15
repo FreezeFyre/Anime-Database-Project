@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -12,12 +14,20 @@
 #include <array>
 #include <queue>
 #include <typeinfo>
-#include <winsock2.h>
-#include <ws2tcpip.h>
 
 #include "messenger.hpp"
 
-#pragma once
+
+
+// Temporary context stuff, move to app
+#include "../databases/entry_data.hpp"
+#include "../filtering/filterProcessor.hpp"
+#include "data.hpp"
+
+struct Context {
+	entryDB entries;
+	filterProcessor fltrSrvc;
+};
 
 
 /*
@@ -38,7 +48,7 @@ struct RouteResult {
 
 class Router {
 	public:
-		RouteResult route(Message& message);
+		RouteResult route(Message& message, Context& context);
 
 	private:
 };

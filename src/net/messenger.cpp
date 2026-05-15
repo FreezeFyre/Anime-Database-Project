@@ -1,6 +1,6 @@
 #include "messenger.hpp"
 
-Message MessageConstructor::construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload) {
+Message MessageCodec::construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload) {
 	Message message;
 	message.encodeVersion = ENCODE_VERSION;
 	message.comType = comType;

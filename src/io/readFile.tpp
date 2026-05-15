@@ -8,7 +8,7 @@ The header provides the database type, the amount of records and the amount of f
 The schema provides the name and data type for each field in a record
 */
 template<typename f>
-	requires FileHandler<f>
+	requires FileReadHandler<f>
 void fileProcessor::readFile(std::string file, f& handler, const fileType& expected_type) {
 	std::ifstream source(file);
 	if (!source.is_open()) {

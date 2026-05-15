@@ -1,22 +1,21 @@
 #include "net_service.hpp"
 
+#include <cstring>
+
 
 void NetService::start(uint16_t port) {
 	running = true;
-	WSADATA wsaData;
 	int iResult;
 	struct addrinfo* result = NULL;
 	struct addrinfo hints;
 	
 
-	// Winsock Initilization
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0) {
-		printf("WSAStartup failed: %d\n", iResult);
+	if (!initSockets()) {
+		printf("socket initialization failed: %d\n", lastSocketError());
 		return;
 	}
 
-	ZeroMemory(&hints, sizeof(hints));
+	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET; // IPv4 Switch to AF_INET6 or AF_UNSPEC in future
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
@@ -25,50 +24,51 @@ void NetService::start(uint16_t port) {
 	iResult = getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &result);
 	if (iResult != 0) {
 		printf("getaddrinfo failed: %d\n", iResult);
-		WSACleanup();
+		cleanupSockets();
+		return;
 	}
 
 
-	SOCKET ListenSocket = INVALID_SOCKET;
+	SocketHandle ListenSocket = InvalidSocket;
 
 	ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 
-	if (ListenSocket == INVALID_SOCKET) {
-		printf("Error at socket(): %ld\n", WSAGetLastError());
+	if (ListenSocket == InvalidSocket) {
+		printf("Error at socket(): %d\n", lastSocketError());
 		freeaddrinfo(result);
-		WSACleanup();
+		cleanupSockets();
 		return;
 	}
 
 
 	// Setup the TCP listening socket
 	iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
-	if (iResult == SOCKET_ERROR) {
-		printf("bind failed with error: %d\n", WSAGetLastError());
+	if (iResult == SocketError) {
+		printf("bind failed with error: %d\n", lastSocketError());
 		freeaddrinfo(result);
-		closesocket(ListenSocket);
-		WSACleanup();
+		closeSocket(ListenSocket);
+		cleanupSockets();
 		return;
 	}
 	freeaddrinfo(result);
 
-	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
-		printf("Listen failed with error: %ld\n", WSAGetLastError());
-		closesocket(ListenSocket);
-		WSACleanup();
+	if (listen(ListenSocket, SOMAXCONN) == SocketError) {
+		printf("Listen failed with error: %d\n", lastSocketError());
+		closeSocket(ListenSocket);
+		cleanupSockets();
 		return;
 	}
 
 	// Rebuild to use multithreading and allow multiple clients
 	while (running) {
-		SOCKET ClientSocket = INVALID_SOCKET;
+		SocketHandle ClientSocket = InvalidSocket;
 
 		ClientSocket = accept(ListenSocket, NULL, NULL);
 
-		if (ClientSocket == INVALID_SOCKET) {
-			printf("accept failed: %d\n", WSAGetLastError());
-			closesocket(ListenSocket);
-			WSACleanup();
+		if (ClientSocket == InvalidSocket) {
+			printf("accept failed: %d\n", lastSocketError());
+			closeSocket(ListenSocket);
+			cleanupSockets();
 			return;
 		}
 
@@ -77,13 +77,13 @@ void NetService::start(uint16_t port) {
 	}
 
 	// Socket closing should be handled by stop function and errors
-	closesocket(ListenSocket);
-	WSACleanup(); // can be passed to stop function
+	closeSocket(ListenSocket);
+	cleanupSockets(); // can be passed to stop function
 	return;
 }
 
 
-void NetService::clientHandler(SOCKET ClientSocket) {
+void NetService::clientHandler(SocketHandle ClientSocket) {
 	int iResult;
 
 	char recvbuf[DEFAULT_BUFLEN];
@@ -113,33 +113,33 @@ void NetService::clientHandler(SOCKET ClientSocket) {
 				continue; // Skip processing this message and wait for the next one
 			}
 
-			RouteResult res = router.route(reqbuf.message);
+			RouteResult res = router.route(reqbuf.message, context);
 			std::vector<uint8_t> encRes = codec.encode(res.message);
 			
 			iSendResult = send(ClientSocket, reinterpret_cast<const char*>(encRes.data()), encRes.size(), 0);
-			if (iSendResult == SOCKET_ERROR) {
-				printf("send failed: %d\n", WSAGetLastError());
-				closesocket(ClientSocket);
+			if (iSendResult == SocketError) {
+				printf("send failed: %d\n", lastSocketError());
+				closeSocket(ClientSocket);
 				return;
 			}
 			printf("Bytes sent: %d\n", iSendResult);
 
 			if (res.closeConnection) {
-				iResult = shutdown(ClientSocket, SD_SEND);
-				if (iResult == SOCKET_ERROR) {
-					printf("shutdown failed: %d\n", WSAGetLastError());
-					closesocket(ClientSocket);
+				iResult = shutdown(ClientSocket, ShutdownSend);
+				if (iResult == SocketError) {
+					printf("shutdown failed: %d\n", lastSocketError());
+					closeSocket(ClientSocket);
 					return;
 				}
-				closesocket(ClientSocket);
+				closeSocket(ClientSocket);
 				return;
 			}
 		}
 		else if (iResult == 0)
 			printf("Connection closing...\n");
 		else {
-			printf("recv failed: %d\n", WSAGetLastError());
-			closesocket(ClientSocket);
+			printf("recv failed: %d\n", lastSocketError());
+			closeSocket(ClientSocket);
 			return;
 		}
 
@@ -147,13 +147,13 @@ void NetService::clientHandler(SOCKET ClientSocket) {
 
 
 	// This Section would be handled by Response handler
-	iResult = shutdown(ClientSocket, SD_SEND);
-	if (iResult == SOCKET_ERROR) {
-		printf("shutdown failed: %d\n", WSAGetLastError());
-		closesocket(ClientSocket);
+	iResult = shutdown(ClientSocket, ShutdownSend);
+	if (iResult == SocketError) {
+		printf("shutdown failed: %d\n", lastSocketError());
+		closeSocket(ClientSocket);
 		return;
 	}
-	closesocket(ClientSocket);
+	closeSocket(ClientSocket);
 
 
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -12,12 +14,22 @@
 #include <array>
 #include <queue>
 #include <typeinfo>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-
-#pragma once
 #include "messenger.hpp"
 #include "router.hpp"
+
+#ifdef _WIN32
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+
+#else
+	#include <cerrno>
+	#include <netdb.h>
+	#include <sys/socket.h>
+	#include <unistd.h>
+
+
+#endif
+
 
 #define DEFAULT_BUFLEN 512
 
@@ -40,9 +52,11 @@ class NetService {
 
 	private:
 		Router router;
+		Context context;
 		MessageCodec codec;
 		bool running = false;
 
 		void clientHandler(SOCKET ClientSocket);
 
 };
+
