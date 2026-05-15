@@ -1,5 +1,7 @@
 #include "messenger.hpp"
 
+#include <stdexcept>
+
 Message MessageCodec::construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload) {
 	Message message;
 	message.encodeVersion = ENCODE_VERSION;
@@ -36,7 +38,7 @@ Message MessageCodec::decode(std::vector<uint8_t>& byteStream) {
 
 	message.encodeVersion = r.U32();
 	if (message.encodeVersion != ENCODE_VERSION) {
-		throw std::exception(" Unsupported encode version!");
+		throw std::runtime_error("Unsupported encode version!");
 	}
 	message.comType = static_cast<COM_TYPE>(r.U8());
 	message.domain = static_cast<DOMAIN_TYPE>(r.U8());

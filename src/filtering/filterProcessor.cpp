@@ -77,7 +77,7 @@ bool filterProcessor::hasFilter(const indexFilter& filter) {
 		!filter.includeAll.empty() ||
 		!filter.includeAny.empty() ||
 		!filter.exclude.empty() ||
-		filter.range.min.has_value() ||
-		filter.range.max.has_value();
+		filter.bounds.min.has_value() ||
+		filter.bounds.max.has_value();
 		
 }

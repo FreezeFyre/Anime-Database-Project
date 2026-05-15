@@ -25,7 +25,7 @@ struct indexFilter {
 	std::vector<size_t> includeAll;
 	std::vector<size_t> includeAny;
 	std::vector<size_t> exclude;
-	range range;
+	range bounds;
 };
 
 using indexFilters = std::vector<indexFilter>;

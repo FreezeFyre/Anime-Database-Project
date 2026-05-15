@@ -14,6 +14,7 @@
 #include <array>
 #include <functional>
 #include <concepts>
+#include <cstdint>
 
 inline bool isDigit(char c);
 

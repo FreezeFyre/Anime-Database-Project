@@ -18,7 +18,7 @@ int main() {
 	std::cout << "AnimeList.Backend. Build Date: " << __DATE__ << " Time: " << __TIME__ << "\n";
 
 	entryDB entry;
-	const std::filesystem::path dataDir = std::filesystem::path("src") / "io";
+	const std::filesystem::path dataDir = std::filesystem::path(PROJECT_SOURCE_DIR) / "src" / "io";
 
 	entry.loadEntries((dataDir / "animeDatabase.1.dat").string());
 

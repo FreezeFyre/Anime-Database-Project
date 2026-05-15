@@ -31,9 +31,9 @@ fileHeader fileProcessor::readHeader(std::string& line) {
 		}
 	}
 
-	if (!checkMagic(tokens[0])) { throw std::exception("Invalid File Magic"); } // Handle Wrong Magic (Versioning and File Type Identifier)
+	if (!checkMagic(tokens[0])) { throw std::runtime_error("Invalid File Magic"); } // Handle Wrong Magic (Versioning and File Type Identifier)
 	header.magic = tokens[0];
-	if (!checkVersion(tokens[1])) { throw std::exception("Depreciated File Versioning"); } // Handle Wrong Versioning
+	if (!checkVersion(tokens[1])) { throw std::runtime_error("Deprecated File Versioning"); } // Handle Wrong Versioning
 	header.version = std::stoi(tokens[1]);
 
 	try {
@@ -90,7 +90,7 @@ schemaField::dataType fileProcessor::readDataType(std::string& dataField) {
 	else if (dataField == "STR") type = schemaField::dataType::STR;
 	else if (dataField == "VECU8") type = schemaField::dataType::VECU8;
 	else if (dataField == "VECU16") type = schemaField::dataType::VECU16;
-	else throw std::exception("Invalid Field Data Type");
+	else throw std::runtime_error("Invalid Field Data Type");
 
 	return type;
 }

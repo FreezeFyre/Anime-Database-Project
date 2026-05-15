@@ -14,32 +14,20 @@
 #include <array>
 #include <queue>
 #include <typeinfo>
+
 #include "messenger.hpp"
 #include "router.hpp"
-
-#ifdef _WIN32
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-
-#else
-	#include <cerrno>
-	#include <netdb.h>
-	#include <sys/socket.h>
-	#include <unistd.h>
-
-
-#endif
-
+#include "socket_compat.hpp"
 
 #define DEFAULT_BUFLEN 512
 
 struct Request {
-    SOCKET client;
+    SocketHandle client;
     Message message;
 };
 
 struct Response {
-    SOCKET client;
+    SocketHandle client;
     Message message;
 };
 
@@ -56,7 +44,7 @@ class NetService {
 		MessageCodec codec;
 		bool running = false;
 
-		void clientHandler(SOCKET ClientSocket);
+		void clientHandler(SocketHandle ClientSocket);
 
 };
 

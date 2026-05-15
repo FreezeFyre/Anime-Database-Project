@@ -23,7 +23,7 @@ std::vector<size_t> filterProcessor::checkFilters(const indexFilters& filters, f
 
 			switch (schema[n].mode) {
 				case schemaField::filterMode::FM_RANGE: {
-					if (!checkRange(filters[n].range, std::get<int>(field))) {
+					if (!checkRange(filters[n].bounds, std::get<int>(field))) {
 						passes = false;
 					}
 					break;
@@ -35,7 +35,7 @@ std::vector<size_t> filterProcessor::checkFilters(const indexFilters& filters, f
 					break;
 				}
 				case schemaField::filterMode::FM_RMV: {
-					if (!checkRange(filters[n].range, std::get<int>(field)) or !includesAny(filters[n].includeAny, std::get<int>(field))) {
+					if (!checkRange(filters[n].bounds, std::get<int>(field)) or !includesAny(filters[n].includeAny, std::get<int>(field))) {
 						passes = false;
 					}
 					break;

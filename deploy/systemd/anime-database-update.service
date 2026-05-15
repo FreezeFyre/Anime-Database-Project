@@ -1,0 +1,10 @@
+[Unit]
+Description=Deploy latest Anime Database main branch
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/bin/anime-database-deploy-main

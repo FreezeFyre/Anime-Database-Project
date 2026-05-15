@@ -1,0 +1,16 @@
+[Unit]
+Description=Anime Database backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lukeraykovitz
+Group=lukeraykovitz
+WorkingDirectory=/home/lukeraykovitz/prod/Anime-Database-Project
+ExecStart=/home/lukeraykovitz/prod/Anime-Database-Project/build-release/anime_database_project
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

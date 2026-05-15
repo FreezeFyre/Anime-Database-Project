@@ -1,0 +1,10 @@
+[Unit]
+Description=Check for Anime Database main branch updates
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+Unit=anime-database-update.service
+
+[Install]
+WantedBy=timers.target

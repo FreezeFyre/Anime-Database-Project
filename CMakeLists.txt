@@ -20,6 +20,7 @@ add_executable(anime_database_project
 
 
 target_include_directories(anime_database_project PRIVATE include)
+target_compile_definitions(anime_database_project PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 if(WIN32)
 	target_link_libraries(anime_database_project PRIVATE Ws2_32)
