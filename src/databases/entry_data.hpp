@@ -131,10 +131,6 @@ class entryDB {
 		recordData getRecord(fileType type, size_t sectionIndex, size_t recordIndex);
 		recordData getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex);
 
-		sectionHeader getSection() { return getSection(fileType::HEADER_DATABASE, 0); }
-		schemaData getSchema() { return getSchema(fileType::HEADER_DATABASE, 0); }
-		recordData getRecord() { return getRecord(fileType::HEADER_DATABASE, 0, 0); }
-
 		entryData getEntry(size_t id) { return database[id]; }
 
 		// Utility and Filtering Functions

@@ -41,7 +41,6 @@ struct Message {
 	std::vector<uint8_t> payload;
 };
 
-
 /*
 
 REQUEST FORMAT

@@ -28,8 +28,6 @@ struct Context {
 	entryDB entries;
 	filterProcessor fltrSrvc;
 };
-
-
 /*
 
 [ENCODE_VERSION]

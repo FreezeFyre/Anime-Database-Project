@@ -282,11 +282,36 @@ std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<siz
 
 
 std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
-	return {};
+	ByteWriter writer;
+
+	writer.U8(static_cast<uint8_t>(header.type));
+	writer.CHAR('|');
+	writer.STR(header.title);
+	writer.CHAR('|');
+	writer.U32(header.recordCount);
+	writer.CHAR('|');
+	writer.U32(header.fieldCount);
+	writer.CHAR('|');
+	writer.U8(static_cast<uint8_t>(header.hasSchema));
+	writer.CHAR('|');
+
+	return writer.buffer;
 }
 
 
 std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
+	ByteWriter writer;
+	writer.CHAR('[');
+
+	for (size_t i = 0; i < schema.size(); i++) {
+		writer.STR(schema[i].name);
+		writer.CHAR(':');
+		schema[i].type;
+		schema[i].mode;
+	}
+
+
+
 	return {};
 }
 
