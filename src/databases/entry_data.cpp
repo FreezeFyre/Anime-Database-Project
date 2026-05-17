@@ -306,13 +306,16 @@ std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
 	for (size_t i = 0; i < schema.size(); i++) {
 		writer.STR(schema[i].name);
 		writer.CHAR(':');
-		schema[i].type;
-		schema[i].mode;
+		writer.U8(static_cast<uint8_t>(schema[i].type));
+		writer.CHAR(';');
+		writer.U8(static_cast<uint8_t>(schema[i].mode));
+		if (i != schema.size()-1) {
+			writer.CHAR(',');
+		}
 	}
+	writer.CHAR(']');
 
-
-
-	return {};
+	return writer.buffer;
 }
 
 

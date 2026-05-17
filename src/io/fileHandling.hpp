@@ -14,6 +14,7 @@
 #include <array>
 #include <functional>
 #include <concepts>
+#include <cstdint>
 
 inline bool isDigit(char c);
 
@@ -56,7 +57,7 @@ struct sectionHeader {
 
 
 struct schemaField {
-	enum class dataType {
+	enum class dataType : uint8_t {
 		U8,
 		U16,
 		U32,
@@ -65,7 +66,7 @@ struct schemaField {
 		VECU16,
 		UNKNOWN
 	};
-	enum class filterMode {
+	enum class filterMode : uint8_t {
 		FM_NONE,
 		FM_RANGE,
 		FM_MULTI_VALUE,

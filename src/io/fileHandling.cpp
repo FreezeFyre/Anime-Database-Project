@@ -81,31 +81,19 @@ sectionHeader fileProcessor::readSection(const std::string& line) {
 	return section;
 }
 
+
+
+
+// Need to add in bounds/type verification
 schemaField::dataType fileProcessor::readDataType(std::string& dataField) {
-	schemaField::dataType type;
-
-	if (dataField == "U8") type = schemaField::dataType::U8;
-	else if (dataField == "U16") type = schemaField::dataType::U16;
-	else if (dataField == "U32") type = schemaField::dataType::U32;
-	else if (dataField == "STR") type = schemaField::dataType::STR;
-	else if (dataField == "VECU8") type = schemaField::dataType::VECU8;
-	else if (dataField == "VECU16") type = schemaField::dataType::VECU16;
-	else throw std::exception("Invalid Field Data Type");
-
-	return type;
+	return static_cast<schemaField::dataType>(std::stoi(dataField));
 }
 
 schemaField::filterMode fileProcessor::readFilterMode(std::string& filterField) {
-	schemaField::filterMode mode;
-
-	if (filterField == "N") mode = schemaField::filterMode::FM_NONE;
-	else if (filterField == "R") mode = schemaField::filterMode::FM_RANGE;
-	else if (filterField == "MV") mode = schemaField::filterMode::FM_MULTI_VALUE;
-	else if (filterField == "RMV") mode = schemaField::filterMode::FM_RMV;
-	else throw std::runtime_error("Invalid Filter Mode");
-
-	return mode;
+	return static_cast<schemaField::filterMode>(std::stoi(filterField));
 }
+
+
 
 schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 
@@ -350,25 +338,11 @@ std::string fileProcessor::printTableRow(const std::string& row) {
 }
 
 std::string fileProcessor::schemaDataType(const schemaField::dataType& type) {
-	switch (type) {
-	case schemaField::dataType::U8: return "U8";
-	case schemaField::dataType::U16: return "U16";
-	case schemaField::dataType::U32: return "U32";
-	case schemaField::dataType::STR: return "STR";
-	case schemaField::dataType::VECU8: return "VECU8";
-	case schemaField::dataType::VECU16: return "VECU16";
-	default: throw std::runtime_error("Unknown Data Type in Schema! \n");
-	}
+	return std::to_string(static_cast<int>(type));
 }
 
 std::string fileProcessor::schemaFilterMode(const schemaField::filterMode& mode) {
-	switch (mode) {
-	case schemaField::filterMode::FM_NONE: return "N";
-	case schemaField::filterMode::FM_RANGE: return "R";
-	case schemaField::filterMode::FM_MULTI_VALUE: return "MV";
-	case schemaField::filterMode::FM_RMV: return "RMV";
-	default: throw std::runtime_error("Unknown Filter Mode in Schema! \n");
-	}
+	return std::to_string(static_cast<int>(mode));
 }
 
 

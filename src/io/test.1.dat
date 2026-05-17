@@ -1,8 +1,8 @@
-ADP0|1001|0|1|
+ADP0|1002|0|1|
 
 0|ANIME_DATA|51|15|1|
 
-[id:U32;N,rank:U32;RMV,title:STR;N,alt_title:STR;N,format:U8;MV,status:U8;MV,genres:VECU8;MV,channels:VECU8;MV,audios:VECU8;MV,subtitles:VECU8;MV,fan_service:U8;R,episode_count:U8;R,min_runtime:U16;R,characters:VECU16;MV,ip_group:U8;MV]
+[id:2;0,rank:2;3,title:3;0,alt_title:3;0,format:0;2,status:0;2,genres:4;2,channels:4;2,audios:4;2,subtitles:4;2,fan_service:0;1,episode_count:0;1,min_runtime:1;1,characters:5;2,ip_group:0;2]
 
 {0,0,"Rascal Does Not Dream of Bunny Girl Senpai","Seishun Buta Yarō wa Bunny Girl Senpai no Yume wo Minai",0,0,{1,2,3,4,5,8},{0},{0,1},{0,1},2,13,325,{},0}
 {1,1,"Eighty Six 86","",0,0,{},{},{},{},0,0,0,{},0}
