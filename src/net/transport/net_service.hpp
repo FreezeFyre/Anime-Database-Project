@@ -41,18 +41,30 @@
 
 struct Request {
 	SocketHandle client;
-    Message message;
+	Message message;
 };
 
 struct Response {
-    SocketHandle client;
-    Message message;
+	SocketHandle client;
+	Message message;
 };
 
 struct WebSOCKFrame {
 	bool fin;
 	uint8_t opcode;
 	std::vector<uint8_t> payload;
+};
+
+enum class UserPermission {
+	VIEW,
+	EDIT,
+	FULL
+};
+
+struct Session {
+	uint32_t sessionId;
+	SocketHandle client;
+	UserPermission permission;
 };
 
 class NetService {

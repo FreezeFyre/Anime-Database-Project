@@ -92,9 +92,9 @@ char ByteReader::CHAR() {
 	return c;
 }
 
-std::vector<size_t> ByteReader::VECU8() {
+std::vector<int> ByteReader::VECU8() {
 	uint32_t length = U32();
-	std::vector<size_t> vec;
+	std::vector<int> vec;
 	vec.reserve(length);
 	for (uint32_t i = 0; i < length; i++) {
 		vec.push_back(U8());
@@ -102,9 +102,9 @@ std::vector<size_t> ByteReader::VECU8() {
 	return vec;
 }
 
-std::vector<size_t> ByteReader::VECU16() {
+std::vector<int> ByteReader::VECU16() {
 	uint32_t length = U32();
-	std::vector<size_t> vec;
+	std::vector<int> vec;
 	vec.reserve(length);
 	for (uint32_t i = 0; i < length; i++) {
 		vec.push_back(U16());

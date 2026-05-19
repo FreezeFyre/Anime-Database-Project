@@ -7,35 +7,8 @@ RouteResult Router::route(Message& message, Context& context) {
 	if (message.comType == COM_TYPE::REQ) {
 		switch (message.domain) {
 			case DOMAIN_TYPE::ENTRY:
-				// Handle entry domain actions
-				switch (message.action) {
-					case ACTION_TYPE::ACT_GET:
-						// Handle get action for entry domain
-						// Convert payload to get parameters, get parameters in this case should probably be a vector of ids to get or single id 0 for all E.X. [1, 2, 3] or [0]
-
-
-
-						break;
-					case ACTION_TYPE::ACT_UPDATE:
-						// Handle update action for entry domain
-
-
-						break;
-					case ACTION_TYPE::ACT_DELETE:
-						// Handle delete action for entry domain
-
-
-						break;
-					case ACTION_TYPE::ACT_SEARCH:
-						// Handle search action for entry domain
-
-
-						break;
-					default:
-						std::cerr << "Unknown action type: " << static_cast<int>(message.action) << "\n";
-						break;
-				}
-				break;
+				entryRouter eRoute;
+				return eRoute.route(message, context);
 			case DOMAIN_TYPE::CHARACTERS:
 				// Handle characters domain actions
 				break;

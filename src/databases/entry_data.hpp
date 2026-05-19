@@ -22,6 +22,7 @@
 #include "../io/fileHandling.hpp"
 #include "../filtering/filterProcessor.hpp"
 #include "../net/protocol/data.hpp"
+#include "../databases/entry_data.hpp"
 
 struct Context;
 struct Message;
@@ -118,7 +119,7 @@ class entryDB {
 		void section(sectionHeader& header);
 		void table(std::string& table, std::string& title);
 
-		void addEntry(const entryData& entry) { entryData copy = entry; copy.id = database.size(); database.push_back(copy); }
+		void addEntry(const entryData& entry);
 
 		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
 		std::vector<int> getSortedIDS();

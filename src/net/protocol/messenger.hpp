@@ -42,7 +42,7 @@ enum class UpdateOp : uint8_t {
 	REMOVE_VALUE
 };
 
-struct Update {
+struct FieldUpdate {
 	uint32_t id;
 	UpdateOp operation;
 	uint8_t fieldIndex;

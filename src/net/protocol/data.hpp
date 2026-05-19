@@ -43,8 +43,8 @@ public:
 	float F64();
 	char CHAR();
 	std::string STR();
-	std::vector<size_t> VECU8();
-	std::vector<size_t> VECU16();
+	std::vector<int> VECU8();
+	std::vector<int> VECU16();
 	std::vector<size_t> VECU32();
 
 	template<typename T>

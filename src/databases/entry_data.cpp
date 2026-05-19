@@ -149,6 +149,15 @@ void entryDB::schema(schemaData& schema) {
 	}
 }
 
+void entryDB::addEntry(const entryData& entry) {
+	entryData copy = entry;
+	copy.id = database.size();
+
+	copy.rank = 0; // Default rank, can be updated later
+
+	database.push_back(copy);
+}
+
 
 std::vector<size_t> entryDB::getFilteredIDS(const indexFilters& filters) {
 	std::vector<size_t> result;
@@ -293,6 +302,28 @@ std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
 	return writer.buffer;
 }
 
+entryData entrySerializer::readEntry(ByteReader& reader) {
+
+	// Needs to be dynamic
+	return {
+		static_cast<int>(reader.U32()), 
+		static_cast<int>(reader.U32()), 
+		reader.STR(), 
+		reader.STR(),
+		reader.U8(), 
+		reader.U8(), 
+		reader.VECU8(), 
+		reader.VECU8(), 
+		reader.VECU8(), 
+		reader.VECU8(), 
+		reader.U8(), 
+		reader.U8(), 
+		reader.U16(), 
+		reader.VECU16(), 
+		reader.U8()
+	};
+}
+
 
 std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
 	ByteWriter writer;
@@ -380,19 +411,19 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 			break;
 		}
 		case ACTION_TYPE::ACT_UPDATE: {
-			// Handle update action for entry domain
+			break;
+		}
+		case ACTION_TYPE::ACT_CREATE: {
+			// Handle create action for entry domain
 			ByteReader reader{ message.payload };
+			
+			size_t recordCount = reader.U32();
 
-			sectionHeader header = serializer.readSection(reader);
-
-			if (header.hasSchema) {
-				schemaData schema = serializer.readSchema(reader);
+			for (size_t i = 0; i < recordCount; i++) {
+				context.entries.addEntry(serializer.readEntry(reader));
 			}
-
-			for (size_t i = 0; i < header.recordCount; i++) {
-
-			}
-
+			context.entries.saveEntries("anime_data.temp.dat"); // Save the updated database to file, this should probably be optimized to not save the entire database every time but for now it works
+			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}) , false};
 			break;
 		}
 		case ACTION_TYPE::ACT_DELETE:
