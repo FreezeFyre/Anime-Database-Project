@@ -84,76 +84,53 @@ void NetService::start(uint16_t port) {
 
 
 void NetService::clientHandler(SocketHandle ClientSocket) {
-	int iResult;
-
-	char recvbuf[DEFAULT_BUFLEN];
-	int iSendResult;
-	int recvbuflen = DEFAULT_BUFLEN;
-
-	Request reqbuf = { ClientSocket, Message() };
-
-	// Receive until the peer shuts down the connection
-	do {
-		iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
-
-		if (iResult > 0) {
-			printf("Bytes received: %d\n", iResult);
-
-			std::vector<uint8_t> bytes;
-			bytes.reserve(iResult);
-			for (int i = 0; i < iResult; i++) {
-				bytes.push_back(static_cast<uint8_t>(recvbuf[i]));
-			} // Convert the received bytes into a vector for proper handling
-
-			try {
-				reqbuf.message = codec.decode(bytes);
-			}
-			catch (const std::exception& e) {
-				printf("Failed to decode message: %s\n", e.what());
-				continue; // Skip processing this message and wait for the next one
-			}
-
-			RouteResult res = router.route(reqbuf.message, context);
-			std::vector<uint8_t> encRes = codec.encode(res.message);
-			
-			iSendResult = send(ClientSocket, reinterpret_cast<const char*>(encRes.data()), encRes.size(), 0);
-			if (iSendResult == SocketError) {
-				printf("send failed: %d\n", lastSocketError());
-				closeSocket(ClientSocket);
-				return;
-			}
-			printf("Bytes sent: %d\n", iSendResult);
-
-			if (res.closeConnection) {
-				iResult = shutdown(ClientSocket, ShutdownSend);
-				if (iResult == SocketError) {
-					printf("shutdown failed: %d\n", lastSocketError());
-					closeSocket(ClientSocket);
-					return;
-				}
-				closeSocket(ClientSocket);
-				return;
-			}
-		}
-		else if (iResult == 0)
-			printf("Connection closing...\n");
-		else {
-			printf("recv failed: %d\n", lastSocketError());
-			closeSocket(ClientSocket);
-			return;
-		}
-
-	} while (iResult > 0);
-
-
-	// This Section would be handled by Response handler
-	iResult = shutdown(ClientSocket, ShutdownSend);
-	if (iResult == SocketError) {
-		printf("shutdown failed: %d\n", lastSocketError());
+	if (!webSocketHandshake(ClientSocket)) {
 		closeSocket(ClientSocket);
 		return;
 	}
+
+	Request reqbuf = { ClientSocket, Message() };
+
+	do {
+		WebSocketFrame frame = readWebSocketFrame(ClientSocket);
+
+		if (frame.opcode == WEB_SOCKET_OPCODE_CLOSE) {
+			sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_CLOSE, {});
+			break;
+		}
+
+		if (frame.opcode == WEB_SOCKET_OPCODE_PING) {
+			sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_PONG, frame.payload);
+			continue;
+		}
+
+		if (frame.opcode != WEB_SOCKET_OPCODE_BINARY) {
+			std::cerr << "Unsupported WebSocket opcode: " << static_cast<int>(frame.opcode) << std::endl;
+			continue;
+		}
+
+		try {
+			reqbuf.message = codec.decode(frame.payload);
+		}
+		catch (const std::exception& e) {
+			printf("Failed to decode message: %s\n", e.what());
+			continue;
+		}
+
+		RouteResult res = router.route(reqbuf.message, context);
+		std::vector<uint8_t> encRes = codec.encode(res.message);
+
+		if (!sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_BINARY, encRes)) {
+			printf("send failed: %d\n", lastSocketError());
+			break;
+		}
+
+		if (res.closeConnection) {
+			sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_CLOSE, {});
+			break;
+		}
+
+	} while (running);
+
 	closeSocket(ClientSocket);
-
-
 }

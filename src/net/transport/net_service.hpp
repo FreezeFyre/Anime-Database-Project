@@ -14,18 +14,27 @@
 #include <array>
 #include <queue>
 #include <typeinfo>
-#include "messenger.hpp"
-#include "router.hpp"
+#include <cstdio>
+
+#include "../protocol/messenger.hpp"
+#include "../routing/router.hpp"
+#include "socket_compat.hpp"
+#include "../websocket/webSocket.hpp"
 
 #ifdef _WIN32
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
+	#pragma comment(lib, "Ws2_32.lib")
+	#include <http.h>
+	#include <winhttp.h>
 
 #else
 	#include <cerrno>
 	#include <netdb.h>
 	#include <sys/socket.h>
 	#include <unistd.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
 
 
 #endif
@@ -34,15 +43,20 @@
 #define DEFAULT_BUFLEN 512
 
 struct Request {
-    SOCKET client;
+	SocketHandle client;
     Message message;
 };
 
 struct Response {
-    SOCKET client;
+    SocketHandle client;
     Message message;
 };
 
+struct WebSOCKFrame {
+	bool fin;
+	uint8_t opcode;
+	std::vector<uint8_t> payload;
+};
 
 class NetService {
 	public:
@@ -56,7 +70,6 @@ class NetService {
 		MessageCodec codec;
 		bool running = false;
 
-		void clientHandler(SOCKET ClientSocket);
+		void clientHandler(SocketHandle ClientSocket);
 
 };
-

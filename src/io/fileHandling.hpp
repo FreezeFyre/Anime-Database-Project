@@ -55,6 +55,15 @@ struct sectionHeader {
 	bool hasSchema;
 };
 
+enum class dataType : uint8_t {
+	U8,
+	U16,
+	U32,
+	STR,
+	VECU8,
+	VECU16,
+	UNKNOWN
+};
 
 struct schemaField {
 	enum class dataType : uint8_t {

@@ -21,7 +21,7 @@
 
 #include "../io/fileHandling.hpp"
 #include "../filtering/filterProcessor.hpp"
-#include "../net/data.hpp"
+#include "../net/protocol/data.hpp"
 
 struct Context;
 struct Message;
@@ -160,6 +160,12 @@ class entrySerializer {
 
 		std::vector<uint8_t> Schema(const schemaData& schema);
 		std::vector<uint8_t> Section(const sectionHeader& header);
+
+		entryData readEntry(ByteReader& reader);
+
+		schemaData readSchema(ByteReader& reader);
+
+		sectionHeader readSection(ByteReader& reader);
 
 };
 
