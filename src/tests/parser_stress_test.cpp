@@ -79,9 +79,9 @@ void writeDatabaseFile(const std::filesystem::path& path, int recordCount) {
 		throw std::runtime_error("Failed to create database stress file: " + path.string());
 	}
 
-	out << "ADP0|1001|0|1|\n\n";
+	out << "ADP0|" << FILE_PROCESS_VERSION << "|0|1|\n\n";
 	out << "0|STRESS_DATA|" << recordCount << "|5|1|\n\n";
-	out << "[id:U32;N,title:STR;N,score:U16;R,tags:VECU8;MV,group:U8;MV]\n\n";
+	out << "[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n\n";
 
 	for (int id = 0; id < recordCount; ++id) {
 		out << makeDatabaseRecord(id) << '\n';
@@ -94,7 +94,7 @@ void writeLookupFile(const std::filesystem::path& path, int sectionCount, int re
 		throw std::runtime_error("Failed to create lookup stress file: " + path.string());
 	}
 
-	out << "ADP0|1001|1|" << sectionCount << "|\n\n";
+	out << "ADP0|" << FILE_PROCESS_VERSION << "|1|" << sectionCount << "|\n\n";
 
 	for (int section = 0; section < sectionCount; ++section) {
 		out << "1|LOOKUP_" << section << '|' << recordsPerSection << "|1|0|\n";

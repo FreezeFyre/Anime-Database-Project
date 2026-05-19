@@ -13,10 +13,10 @@ add_executable(anime_database_project
 	"src/databases/entry_data.cpp"
 	"src/filtering/filterProcessor.cpp"
 	
-	"src/net/messenger.cpp"
-	"src/net/data.cpp"
+	"src/net/protocol/messenger.cpp"
+	"src/net/protocol/data.cpp"
 
- "src/net/net_service.cpp" "src/app.cpp" "src/net/router.cpp")
+ "src/net/transport/net_service.cpp" "src/app.cpp" "src/net/routing/router.cpp" "src/net/websocket/webSocket.cpp" "src/net/websocket/sha1.cpp" "src/net/websocket/base64.cpp")
 
 
 target_include_directories(anime_database_project PRIVATE include)
@@ -28,12 +28,17 @@ endif()
 
 add_executable(parser_stress_test
 	"src/tests/parser_stress_test.cpp"
-	"src/io/fileHandling.cpp")
+	"src/io/fileHandling.cpp" "src/net/websocket/webSocket.cpp" "src/net/websocket/sha1.cpp" "src/net/websocket/base64.cpp")
 
 add_test(NAME parser_stress_test COMMAND parser_stress_test)
 
 add_executable(parser_fuzz_test
 	"src/tests/parser_fuzz_test.cpp"
-	"src/io/fileHandling.cpp")
+	"src/io/fileHandling.cpp" "src/net/websocket/webSocket.cpp" "src/net/websocket/sha1.cpp" "src/net/websocket/base64.cpp")
+
+if(WIN32)
+	target_link_libraries(parser_stress_test PRIVATE Ws2_32)
+	target_link_libraries(parser_fuzz_test PRIVATE Ws2_32)
+endif()
 
 add_test(NAME parser_fuzz_test COMMAND parser_fuzz_test)

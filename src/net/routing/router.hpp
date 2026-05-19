@@ -15,21 +15,19 @@
 #include <queue>
 #include <typeinfo>
 
-#include "messenger.hpp"
+#include "../protocol/messenger.hpp"
 
 
 
 // Temporary context stuff, move to app
-#include "../databases/entry_data.hpp"
-#include "../filtering/filterProcessor.hpp"
-#include "data.hpp"
+#include "../../databases/entry_data.hpp"
+#include "../../filtering/filterProcessor.hpp"
+#include "../protocol/data.hpp"
 
 struct Context {
 	entryDB entries;
 	filterProcessor fltrSrvc;
 };
-
-
 /*
 
 [ENCODE_VERSION]

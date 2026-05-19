@@ -79,9 +79,9 @@ void writeRandomValidDatabase(const std::filesystem::path& path, int recordCount
 		throw std::runtime_error("Failed to create fuzz input: " + path.string());
 	}
 
-	out << "ADP0|1001|0|1|\n\n";
+	out << "ADP0|" << FILE_PROCESS_VERSION << "|0|1|\n\n";
 	out << "0|FUZZ_DATA|" << recordCount << "|5|1|\n\n";
-	out << "[id:U32;N,title:STR;N,score:U16;R,tags:VECU8;MV,group:U8;MV]\n\n";
+	out << "[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n\n";
 
 	for (int id = 0; id < recordCount; ++id) {
 		out << '{'
@@ -137,48 +137,48 @@ void runValidRandomizedCases(const std::filesystem::path& dir) {
 void runMalformedCases(const std::filesystem::path& dir) {
 	const auto wrongMagic = dir / "wrong_magic.dat";
 	writeTextFile(wrongMagic,
-		"BAD0|1001|0|1|\n"
+		"BAD0|1002|0|1|\n"
 		"0|BROKEN|1|5|1|\n"
-		"[id:U32;N,title:STR;N,score:U16;R,tags:VECU8;MV,group:U8;MV]\n"
+		"[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,2},4}\n");
 	expectAnyThrow(wrongMagic, fileType::HEADER_DATABASE, "Wrong magic");
 
 	const auto wrongType = dir / "wrong_type.dat";
 	writeTextFile(wrongType,
-		"ADP0|1001|1|1|\n"
+		"ADP0|1002|1|1|\n"
 		"1|LOOKUP|1|1|0|\n"
 		"{\"value\"}\n");
 	expectAnyThrow(wrongType, fileType::HEADER_DATABASE, "Wrong file type");
 
 	const auto invalidSection = dir / "invalid_section.dat";
 	writeTextFile(invalidSection,
-		"ADP0|1001|0|1|\n"
+		"ADP0|1002|0|1|\n"
 		"9|BROKEN|1|5|1|\n"
-		"[id:U32;N,title:STR;N,score:U16;R,tags:VECU8;MV,group:U8;MV]\n"
+		"[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,2},4}\n");
 	expectAnyThrow(invalidSection, fileType::HEADER_DATABASE, "Invalid section type");
 
 	const auto invalidSchema = dir / "invalid_schema.dat";
 	writeTextFile(invalidSchema,
-		"ADP0|1001|0|1|\n"
+		"ADP0|1002|0|1|\n"
 		"0|BROKEN|1|5|1|\n"
-		"[id:U32;N,title:BAD;N,score:U16;R,tags:VECU8;MV,group:U8;MV]\n"
+		"[id:2;0,title:9;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,2},4}\n");
 	expectAnyThrow(invalidSchema, fileType::HEADER_DATABASE, "Invalid schema");
 
 	const auto invalidVector = dir / "invalid_vector.dat";
 	writeTextFile(invalidVector,
-		"ADP0|1001|0|1|\n"
+		"ADP0|1002|0|1|\n"
 		"0|BROKEN|1|5|1|\n"
-		"[id:U32;N,title:STR;N,score:U16;R,tags:VECU8;MV,group:U8;MV]\n"
+		"[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,x,2},4}\n");
 	expectAnyThrow(invalidVector, fileType::HEADER_DATABASE, "Invalid vector");
 
 	const auto nonSequentialId = dir / "non_sequential_id.dat";
 	writeTextFile(nonSequentialId,
-		"ADP0|1001|0|1|\n"
+		"ADP0|1002|0|1|\n"
 		"0|BROKEN|2|5|1|\n"
-		"[id:U32;N,title:STR;N,score:U16;R,tags:VECU8;MV,group:U8;MV]\n"
+		"[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,2},4}\n"
 		"{2,\"B\",20,{3,4},5}\n");
 

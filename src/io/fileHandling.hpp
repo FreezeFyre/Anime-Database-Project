@@ -55,9 +55,18 @@ struct sectionHeader {
 	bool hasSchema;
 };
 
+enum class dataType : uint8_t {
+	U8,
+	U16,
+	U32,
+	STR,
+	VECU8,
+	VECU16,
+	UNKNOWN
+};
 
 struct schemaField {
-	enum class dataType {
+	enum class dataType : uint8_t {
 		U8,
 		U16,
 		U32,
@@ -66,7 +75,7 @@ struct schemaField {
 		VECU16,
 		UNKNOWN
 	};
-	enum class filterMode {
+	enum class filterMode : uint8_t {
 		FM_NONE,
 		FM_RANGE,
 		FM_MULTI_VALUE,

@@ -5,7 +5,7 @@
 //  Created by Luke Raykovitz on 10/24/25.
 //
 #include "entry_data.hpp"
-#include "../net/router.hpp"
+#include "../net/routing/router.hpp"
 
 std::unordered_map<std::string, size_t> buildFieldNames() {
 	std::unordered_map<std::string, size_t> result;
@@ -282,12 +282,30 @@ std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<siz
 
 
 std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
-	return {};
+	ByteWriter writer;
+
+	writer.U8(static_cast<uint8_t>(header.type));
+	writer.STR(header.title);
+	writer.U32(header.recordCount);
+	writer.U32(header.fieldCount);
+	writer.U8(static_cast<uint8_t>(header.hasSchema));
+
+	return writer.buffer;
 }
 
 
 std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
-	return {};
+	ByteWriter writer;
+	writer.U32(schema.size());
+
+	for (const auto& field : schema) {
+		writer.STR(field.name);
+		writer.U8(static_cast<uint8_t>(field.type));
+		writer.U8(static_cast<uint8_t>(field.mode));
+	}
+
+
+	return writer.buffer;
 }
 
 
@@ -318,8 +336,26 @@ std::vector<uint8_t> entrySerializer::Entry(const entryData& entry) {
 
 	}
 
-
 	return writer.buffer;
+}
+
+
+schemaData entrySerializer::readSchema(ByteReader& reader) {
+	schemaData result;
+
+	return result;
+}	
+
+sectionHeader entrySerializer::readSection(ByteReader& reader) {
+	sectionHeader header;
+
+	header.type = static_cast<sectionType>(reader.U8());
+	header.title = reader.STR();
+	header.recordCount = reader.U32();
+	header.fieldCount = reader.U32();
+	header.hasSchema = static_cast<bool>(reader.U8());
+
+	return header;
 }
 
 RouteResult entryRouter::route(Message& message, Context& context) {
@@ -343,10 +379,22 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_GET, message.id, buffer.size(), buffer), false };
 			break;
 		}
-		case ACTION_TYPE::ACT_UPDATE:
+		case ACTION_TYPE::ACT_UPDATE: {
 			// Handle update action for entry domain
+			ByteReader reader{ message.payload };
+
+			sectionHeader header = serializer.readSection(reader);
+
+			if (header.hasSchema) {
+				schemaData schema = serializer.readSchema(reader);
+			}
+
+			for (size_t i = 0; i < header.recordCount; i++) {
+
+			}
 
 			break;
+		}
 		case ACTION_TYPE::ACT_DELETE:
 			// Handle delete action for entry domain
 			break;

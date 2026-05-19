@@ -6,7 +6,7 @@ template<typename f>
 std::vector<size_t> filterProcessor::checkFilters(const indexFilters& filters, f& database) {
 	std::vector<size_t> result;
 
-	schemaData schema = database.getSchema();
+	schemaData schema = database.getSchema(fileType::HEADER_DATABASE, 0);
 	
 	for (size_t i = 0; i < database.getSize(); i++) {
 

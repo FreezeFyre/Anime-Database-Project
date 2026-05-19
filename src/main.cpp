@@ -11,30 +11,30 @@
 #include "io/fileHandling.hpp"
 #include "databases/entry_data.hpp"
 
-#include "net/net_service.hpp"
+#include "net/transport/net_service.hpp"
 
 
 
-int main(int argc, char* argv[]) {
+int main(int inSize, char* input[]) {
 	// Release / Build code 
 	std::cout << "AnimeList.Backend. Build Date: " << __DATE__ << " Time: " << __TIME__ << "\n";
 
 	bool runServer = false;
 	uint16_t port = 8080;
 
-	for (int i = 1; i < argc; i++) {
-		const std::string arg = argv[i];
+	for (int i = 1; i < inSize; i++) {
+		const std::string arg = input[i];
 
 		if (arg == "--server") {
 			runServer = true;
 		}
 		else if (arg == "--port") {
-			if (i + 1 >= argc) {
+			if (i + 1 >= inSize) {
 				std::cerr << "--port requires a value\n";
 				return 1;
 			}
 
-			int parsedPort = std::stoi(argv[++i]);
+			int parsedPort = std::stoi(input[++i]);
 			if (parsedPort <= 0 || parsedPort > 65535) {
 				std::cerr << "Invalid port: " << parsedPort << "\n";
 				return 1;
@@ -46,39 +46,15 @@ int main(int argc, char* argv[]) {
 			return 1;
 		}
 	}
-
-	entryDB entry;
-	const std::filesystem::path dataDir = std::filesystem::path(PROJECT_SOURCE_DIR) / "src" / "io";
-
-	entry.loadEntries((dataDir / "animeDatabase.1.dat").string());
-
-	entry.loadLookupTables((dataDir / "animeLookupTables.1.dat").string());
-
-	entry.addEntry({
-		.id = 0,
-		.rank = 0,
-		.title = "Test",
-		.alt_title = "Alt Test Title",
-		.format = 0,
-		.status = 0,
-		.genres = {0, 1},
-		.channels = {0},
-		.audios = {0},
-		.subtitles = {0},
-		.fan_service = 0,
-		.episode_count = 26,
-		.min_runtime = 24,
-		.characters = {0, 1, 2},
-		.ip_group = 0
-		});
-
-	entry.saveEntries((dataDir / "test.1.dat").string());
+	// End of arguments
 
 	NetService net;
 	if (runServer) {
 		std::cout << "Starting server on port " << port << "\n";
 		net.start(port);
 	}
+
+	net.start(8080);
 
 	return 0;
 }

@@ -21,7 +21,7 @@
 
 #include "../io/fileHandling.hpp"
 #include "../filtering/filterProcessor.hpp"
-#include "../net/data.hpp"
+#include "../net/protocol/data.hpp"
 
 struct Context;
 struct Message;
@@ -131,10 +131,6 @@ class entryDB {
 		recordData getRecord(fileType type, size_t sectionIndex, size_t recordIndex);
 		recordData getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex);
 
-		sectionHeader getSection() { return getSection(fileType::HEADER_DATABASE, 0); }
-		schemaData getSchema() { return getSchema(fileType::HEADER_DATABASE, 0); }
-		recordData getRecord() { return getRecord(fileType::HEADER_DATABASE, 0, 0); }
-
 		entryData getEntry(size_t id) { return database[id]; }
 
 		// Utility and Filtering Functions
@@ -164,6 +160,12 @@ class entrySerializer {
 
 		std::vector<uint8_t> Schema(const schemaData& schema);
 		std::vector<uint8_t> Section(const sectionHeader& header);
+
+		entryData readEntry(ByteReader& reader);
+
+		schemaData readSchema(ByteReader& reader);
+
+		sectionHeader readSection(ByteReader& reader);
 
 };
 

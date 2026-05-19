@@ -2,8 +2,10 @@
 #include <unordered_map>
 #include <cstdint>
 #include <vector>
+#include <variant>
 
 #include "data.hpp"
+#include "../../io/fileHandling.hpp"
 
 #pragma once
 
@@ -19,16 +21,33 @@ enum class COM_TYPE : uint8_t {
 enum class ACTION_TYPE : uint8_t {
 	ACT_GET = 1,
 	ACT_UPDATE = 2,
-	ACT_DELETE = 3,
-	ACT_SEARCH = 4,
-	ACT_FILTER = 5,
+	ACT_CREATE = 3,
+	ACT_DELETE = 4,
+	ACT_SEARCH = 5,
 	ACT_SORT = 6,
+	ACT_APPLY = 7
 };
 enum class DOMAIN_TYPE : uint8_t {
 	ENTRY = 1,
-	CHARACTERS = 2,
-	FILTERS = 3,
-	AUTH = 4
+	GROUPS = 2,
+	CHARACTERS = 3,
+	FILTERS = 4,
+	AUTH = 10
+};
+
+enum class UpdateOp : uint8_t {
+	SET_FIELD,
+	CLEAR_FIELD,
+	ADD_VALUE,
+	REMOVE_VALUE
+};
+
+struct Update {
+	uint32_t id;
+	UpdateOp operation;
+	uint8_t fieldIndex;
+	dataType type;
+	std::variant<std::monostate, uint8_t, uint16_t, uint32_t, std::string, std::vector<uint8_t>, std::vector<uint16_t>> value;
 };
 
 struct Message {
@@ -40,7 +59,6 @@ struct Message {
 	uint32_t payloadSize;
 	std::vector<uint8_t> payload;
 };
-
 
 /*
 
