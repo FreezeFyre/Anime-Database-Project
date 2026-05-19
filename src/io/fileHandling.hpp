@@ -19,7 +19,7 @@
 inline bool isDigit(char c);
 
 static const std::string MAGIC_REFERENCE = "ADP0";
-static const uint32_t FILE_PROCESS_VERSION = 1001;
+static const uint32_t FILE_PROCESS_VERSION = 1002;
 
 enum class fileType : uint8_t {
 	HEADER_DATABASE,
