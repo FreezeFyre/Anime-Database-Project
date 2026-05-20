@@ -16,6 +16,7 @@
 #include <limits>
 #include <variant>
 #include <unordered_map>
+#include <unordered_set>
 #include <array>
 #include <typeinfo>
 
@@ -138,17 +139,24 @@ class entryDB {
 		recordField getField(size_t id, size_t fieldIndex);
 		size_t getFieldCount() { return animeMeta.size(); }
 
+		bool rankInsert(int rank);
+
+		// Validation Checks
+		std::vector<size_t> validateSchema(const schemaData& schema);
+
+		animeTables lookup;
+
 	private:
 
 		using data = std::vector<entryData>;
 
 		data database;
 
-		animeTables lookup;
 
-		int lookupCount = 7;
+		int lookupCount = 0;
 
 		std::vector<size_t> fieldMap;
+
 };
 
 class entrySerializer {
@@ -161,7 +169,7 @@ class entrySerializer {
 		std::vector<uint8_t> Schema(const schemaData& schema);
 		std::vector<uint8_t> Section(const sectionHeader& header);
 
-		entryData readEntry(ByteReader& reader);
+		entryData readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices);
 
 		schemaData readSchema(ByteReader& reader);
 
