@@ -154,24 +154,188 @@ void entryDB::addEntry(const entryData& entry) {
 	result.id = database.size();
 	
 	// Check if user has rank permissions, if yes then rank adjust, else rank = 0
-	rankInsert(result.rank);
-	result.rank = 0; // Default rank, can be updated later
-
-	// Iterate over every field
-	for (size_t i = 0; i < animeMeta.size(); i++) {
-		
+	if (result.rank > 0) {
+		rankInsert(result.rank);
+	}
+	else {
+		result.rank = 0; // Default rank, can be updated later
 	}
 
-	// Template for vector field validation
-	for (size_t i = 0; i < result.genres.size(); i++) {
-		if (result.genres[i]-1 > lookup.genres.size()) {
-			throw std::runtime_error("Genre ID " + std::to_string(result.genres[i]) + " out of table bounds.");
+	// Can Probably make this its own validateEntry function
+	// Iterate over every field except for id and rank
+	for (size_t i = 2; i < animeMeta.size(); i++) {
+		switch (animeMeta[i].type) {
+			case schemaField::dataType::U8: {
+				switch (animeMeta[i].reference) {
+					case ValueRef::TABLE: {
+						int value = result.*std::get<intPTR>(animeMeta[i].ptr);
+						if (value < 0) {
+							throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
+						}
+						size_t tableSize = getTableSize(animeMeta[i].name);
+						if (value >= tableSize) {
+							throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
+						}
+						break;
+					}
+					case ValueRef::RANGE: {
+						int value = result.*std::get<intPTR>(animeMeta[i].ptr);
+						if (!animeMeta[i].bounds.has_value()) {
+							throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
+						}
+						if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
+							throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
+						}
+						break;
+					}
+					case ValueRef::NONE: {
+						break;
+					}
+					default:
+						throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
+				}
+				break;
+			}
+			case schemaField::dataType::U16: {
+				switch (animeMeta[i].reference) {
+				case ValueRef::TABLE: {
+					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
+					if (value < 0) {
+						throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
+					}
+					size_t tableSize = getTableSize(animeMeta[i].name);
+					if (value >= tableSize) {
+						throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
+					}
+					break;
+				}
+				case ValueRef::RANGE: {
+					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
+					if (!animeMeta[i].bounds.has_value()) {
+						throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
+					}
+					if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
+						throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
+					}
+					break;
+				}
+				case ValueRef::NONE: {
+					break;
+				}
+				default:
+					throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
+				}
+				break;
+			}
+			case schemaField::dataType::U32: {
+				switch (animeMeta[i].reference) {
+				case ValueRef::TABLE: {
+					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
+					if (value < 0) {
+						throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
+					}
+					size_t tableSize = getTableSize(animeMeta[i].name);
+					if (value >= tableSize) {
+						throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
+					}
+					break;
+				}
+				case ValueRef::RANGE: {
+					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
+					if (!animeMeta[i].bounds.has_value()) {
+						throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
+					}
+					if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
+						throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
+					}
+					break;
+				}
+				case ValueRef::NONE: {
+					break;
+				}
+				default:
+					throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
+				}
+				break;
+			}
+			case schemaField::dataType::STR: {
+				// String Validation
+				break;
+			}
+			case schemaField::dataType::VECU8: {
+				std::vector<int> vec = result.*std::get<vecPTR>(animeMeta[i].ptr);
+				for (size_t n = 0; n < vec.size(); n++) {
+					switch (animeMeta[i].reference) {
+						case ValueRef::TABLE: {
+							int value = vec[n];
+							if (value < 0) {
+								throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
+							}
+							size_t tableSize = getTableSize(animeMeta[i].name);
+							if (value >= tableSize) {
+								throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
+							}
+							break;
+						}
+						case ValueRef::RANGE: {
+							int value = vec[n];
+							if (!animeMeta[i].bounds.has_value()) {
+								throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
+							}
+							if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
+								throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
+							}
+							break;
+						}
+						case ValueRef::NONE: {
+							break;
+						}
+						default:
+							throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
+					}
+				}
+				break;
+			}
+			case schemaField::dataType::VECU16: {
+				std::vector<int> vec = result.*std::get<vecPTR>(animeMeta[i].ptr);
+				for (size_t n = 0; n < vec.size(); n++) {
+					switch (animeMeta[i].reference) {
+					case ValueRef::TABLE: {
+						int value = vec[n];
+						if (value < 0) {
+							throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
+						}
+						size_t tableSize = getTableSize(animeMeta[i].name);
+						if (value >= tableSize) {
+							throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
+						}
+						break;
+					}
+					case ValueRef::RANGE: {
+						int value = vec[n];
+						if (!animeMeta[i].bounds.has_value()) {
+							throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
+						}
+						if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
+							throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
+						}
+						break;
+					}
+					case ValueRef::NONE: {
+						break;
+					}
+					default:
+						throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
+					}
+				}
+				break;
+			}
+			default:
+				throw std::runtime_error("Unknown data type for field: " + animeMeta[i].name);
 		}
 	}
-
 	database.push_back(result);
 }
-
 
 std::vector<size_t> entryDB::getFilteredIDS(const indexFilters& filters) {
 	std::vector<size_t> result;
@@ -183,6 +347,19 @@ std::vector<size_t> entryDB::getFilteredIDS(const indexFilters& filters) {
 	return result;
 }
 
+// Need to update this along with the rest of talbe stuff
+size_t entryDB::getTableSize(const std::string& title) {
+	std::unordered_map<std::string, size_t> tableMap; // Create a map of the table names that gives the member pointer to it.
+
+	if (title == "genres") { return lookup.genres.size(); }
+	else if (title == "channels") { return lookup.channels.size(); }
+	else if (title == "audios") { return lookup.audios.size(); }
+	else if (title == "subtitles") { return lookup.subtitles.size(); }
+	else if (title == "format" || title == "formats") { return lookup.formats.size(); }
+	else if (title == "status" || title == "statuses") { return lookup.statuses.size(); }
+	else if (title == "medias") { return lookup.medias.size(); }
+	else { throw std::runtime_error("Unknown Table Title: " + title); }
+}
 
 // Non Functional
 std::vector<int> entryDB::getSortedIDS() {

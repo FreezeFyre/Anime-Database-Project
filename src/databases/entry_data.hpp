@@ -19,6 +19,7 @@
 #include <unordered_set>
 #include <array>
 #include <typeinfo>
+#include <optional>
 
 #include "../io/fileHandling.hpp"
 #include "../filtering/filterProcessor.hpp"
@@ -56,34 +57,46 @@ enum class fieldPresence {
 	RECOMMENDED,
 	FIELD_OPTIONAL
 };
+enum class ValueRef {
+	NONE,
+	RANGE,
+	TABLE
+};
+struct Bound{
+	int lower;
+	int upper;
+};
 struct fieldData {
 	std::string name;
 	memPTR ptr;
 	schemaField::dataType type;
 	schemaField::filterMode mode;
 	fieldPresence presence;
+
+	ValueRef reference = ValueRef::NONE;
+	std::optional<Bound> bounds;
 };
 
 // This Provides the Meta Data for each field in the entryData for use in other processes
 inline const std::array<fieldData, 15> animeMeta = { {
-	{"id",            &entryData::id,            schemaField::dataType::U32,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED},
-	{"rank",          &entryData::rank,          schemaField::dataType::U32,     schemaField::filterMode::FM_RMV,          fieldPresence::REQUIRED},
-	{"title",         &entryData::title,         schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED},
-	{"alt_title",     &entryData::alt_title,     schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::FIELD_OPTIONAL},
-	{"format",        &entryData::format,        schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL},
-	{"status",        &entryData::status,        schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL},
-	{"genres",        &entryData::genres,        schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL},
-	{"channels",      &entryData::channels,      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL},
-	{"audios",        &entryData::audios,        schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL},
-	{"subtitles",     &entryData::subtitles,     schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL},
-	{"fan_service",   &entryData::fan_service,   schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL},
-	{"episode_count", &entryData::episode_count, schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL},
-	{"min_runtime",   &entryData::min_runtime,   schemaField::dataType::U16,     schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL},
-	{"characters",    &entryData::characters,    schemaField::dataType::VECU16,  schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL},
-	{"ip_group",      &entryData::ip_group,      schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL}
+	{"id",            &entryData::id,            schemaField::dataType::U32,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED,       ValueRef::NONE,  std::nullopt},
+	{"rank",          &entryData::rank,          schemaField::dataType::U32,     schemaField::filterMode::FM_RMV,          fieldPresence::REQUIRED,       ValueRef::NONE,  std::nullopt},
+	{"title",         &entryData::title,         schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED,       ValueRef::NONE,  std::nullopt},
+	{"alt_title",     &entryData::alt_title,     schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt},
+	{"format",        &entryData::format,        schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::TABLE, std::nullopt},
+	{"status",        &entryData::status,        schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::TABLE, std::nullopt},
+	{"genres",        &entryData::genres,        schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::TABLE, std::nullopt},
+	{"channels",      &entryData::channels,      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::TABLE, std::nullopt},
+	{"audios",        &entryData::audios,        schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::TABLE, std::nullopt},
+	{"subtitles",     &entryData::subtitles,     schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::TABLE, std::nullopt},
+	{"fan_service",   &entryData::fan_service,   schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::RANGE, Bound{0, 10}},
+	{"episode_count", &entryData::episode_count, schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt},
+	{"min_runtime",   &entryData::min_runtime,   schemaField::dataType::U16,     schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt},
+	{"characters",    &entryData::characters,    schemaField::dataType::VECU16,  schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt},
+	{"ip_group",      &entryData::ip_group,      schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt}
 } };
 
-std::unordered_map<std::string, size_t> buildFieldNames();
+std::unordered_map<std::string, size_t> buildFieldNames(); 
 inline const std::unordered_map<std::string, size_t> nameMap = buildFieldNames();
 
 /*
@@ -119,7 +132,7 @@ class entryDB {
 		void section(sectionHeader& header);
 		void table(std::string& table, std::string& title);
 
-		void addEntry(const entryData& entry) { entryData copy = entry; copy.id = database.size(); database.push_back(copy); }
+		void addEntry(const entryData& entry);
 
 		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
 		std::vector<int> getSortedIDS();
@@ -138,6 +151,7 @@ class entryDB {
 		size_t getSize() { return database.size(); }
 		recordField getField(size_t id, size_t fieldIndex);
 		size_t getFieldCount() { return animeMeta.size(); }
+		size_t getTableSize(const std::string& title);
 
 		bool rankInsert(int rank);
 
