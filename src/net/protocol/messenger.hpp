@@ -47,7 +47,15 @@ struct Update {
 	UpdateOp operation;
 	uint8_t fieldIndex;
 	dataType type;
-	std::variant<std::monostate, uint8_t, uint16_t, uint32_t, std::string, std::vector<uint8_t>, std::vector<uint16_t>> value;
+	std::variant<
+		std::monostate,
+		uint8_t,
+		uint16_t,
+		uint32_t,
+		std::string,
+		std::vector<uint8_t>,
+		std::vector<uint16_t>
+	> value;
 };
 
 struct Message {

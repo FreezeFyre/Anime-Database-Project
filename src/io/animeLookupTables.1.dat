@@ -1,6 +1,6 @@
-ADP0|1002|1|7|
+ADP0|1002|1|6|
 
-1|ANIME_TAG_CHANNELS|7|1|0|
+1|channels|7|1|0|
 {"Crunchyroll"}
 {"Netflix"}
 {"Hulu"}
@@ -9,11 +9,11 @@ ADP0|1002|1|7|
 {"HiDive"}
 {"Youtube"}
 
-1|ANIME_TAG_FORMATS|2|1|0|
+1|format|2|1|0|
 {"Series"}
 {"Movie"}
 
-1|ANIME_TAG_GENRES|31|1|0|
+1|genres|31|1|0|
 {"Action"}
 {"Romance"}
 {"Slice of Life"}
@@ -46,14 +46,14 @@ ADP0|1002|1|7|
 {"Josei"}
 {"Isekai"}
 
-1|ANIME_TAG_STATUSES|5|1|0|
+1|status|5|1|0|
 {"Ongoing"}
 {"Completed"}
 {"Limbo"}
 {"Cancelled"}
 {"Un-Released"}
 
-1|ANIME_TAG_AUDIOS|6|1|0|
+1|audios|6|1|0|
 {"Japanese"}
 {"English"}
 {"Korean"}
@@ -61,17 +61,10 @@ ADP0|1002|1|7|
 {"Spanish"}
 {"French"}
 
-1|ANIME_TAG_SUBTITLES|6|1|0|
+1|subtitles|6|1|0|
 {"Japanese"}
 {"English"}
 {"Korean"}
 {"Chinese"}
 {"Spanish"}
 {"French"}
-
-1|ANIME_TAG_MEDIAS|5|1|0|
-{"Manga"}
-{"Light Novel"}
-{"Movie"}
-{"Series"}
-{"Game"}

@@ -45,10 +45,14 @@ int main(int inSize, char* input[]) {
 		}
 	}
 	// End of arguments
+	entryDB db;
+
+	db.loadLookupTables("E:/Projects/Git/Anime-Database-Project/src/io/animeLookupTables.1.dat");
+
 
 	NetService net;
 
-	net.start(8080);
+	net.start(port);
 
 	return 0;
 }

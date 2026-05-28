@@ -50,14 +50,13 @@ void entryDB::saveEntries(std::string file) {
 }
 
 void entryDB::table(std::string& table, std::string& title) {
-	if      (title == "ANIME_TAG_GENRES"   ) { lookup.genres.push_back(table);   }
-	else if (title == "ANIME_TAG_CHANNELS" ) { lookup.channels.push_back(table); }
-	else if (title == "ANIME_TAG_AUDIOS"   ) { lookup.audios.push_back(table);   }
-	else if (title == "ANIME_TAG_SUBTITLES") { lookup.subtitles.push_back(table);}
-	else if (title == "ANIME_TAG_FORMATS"  ) { lookup.formats.push_back(table);  }
-	else if (title == "ANIME_TAG_STATUSES" ) { lookup.statuses.push_back(table); }
-	else if (title == "ANIME_TAG_MEDIAS"   ) { lookup.medias.push_back(table);   }
-	else { throw std::runtime_error("Unknown Table Title: " + title); }
+	auto found = lookupTables.find(title);
+
+	if (found == lookupTables.end()) {
+		throw std::runtime_error("Lookup table was not initialized: " + title);
+	}
+
+	found->second.push_back(table);
 }
 
 void entryDB::record(recordData& record, schemaData& schema) {
@@ -122,31 +121,37 @@ void entryDB::record(recordData& record, schemaData& schema) {
 
 // Reserves the space for all records in th at database
 void entryDB::section(sectionHeader& header) {
+	if (header.type == sectionType::SECTION_DATABASE_RECORDS) {
+		database.reserve(header.recordCount);
+		return;
+	}
 
-	database.reserve(header.recordCount);
+	if (header.type == sectionType::SECTION_TAG_LOOKUP) {
+		try {
+			validateTable(header.title);
+
+			auto [it, inserted] =
+				lookupTables.emplace(header.title, std::vector<std::string>{});
+
+			if (!inserted) {
+				throw std::runtime_error("Duplicate lookup table section: " + header.title);
+			}
+
+			it->second.reserve(header.recordCount);
+		}
+		catch (const std::exception& e) {
+			throw std::runtime_error(
+				"Error occurred while validating table \"" + header.title + "\": " + e.what()
+			);
+		}
+	}
 }
 
 
 // I need to add duplicate schema field(names), probably using unordered_set
 void entryDB::schema(schemaData& schema) {
 	fieldMap.clear();
-	for (size_t i = 0; i < schema.size(); i++) {
-		auto field = nameMap.find(schema[i].name);
-
-		if (field != nameMap.end()) {
-			size_t fieldIndex = field->second;
-			
-			if (animeMeta[fieldIndex].type == schema[i].type){
-				fieldMap.push_back(fieldIndex);
-			}
-			else {
-				throw std::runtime_error("Schema field: \"" + schema[i].name + "\" at index: " + std::to_string(i) + " has the incorrect data type. ");
-			}
-		}
-		else {
-			throw std::runtime_error("Schema field: \"" + schema[i].name + "\" at index: " + std::to_string(i) + " not in animeMeta. ");
-		}
-	}
+	fieldMap = validateSchema(schema);
 }
 
 void entryDB::addEntry(const entryData& entry) {
@@ -167,7 +172,7 @@ void entryDB::addEntry(const entryData& entry) {
 		switch (animeMeta[i].type) {
 			case schemaField::dataType::U8: {
 				switch (animeMeta[i].reference) {
-					case ValueRef::TABLE: {
+					case ValueRef::LOOKUP_TABLE: {
 						int value = result.*std::get<intPTR>(animeMeta[i].ptr);
 						if (value < 0) {
 							throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
@@ -178,7 +183,7 @@ void entryDB::addEntry(const entryData& entry) {
 						}
 						break;
 					}
-					case ValueRef::RANGE: {
+					case ValueRef::BOUNDS: {
 						int value = result.*std::get<intPTR>(animeMeta[i].ptr);
 						if (!animeMeta[i].bounds.has_value()) {
 							throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
@@ -198,7 +203,7 @@ void entryDB::addEntry(const entryData& entry) {
 			}
 			case schemaField::dataType::U16: {
 				switch (animeMeta[i].reference) {
-				case ValueRef::TABLE: {
+				case ValueRef::LOOKUP_TABLE: {
 					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
 					if (value < 0) {
 						throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
@@ -209,7 +214,7 @@ void entryDB::addEntry(const entryData& entry) {
 					}
 					break;
 				}
-				case ValueRef::RANGE: {
+				case ValueRef::BOUNDS: {
 					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
 					if (!animeMeta[i].bounds.has_value()) {
 						throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
@@ -229,7 +234,7 @@ void entryDB::addEntry(const entryData& entry) {
 			}
 			case schemaField::dataType::U32: {
 				switch (animeMeta[i].reference) {
-				case ValueRef::TABLE: {
+				case ValueRef::LOOKUP_TABLE: {
 					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
 					if (value < 0) {
 						throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
@@ -240,7 +245,7 @@ void entryDB::addEntry(const entryData& entry) {
 					}
 					break;
 				}
-				case ValueRef::RANGE: {
+				case ValueRef::BOUNDS: {
 					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
 					if (!animeMeta[i].bounds.has_value()) {
 						throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
@@ -266,7 +271,7 @@ void entryDB::addEntry(const entryData& entry) {
 				std::vector<int> vec = result.*std::get<vecPTR>(animeMeta[i].ptr);
 				for (size_t n = 0; n < vec.size(); n++) {
 					switch (animeMeta[i].reference) {
-						case ValueRef::TABLE: {
+						case ValueRef::LOOKUP_TABLE: {
 							int value = vec[n];
 							if (value < 0) {
 								throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
@@ -277,7 +282,7 @@ void entryDB::addEntry(const entryData& entry) {
 							}
 							break;
 						}
-						case ValueRef::RANGE: {
+						case ValueRef::BOUNDS: {
 							int value = vec[n];
 							if (!animeMeta[i].bounds.has_value()) {
 								throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
@@ -300,7 +305,7 @@ void entryDB::addEntry(const entryData& entry) {
 				std::vector<int> vec = result.*std::get<vecPTR>(animeMeta[i].ptr);
 				for (size_t n = 0; n < vec.size(); n++) {
 					switch (animeMeta[i].reference) {
-					case ValueRef::TABLE: {
+					case ValueRef::LOOKUP_TABLE: {
 						int value = vec[n];
 						if (value < 0) {
 							throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
@@ -311,7 +316,7 @@ void entryDB::addEntry(const entryData& entry) {
 						}
 						break;
 					}
-					case ValueRef::RANGE: {
+					case ValueRef::BOUNDS: {
 						int value = vec[n];
 						if (!animeMeta[i].bounds.has_value()) {
 							throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
@@ -347,17 +352,24 @@ std::vector<size_t> entryDB::getFilteredIDS(const indexFilters& filters) {
 	return result;
 }
 
+void entryDB::constructIdMap(std::unordered_map<EntryId, size_t>& idMap) const {
+	idMap.clear();
+	for (size_t i = 0; i < database.size(); i++) {
+		idMap.emplace(database[i].id, i);
+	}
+}
+
 // Need to update this along with the rest of talbe stuff
 size_t entryDB::getTableSize(const std::string& title) {
 	std::unordered_map<std::string, size_t> tableMap; // Create a map of the table names that gives the member pointer to it.
 
-	if (title == "genres") { return lookup.genres.size(); }
-	else if (title == "channels") { return lookup.channels.size(); }
-	else if (title == "audios") { return lookup.audios.size(); }
-	else if (title == "subtitles") { return lookup.subtitles.size(); }
-	else if (title == "format" || title == "formats") { return lookup.formats.size(); }
-	else if (title == "status" || title == "statuses") { return lookup.statuses.size(); }
-	else if (title == "medias") { return lookup.medias.size(); }
+	if (title == "genres") { return lookupTables["genres"].size(); }
+	else if (title == "channels") { return lookupTables["channels"].size(); }
+	else if (title == "audios") { return lookupTables["audios"].size(); }
+	else if (title == "subtitles") { return lookupTables["subtitles"].size(); }
+	else if (title == "format" || title == "formats") { return lookupTables["formats"].size(); }
+	else if (title == "status" || title == "statuses") { return lookupTables["statuses"].size(); }
+	else if (title == "medias") { return lookupTables["medias"].size(); }
 	else { throw std::runtime_error("Unknown Table Title: " + title); }
 }
 
@@ -388,7 +400,7 @@ fileHeader entryDB::getHeader(fileType type) {
 			result.sectionCount = 1;
 			break;
 		case fileType::HEADER_TABLE:
-			result.sectionCount = lookupCount;
+			result.sectionCount = lookupTables.size();
 			break;
 		default:
 			throw std::runtime_error("Unknown file type for header: " + std::to_string(static_cast<int>(type)));
@@ -524,6 +536,17 @@ std::vector<size_t> entryDB::validateSchema(const schemaData& schema) {
 	}
 
 	return fieldIndices;
+}
+
+void entryDB::validateTable(const std::string& title) {
+	for (size_t i = 0; i < animeMeta.size(); i++) {
+		if (animeMeta[i].tableTitle == title) {
+			if (animeMeta[i].reference == ValueRef::LOOKUP_TABLE) { return; } 
+			std::cerr << "Field \"" << animeMeta[i].name << "\" does not need a reference table but one is provided. \n";
+			return;
+		}
+	}
+	throw std::runtime_error("No field matches the table: " + title);
 }
 
 
@@ -693,6 +716,9 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 			break;
 		}
 		case ACTION_TYPE::ACT_UPDATE: {
+			ByteReader reader{ message.payload };
+			
+
 			break;
 		}
 		case ACTION_TYPE::ACT_CREATE: {
