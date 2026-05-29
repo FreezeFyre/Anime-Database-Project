@@ -47,6 +47,8 @@ int main(int inSize, char* input[]) {
 	// End of arguments
 	entryDB db;
 
+	db.loadEntries("E:/Projects/Git/Anime-Database-Project/src/io/animeDatabase.1.dat");
+
 	db.loadLookupTables("E:/Projects/Git/Anime-Database-Project/src/io/animeLookupTables.1.dat");
 
 

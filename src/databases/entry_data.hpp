@@ -51,6 +51,7 @@ struct entryData {
 using EntryId = uint32_t;
 using LookupId = uint32_t;
 
+using IndexStructure = std::unordered_map<std::string, std::unordered_map<LookupId, std::vector<EntryId>>>;
 
 using intPTR = int entryData::*;
 using strPTR = std::string entryData::*;
@@ -124,54 +125,48 @@ struct EntryUpdate {
 class entryDB {
 	public:
 
-		// File Parsing Functions
+		// File load/save entry points
 		void loadEntries(std::string file);
 		void loadLookupTables(std::string file);
-
 		void saveEntries(std::string file);
 
-		// File Handlers
-		void record(recordData& record, schemaData& schema);
-		void schema(schemaData& schema);
+		// File read handlers
 		void section(sectionHeader& header);
+		void schema(schemaData& schema);
+		void record(recordData& record, schemaData& schema);
 		void table(std::string& table, std::string& title);
 
-		// Initialization and Construction
-		void constructIdMap(std::unordered_map<EntryId, size_t>& idMap) const;
-
-		// OPs
-		void addEntry(const entryData& entry);
-		void updateEntry(std::vector<EntryUpdate> updates);
-
-
-		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
-		std::vector<int> getSortedIDS();
-
-
-		// File Saving Functions
+		// File write sources
 		fileHeader getHeader(fileType type);
 		sectionHeader getSection(fileType type, size_t sectionIndex);
 		schemaData getSchema(fileType type, size_t sectionIndex);
 		recordData getRecord(fileType type, size_t sectionIndex, size_t recordIndex);
 		recordData getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex);
 
+		// Entry operations
+		void addEntry(const entryData& entry);
+		void updateEntry(std::vector<EntryUpdate> updates);
+		std::vector<entryData> getEntry(std::vector<EntryId> ids);
 
-		entryData getEntry(size_t id) { return database[id]; }
+		// Query operations
+		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
+		std::vector<int> getSortedIDS();
 
-		// Utility and Filtering Functions
-		size_t getSize() { return database.size(); }
-		recordField getField(size_t id, size_t fieldIndex);
-		size_t getFieldCount() { return animeMeta.size(); }
-		size_t getTableSize(const std::string& title);
-
+		// Index construction
+		void constructIdMap(std::unordered_map<EntryId, size_t>& idMap) const;
+		void constructTableIndexes(IndexStructure& tableIndexes) const;
 		bool rankInsert(int rank);
 
-
-		// Validation Checks
+		// Validation
 		std::vector<size_t> validateSchema(const schemaData& schema);
 		void validateUpdate(const EntryUpdate& update);
 		void validateTable(const std::string& title);
 
+		// Utility accessors
+		size_t getSize() { return database.size(); }
+		recordField getField(size_t id, size_t fieldIndex);
+		size_t getFieldCount() { return animeMeta.size(); }
+		size_t getTableSize(const std::string& title);
 
 	private:
 		std::unordered_map<EntryId, size_t> idMap; //Maps ids to their index in the vector allowing for database transforms
@@ -184,7 +179,7 @@ class entryDB {
 		
 
 		// Acceleration Structures
-		std::unordered_map<LookupId, std::vector<EntryId>> TableIndexes;
+		IndexStructure TableIndexes;
 
 };
 

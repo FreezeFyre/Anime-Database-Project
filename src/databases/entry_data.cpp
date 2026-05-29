@@ -22,10 +22,13 @@ void entryDB::loadEntries(std::string file) {
 
 	try {
 		parser.readFile(file, *this, fileType::HEADER_DATABASE);
+		constructIdMap(idMap);
+
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error Loading Anime Database: " << e.what() << "\n";
 	}
+
 }
 
 void entryDB::loadLookupTables(std::string file) {
@@ -33,10 +36,12 @@ void entryDB::loadLookupTables(std::string file) {
 
 	try {
 		parser.readFile(file, *this, fileType::HEADER_TABLE);
+		constructTableIndexes(TableIndexes);
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error Loading Anime Lookup Tables: " << e.what() << "\n";
 	}
+
 }
 
 void entryDB::saveEntries(std::string file) {
@@ -115,11 +120,12 @@ void entryDB::record(recordData& record, schemaData& schema) {
 			}
 		}
 
+	size_t index = database.size();
 	database.emplace_back(std::move(anime));
+	idMap.emplace(static_cast<EntryId>(database[index].id), index);
 }
 
-
-// Reserves the space for all records in th at database
+// Reserves the space for all records in the database
 void entryDB::section(sectionHeader& header) {
 	if (header.type == sectionType::SECTION_DATABASE_RECORDS) {
 		database.reserve(header.recordCount);
@@ -146,7 +152,6 @@ void entryDB::section(sectionHeader& header) {
 		}
 	}
 }
-
 
 // I need to add duplicate schema field(names), probably using unordered_set
 void entryDB::schema(schemaData& schema) {
@@ -339,7 +344,9 @@ void entryDB::addEntry(const entryData& entry) {
 				throw std::runtime_error("Unknown data type for field: " + animeMeta[i].name);
 		}
 	}
+	size_t index = database.size();
 	database.push_back(result);
+	idMap.emplace(static_cast<EntryId>(result.id), index);
 }
 
 std::vector<size_t> entryDB::getFilteredIDS(const indexFilters& filters) {
@@ -359,18 +366,61 @@ void entryDB::constructIdMap(std::unordered_map<EntryId, size_t>& idMap) const {
 	}
 }
 
+void entryDB::constructTableIndexes(IndexStructure& tableIndexes) const {
+	tableIndexes.clear();
+
+	for (const fieldData& meta : animeMeta) {
+		if (meta.reference != ValueRef::LOOKUP_TABLE) {
+			continue;
+		}
+
+		const std::string& tableTitle = meta.tableTitle;
+
+		auto table = lookupTables.find(tableTitle);
+		if (table == lookupTables.end()) {
+			throw std::runtime_error("Missing lookup table: " + tableTitle);
+		}
+
+		auto& lookupIndex = tableIndexes[tableTitle];
+		lookupIndex.reserve(table->second.size());
+
+		for (LookupId lookupId = 0; lookupId < table->second.size(); lookupId++) {
+			lookupIndex.emplace(lookupId, std::vector<EntryId>{});
+		}
+
+		for (const entryData& entry : database) {
+			EntryId entryId = static_cast<EntryId>(entry.id);
+
+			if (auto ptr = std::get_if<intPTR>(&meta.ptr)) {
+				int value = entry.*(*ptr);
+
+				if (value < 0 || static_cast<size_t>(value) >= table->second.size()) {
+					throw std::runtime_error("Invalid lookup value in field: " + meta.name);
+				}
+
+				lookupIndex[static_cast<LookupId>(value)].push_back(entryId);
+			}
+			else if (auto ptr = std::get_if<vecPTR>(&meta.ptr)) {
+				const std::vector<int>& values = entry.*(*ptr);
+
+				for (int value : values) {
+					if (value < 0 || static_cast<size_t>(value) >= table->second.size()) {
+						throw std::runtime_error("Invalid lookup value in field: " + meta.name);
+					}
+
+					lookupIndex[static_cast<LookupId>(value)].push_back(entryId);
+				}
+			}
+			else {
+				throw std::runtime_error("Lookup table field is not int or vector<int>: " + meta.name);
+			}
+		}
+	}
+}
+
 // Need to update this along with the rest of talbe stuff
 size_t entryDB::getTableSize(const std::string& title) {
-	std::unordered_map<std::string, size_t> tableMap; // Create a map of the table names that gives the member pointer to it.
-
-	if (title == "genres") { return lookupTables["genres"].size(); }
-	else if (title == "channels") { return lookupTables["channels"].size(); }
-	else if (title == "audios") { return lookupTables["audios"].size(); }
-	else if (title == "subtitles") { return lookupTables["subtitles"].size(); }
-	else if (title == "format" || title == "formats") { return lookupTables["formats"].size(); }
-	else if (title == "status" || title == "statuses") { return lookupTables["statuses"].size(); }
-	else if (title == "medias") { return lookupTables["medias"].size(); }
-	else { throw std::runtime_error("Unknown Table Title: " + title); }
+	return lookupTables.at(title).size();
 }
 
 // Non Functional
@@ -479,6 +529,21 @@ recordField entryDB::getField(size_t id, size_t fieldIndex)
 	return result;
 }
 
+std::vector<entryData> entryDB::getEntry(std::vector<EntryId> ids) {
+	if (ids.size() == 1 and ids[0] == 0) { return database; }
+
+	std::vector<entryData> result;
+	for (EntryId id : ids) {
+		if (auto it = idMap.find(id); it != idMap.end()) {
+			result.push_back(database[it->second]);
+		}
+		else {
+			std::cerr << "Entry ID " << id << " not found in database.\n";
+			throw std::runtime_error("Entry ID not found: " + std::to_string(id));
+		}
+	}
+	return result;
+}
 
 
 std::vector<size_t> entryDB::validateSchema(const schemaData& schema) {
@@ -566,8 +631,19 @@ std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<siz
 	result.insert(result.end(), buffer.begin(), buffer.end());
 	buffer.clear();
 
-	for (size_t i = 0; i < ids.size(); i++)	{
-		buffer = Entry(db.getEntry(ids[i]));
+	std::vector<EntryId> entryIds;
+	entryIds.reserve(ids.size());
+	for (size_t id : ids) {
+		if (id > std::numeric_limits<EntryId>::max()) {
+			throw std::runtime_error("Requested entry ID exceeds EntryId range.");
+		}
+		entryIds.push_back(static_cast<EntryId>(id));
+	}
+
+	std::vector<entryData> entries = db.getEntry(entryIds);
+
+	for (const entryData& entry : entries) {
+		buffer = Entry(entry);
 		result.insert(result.end(), buffer.begin(), buffer.end());
 		buffer.clear();
 	}
