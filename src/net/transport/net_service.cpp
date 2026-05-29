@@ -2,6 +2,9 @@
 
 #include <cstring>
 
+NetService::NetService(Context& context)
+	: context(context) {}
+
 
 void NetService::start(uint16_t port) {
 	running = true;

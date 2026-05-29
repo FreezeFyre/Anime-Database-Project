@@ -59,13 +59,15 @@ struct WebSOCKFrame {
 
 class NetService {
 	public:
+		explicit NetService(Context& context);
+
 		void start(uint16_t port);
 
 		void stop();
 
 	private:
 		Router router;
-		Context context;
+		Context& context;
 		MessageCodec codec;
 		bool running = false;
 

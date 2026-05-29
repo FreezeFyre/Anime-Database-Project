@@ -45,15 +45,11 @@ int main(int inSize, char* input[]) {
 		}
 	}
 	// End of arguments
-	entryDB db;
+	Context context;
+	context.entries.loadEntries("E:/Projects/Git/Anime-Database-Project/src/io/animeDatabase.1.dat");
+	context.entries.loadLookupTables("E:/Projects/Git/Anime-Database-Project/src/io/animeLookupTables.1.dat");
 
-	db.loadEntries("E:/Projects/Git/Anime-Database-Project/src/io/animeDatabase.1.dat");
-
-	db.loadLookupTables("E:/Projects/Git/Anime-Database-Project/src/io/animeLookupTables.1.dat");
-
-
-	NetService net;
-
+	NetService net(context);
 	net.start(port);
 
 	return 0;

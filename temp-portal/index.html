@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Anime Database Portal</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel controls-panel">
+        <div class="title-row">
+          <div>
+            <h1>Anime Database Portal</h1>
+            <p>WebSocket client for requesting entries from the local server.</p>
+          </div>
+          <span id="status" class="status idle">Idle</span>
+        </div>
+
+        <form id="request-form" class="request-grid">
+          <label>
+            Server URL
+            <input id="server-url" name="serverUrl" value="ws://127.0.0.1:8080" autocomplete="off">
+          </label>
+
+          <label>
+            Entry IDs
+            <input id="entry-ids" name="entryIds" value="0" autocomplete="off">
+            <small>Use <strong>0</strong> for all entries, or comma-separated IDs like <strong>1, 2, 3</strong>.</small>
+          </label>
+
+          <button id="send-button" type="submit">Send GET</button>
+        </form>
+      </section>
+
+      <section class="summary-strip" aria-live="polite">
+        <div>
+          <span class="summary-label">Message ID</span>
+          <strong id="message-id">-</strong>
+        </div>
+        <div>
+          <span class="summary-label">Records</span>
+          <strong id="record-count">0</strong>
+        </div>
+        <div>
+          <span class="summary-label">Payload</span>
+          <strong id="payload-size">0 bytes</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Received Entries</h2>
+          <button id="clear-button" type="button">Clear</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Rank</th>
+                <th>Title</th>
+                <th>Format</th>
+                <th>Status</th>
+                <th>Episodes</th>
+                <th>Runtime</th>
+              </tr>
+            </thead>
+            <tbody id="entries-body">
+              <tr>
+                <td colspan="7" class="empty">No response received yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel raw-panel">
+        <div class="section-heading">
+          <h2>Decoded Response</h2>
+        </div>
+        <pre id="raw-output">Waiting for a request...</pre>
+      </section>
+    </main>
+
+    <script src="./portal.js"></script>
+  </body>
+</html>
