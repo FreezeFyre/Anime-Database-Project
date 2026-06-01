@@ -338,6 +338,35 @@ std::vector<entryData> entryDB::getEntry(std::vector<EntryId> ids) {
 	}
 	return result;
 }
+void entryDB::deleteEntry(const EntryId id) {
+	//check user perm level
+	bool admin = false;
+	if (!admin) {
+		throw std::runtime_error("User does not meet account permission level to delete entries. \n");
+	}
+	if (idMap.find(id) != idMap.end()) {
+		database.erase(database.begin() + idMap.find(id)->second); // may want to use swap and popback or erase_if instead
+		std::clog << "Erased entry " << id << " from the database. \n";
+	}
+}
+std::vector<EntryId> entryDB::searchEntryTitles(const std::string& term) {
+	std::vector<EntryId> result;
+	std::string nTerm = normalizeString(term);
+
+	for (entryData& entry : database) {
+		// Should eventually make this search all string fields in animeMeta that have a qualifer like "SEARCHABLE"
+		if (normalizeString(entry.title).find(nTerm) != std::string::npos) {
+			result.push_back(entry.id);
+			continue;
+		}
+		if (normalizeString(entry.alt_title).find(nTerm) != std::string::npos) {
+			result.push_back(entry.id);
+			continue;
+		}
+	}
+
+	return result;
+}
 
 
 
@@ -489,6 +518,22 @@ void entryDB::clearField(entryData& entry, size_t fieldIndex) {
 	default:
 		throw std::runtime_error("Unsupported data type for clear field operation: " + animeMeta[fieldIndex].name);
 	}
+}
+std::string entryDB::normalizeString(const std::string& string) {
+	std::string buffer = string;
+	std::transform(buffer.begin(), buffer.end(), buffer.begin(), [](unsigned char c) {
+		return std::tolower(c);
+	});
+	return buffer;
+}
+std::vector<size_t> entryDB::idToIndex(std::vector<EntryId> ids) {
+	std::vector<size_t> result;
+	for (EntryId id : ids) {
+		if (idMap.find(id) != idMap.end()) {
+			result.push_back(idMap.find(id)->second);
+		}
+	}
+	return result;
 }
 
 
@@ -1064,12 +1109,28 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}) , false};
 			break;
 		}
-		case ACTION_TYPE::ACT_DELETE:
+		case ACTION_TYPE::ACT_DELETE: {
 			// Handle delete action for entry domain
+			EntryId deleteId = reader.U32();
+
+			try {
+				context.entries.deleteEntry(deleteId);
+			}
+			catch (const std::exception& e) {
+				std::cerr << "Error deleting entry: " << e.what() << "\n";
+				std::string errorMsg = "Error deleting entry: " + std::string(e.what());
+				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_DELETE, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
+			}
+
+			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}) , false };
 			break;
-		case ACTION_TYPE::ACT_SEARCH:
-			// Handle search action for entry domain
+		}
+		case ACTION_TYPE::ACT_SEARCH: {
+
+
+
 			break;
+		}
 		default:
 			std::cerr << "Unknown action type: " << static_cast<int>(message.action) << "\n";
 			break;

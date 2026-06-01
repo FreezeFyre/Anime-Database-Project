@@ -147,12 +147,16 @@ class entryDB {
 		void addEntry(const entryData& entry);
 		void updateEntry(const std::vector<EntryUpdate>& updates);
 		std::vector<entryData> getEntry(std::vector<EntryId> ids);
+		void deleteEntry(const EntryId id);
+		std::vector<EntryId> searchEntryTitles(const std::string& term);
 
 		// Operation Utilities
 		void setField(entryData& entry, size_t fieldIndex, const recordField& value);
 		void addFieldValue(entryData& entry, size_t fieldIndex, const recordField& value);
 		void removeFieldValue(entryData& entry, size_t fieldIndex, const recordField& value);
 		void clearField(entryData& entry, size_t fieldIndex);
+		std::string normalizeString(const std::string& string);
+		std::vector<size_t> idToIndex(std::vector<EntryId> ids);
 
 		// Query operations
 		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
