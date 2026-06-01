@@ -7,16 +7,10 @@
 #include "entry_data.hpp"
 #include "../net/routing/router.hpp"
 
-std::unordered_map<std::string, size_t> buildFieldNames() {
-	std::unordered_map<std::string, size_t> result;
 
-	for (size_t i = 0; i < animeMeta.size(); i++) {
-		result.emplace(animeMeta[i].name, i);
-	}
-
-	return result;
-}
-
+//====================================
+//			File Load/Save
+//====================================
 void entryDB::loadEntries(std::string file) {
 	fileProcessor parser;
 
@@ -30,7 +24,6 @@ void entryDB::loadEntries(std::string file) {
 	}
 
 }
-
 void entryDB::loadLookupTables(std::string file) {
 	fileProcessor parser;
 
@@ -43,7 +36,6 @@ void entryDB::loadLookupTables(std::string file) {
 	}
 
 }
-
 void entryDB::saveEntries(std::string file) {
 	fileProcessor saver;
 	try {
@@ -54,16 +46,41 @@ void entryDB::saveEntries(std::string file) {
 	}
 }
 
-void entryDB::table(std::string& table, std::string& title) {
-	auto found = lookupTables.find(title);
 
-	if (found == lookupTables.end()) {
-		throw std::runtime_error("Lookup table was not initialized: " + title);
+
+//====================================
+//			Read Handlers
+//====================================
+void entryDB::section(sectionHeader& header) {
+	if (header.type == sectionType::SECTION_DATABASE_RECORDS) {
+		database.reserve(header.recordCount);
+		return;
 	}
 
-	found->second.push_back(table);
-}
+	if (header.type == sectionType::SECTION_TAG_LOOKUP) {
+		try {
+			validateTable(header.title);
 
+			auto [it, inserted] =
+				lookupTables.emplace(header.title, std::vector<std::string>{});
+
+			if (!inserted) {
+				throw std::runtime_error("Duplicate lookup table section: " + header.title);
+			}
+
+			it->second.reserve(header.recordCount);
+		}
+		catch (const std::exception& e) {
+			throw std::runtime_error(
+				"Error occurred while validating table \"" + header.title + "\": " + e.what()
+			);
+		}
+	}
+}
+void entryDB::schema(schemaData& schema) {
+	fieldMap.clear();
+	fieldMap = validateSchema(schema);
+}
 void entryDB::record(recordData& record, schemaData& schema) {
 
 	// Check For ID, will probably change to check against a map of existing ids to ensure there arent duplicates
@@ -124,45 +141,98 @@ void entryDB::record(recordData& record, schemaData& schema) {
 	database.emplace_back(std::move(anime));
 	idMap.emplace(static_cast<EntryId>(database[index].id), index);
 }
+void entryDB::table(std::string& table, std::string& title) {
+	auto found = lookupTables.find(title);
 
-// Reserves the space for all records in the database
-void entryDB::section(sectionHeader& header) {
-	if (header.type == sectionType::SECTION_DATABASE_RECORDS) {
-		database.reserve(header.recordCount);
-		return;
+	if (found == lookupTables.end()) {
+		throw std::runtime_error("Lookup table was not initialized: " + title);
 	}
 
-	if (header.type == sectionType::SECTION_TAG_LOOKUP) {
-		try {
-			validateTable(header.title);
+	found->second.push_back(table);
+}
 
-			auto [it, inserted] =
-				lookupTables.emplace(header.title, std::vector<std::string>{});
 
-			if (!inserted) {
-				throw std::runtime_error("Duplicate lookup table section: " + header.title);
-			}
 
-			it->second.reserve(header.recordCount);
-		}
-		catch (const std::exception& e) {
-			throw std::runtime_error(
-				"Error occurred while validating table \"" + header.title + "\": " + e.what()
-			);
-		}
+//====================================
+//			Write Sources
+//====================================
+fileHeader entryDB::getHeader(fileType type) {
+	fileHeader result;
+	result.type = type;
+
+	switch (type) {
+		case fileType::HEADER_DATABASE:
+			result.sectionCount = 1;
+			break;
+		case fileType::HEADER_TABLE:
+			result.sectionCount = lookupTables.size();
+			break;
+		default:
+			throw std::runtime_error("Unknown file type for header: " + std::to_string(static_cast<int>(type)));
 	}
+	return result;
+}
+sectionHeader entryDB::getSection(fileType type, size_t sectionIndex) {
+	sectionHeader result;
+
+	result.type = sectionType::SECTION_DATABASE_RECORDS; // Placeholder
+	result.title = "ANIME_DATA";
+	result.recordCount = database.size();
+	result.fieldCount = animeMeta.size();
+	result.hasSchema = true;
+
+	return result;
+}
+schemaData entryDB::getSchema(fileType type, size_t sectionIndex) {
+	schemaData result;
+	schemaField buffer;
+
+	for (size_t i = 0; i < animeMeta.size(); i++)
+	{
+		buffer.name = animeMeta[i].name;
+		buffer.type = animeMeta[i].type;
+		buffer.mode = animeMeta[i].mode;
+
+		result.push_back(buffer);
+	}
+
+	return result;
+}
+recordData entryDB::getRecord(fileType type, size_t sectionIndex, size_t recordIndex) {
+	recordData result;
+
+	recordField buffer;
+	for (size_t i = 0; i < animeMeta.size(); i++) {
+		buffer = getField(recordIndex, i);
+		result.push_back(buffer);
+	}
+
+	return result;
+}
+recordData entryDB::getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex) {
+	recordData result;
+
+
+
+	return result;
 }
 
-// I need to add duplicate schema field(names), probably using unordered_set
-void entryDB::schema(schemaData& schema) {
-	fieldMap.clear();
-	fieldMap = validateSchema(schema);
-}
 
+
+//====================================
+//			Operations
+//====================================
 void entryDB::addEntry(const entryData& entry) {
 	entryData result = entry;
-	result.id = database.size();
-	
+
+	try {
+		result.id = addId();
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error generating ID for new entry: " << e.what() << "\n";
+		throw; // Rethrow to allow caller to handle as well
+	}
+
 	// Check if user has rank permissions, if yes then rank adjust, else rank = 0
 	if (result.rank > 0) {
 		rankInsert(result.rank);
@@ -171,184 +241,261 @@ void entryDB::addEntry(const entryData& entry) {
 		result.rank = 0; // Default rank, can be updated later
 	}
 
-	// Can Probably make this its own validateEntry function
-	// Iterate over every field except for id and rank
 	for (size_t i = 2; i < animeMeta.size(); i++) {
-		switch (animeMeta[i].type) {
-			case schemaField::dataType::U8: {
-				switch (animeMeta[i].reference) {
-					case ValueRef::LOOKUP_TABLE: {
-						int value = result.*std::get<intPTR>(animeMeta[i].ptr);
-						if (value < 0) {
-							throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
-						}
-						size_t tableSize = getTableSize(animeMeta[i].name);
-						if (value >= tableSize) {
-							throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
-						}
-						break;
-					}
-					case ValueRef::BOUNDS: {
-						int value = result.*std::get<intPTR>(animeMeta[i].ptr);
-						if (!animeMeta[i].bounds.has_value()) {
-							throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
-						}
-						if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
-							throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
-						}
-						break;
-					}
-					case ValueRef::NONE: {
-						break;
-					}
-					default:
-						throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
-				}
-				break;
-			}
-			case schemaField::dataType::U16: {
-				switch (animeMeta[i].reference) {
-				case ValueRef::LOOKUP_TABLE: {
-					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
-					if (value < 0) {
-						throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
-					}
-					size_t tableSize = getTableSize(animeMeta[i].name);
-					if (value >= tableSize) {
-						throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
-					}
-					break;
-				}
-				case ValueRef::BOUNDS: {
-					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
-					if (!animeMeta[i].bounds.has_value()) {
-						throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
-					}
-					if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
-						throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
-					}
-					break;
-				}
-				case ValueRef::NONE: {
-					break;
-				}
-				default:
-					throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
-				}
-				break;
-			}
-			case schemaField::dataType::U32: {
-				switch (animeMeta[i].reference) {
-				case ValueRef::LOOKUP_TABLE: {
-					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
-					if (value < 0) {
-						throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
-					}
-					size_t tableSize = getTableSize(animeMeta[i].name);
-					if (value >= tableSize) {
-						throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
-					}
-					break;
-				}
-				case ValueRef::BOUNDS: {
-					int value = result.*std::get<intPTR>(animeMeta[i].ptr);
-					if (!animeMeta[i].bounds.has_value()) {
-						throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
-					}
-					if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
-						throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
-					}
-					break;
-				}
-				case ValueRef::NONE: {
-					break;
-				}
-				default:
-					throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
-				}
-				break;
-			}
-			case schemaField::dataType::STR: {
-				// String Validation
-				break;
-			}
-			case schemaField::dataType::VECU8: {
-				std::vector<int> vec = result.*std::get<vecPTR>(animeMeta[i].ptr);
-				for (size_t n = 0; n < vec.size(); n++) {
-					switch (animeMeta[i].reference) {
-						case ValueRef::LOOKUP_TABLE: {
-							int value = vec[n];
-							if (value < 0) {
-								throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
-							}
-							size_t tableSize = getTableSize(animeMeta[i].name);
-							if (value >= tableSize) {
-								throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
-							}
-							break;
-						}
-						case ValueRef::BOUNDS: {
-							int value = vec[n];
-							if (!animeMeta[i].bounds.has_value()) {
-								throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
-							}
-							if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
-								throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
-							}
-							break;
-						}
-						case ValueRef::NONE: {
-							break;
-						}
-						default:
-							throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
-					}
-				}
-				break;
-			}
-			case schemaField::dataType::VECU16: {
-				std::vector<int> vec = result.*std::get<vecPTR>(animeMeta[i].ptr);
-				for (size_t n = 0; n < vec.size(); n++) {
-					switch (animeMeta[i].reference) {
-					case ValueRef::LOOKUP_TABLE: {
-						int value = vec[n];
-						if (value < 0) {
-							throw std::runtime_error("Negative value for table reference field: " + animeMeta[i].name);
-						}
-						size_t tableSize = getTableSize(animeMeta[i].name);
-						if (value >= tableSize) {
-							throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of bounds of its reference table.");
-						}
-						break;
-					}
-					case ValueRef::BOUNDS: {
-						int value = vec[n];
-						if (!animeMeta[i].bounds.has_value()) {
-							throw std::runtime_error("Missing bounds for range field: " + animeMeta[i].name);
-						}
-						if (value < animeMeta[i].bounds->lower || value > animeMeta[i].bounds->upper) {
-							throw std::runtime_error("Value for field \"" + animeMeta[i].name + "\" out of specified range.");
-						}
-						break;
-					}
-					case ValueRef::NONE: {
-						break;
-					}
-					default:
-						throw std::runtime_error("Unknown value reference type for field: " + animeMeta[i].name);
-					}
-				}
-				break;
-			}
-			default:
-				throw std::runtime_error("Unknown data type for field: " + animeMeta[i].name);
-		}
+		validateField(getFromEntry(result, i), i);
 	}
 	size_t index = database.size();
 	database.push_back(result);
 	idMap.emplace(static_cast<EntryId>(result.id), index);
 }
+void entryDB::updateEntry(const std::vector<EntryUpdate>& updates) {
+	for (const EntryUpdate& update : updates) {
+		if (update.fieldIndex >= animeMeta.size())
+		{
+			throw std::runtime_error("Update field out of bounds");
+		}
 
+		auto found = idMap.find(update.id);
+
+		if (found == idMap.end()) {
+			std::cerr << "Entry ID " << update.id << " not found for update.\n";
+			throw std::runtime_error("Entry ID not found for update: " + std::to_string(update.id));
+		}
+
+		size_t index = found->second;
+		if (update.fieldIndex == 0) {
+			throw std::runtime_error("Entry ID updates are not allowed.");
+		}
+
+		if (update.fieldIndex == 1) {
+			throw std::runtime_error("Rank updates are not supported yet.");
+		}
+		
+		switch (update.op) {
+			case UpdateOp::SET_FIELD: {
+				try {
+					setField(database[index], update.fieldIndex, update.value);
+				}
+				catch (const std::exception& e) {
+					std::cerr << "Error Setting Entry" << update.id << "Field: " << update.fieldIndex << ": " << e.what() << ".\n";
+					throw; // Rethrow to allow caller to handle as well
+				}
+				break;
+			}
+			case UpdateOp::CLEAR_FIELD: {
+				try {
+					clearField(database[index], update.fieldIndex);
+				}
+				catch (const std::exception& e) {
+					std::cerr << "Error Clearing Entry" << update.id << "Field: " << update.fieldIndex << ": " << e.what() << ".\n";
+					throw; // Rethrow to allow caller to handle as well
+				}
+				break;
+			}
+			case UpdateOp::ADD_VALUE: {
+				if (animeMeta[update.fieldIndex].type != schemaField::dataType::VECU8 and animeMeta[update.fieldIndex].type != schemaField::dataType::VECU16) {
+					throw std::runtime_error("Add value only works with vectors");
+				}
+				try {
+					addFieldValue(database[index], update.fieldIndex, update.value);
+				}
+				catch (const std::exception& e) {
+					std::cerr << "Error adding value to Entry" << update.id << "Field: " << e.what() << ".\n";
+					throw; // Rethrow to allow caller to handle as well
+				}
+				break;
+			}
+			case UpdateOp::REMOVE_VALUE: {
+				if (animeMeta[update.fieldIndex].type != schemaField::dataType::VECU8 and animeMeta[update.fieldIndex].type != schemaField::dataType::VECU16) {
+					throw std::runtime_error("Remove value only works with vectors");
+				}
+				try {
+					removeFieldValue(database[index], update.fieldIndex, update.value);
+				}
+				catch (const std::exception& e) {
+					std::cerr << "Error Removing value from entry" << update.id << "Field: " << update.fieldIndex << ": " << e.what() << ".\n";
+					throw; // Rethrow to allow caller to handle as well
+				}
+				break;
+			}
+			default:
+				throw std::runtime_error("Unknown update operation.");
+		}
+	}
+}
+std::vector<entryData> entryDB::getEntry(std::vector<EntryId> ids) {
+	if (ids.size() == 1 and ids[0] == 0) { return database; }
+
+	std::vector<entryData> result;
+	for (EntryId id : ids) {
+		if (auto it = idMap.find(id); it != idMap.end()) {
+			result.push_back(database[it->second]);
+		}
+		else {
+			std::cerr << "Entry ID " << id << " not found in database.\n";
+			throw std::runtime_error("Entry ID not found: " + std::to_string(id));
+		}
+	}
+	return result;
+}
+
+
+
+//====================================
+//			Operation Utilities
+//====================================
+void entryDB::setField(entryData& entry, size_t fieldIndex, const recordField& value) {
+	// Type Dynamic function
+	try {
+		validateField(value, fieldIndex);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
+		throw; // Rethrow to allow caller to handle as well
+	}
+
+	switch (animeMeta[fieldIndex].type) {
+		case schemaField::dataType::U8: {
+			entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = std::get<int>(value);
+			break;
+		}
+		case schemaField::dataType::U16: {
+			entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = std::get<int>(value);
+			break;
+		}
+		case schemaField::dataType::U32: {
+			entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = std::get<int>(value);
+			break;
+		}
+		case schemaField::dataType::STR: {
+			entry.*std::get<strPTR>(animeMeta[fieldIndex].ptr) = std::get<std::string>(value);
+			break;
+		}
+		case schemaField::dataType::VECU8: {
+			entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr) = std::get<std::vector<int>>(value);
+			break;
+		}
+		case schemaField::dataType::VECU16: {
+			entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr) = std::get<std::vector<int>>(value);
+			break;
+		}
+		default:
+			throw std::runtime_error("Unsupported data type for set field operation: " + animeMeta[fieldIndex].name);
+	}
+
+}
+// Can probably re-write to convert scalar inputs to vectors
+void entryDB::addFieldValue(entryData& entry, size_t fieldIndex, const recordField& value) {
+	// This function only concerns vectors
+	if (!std::holds_alternative<vecPTR>(animeMeta[fieldIndex].ptr)) {
+		throw std::runtime_error("Add value only works with vector fields: " + animeMeta[fieldIndex].name);
+	}
+
+	if (!std::holds_alternative<std::vector<int>>(value)) {
+		throw std::runtime_error("Add field value expects a Vector of integers");
+	}
+
+	try {
+		validateField(value, fieldIndex);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
+		throw; // Rethrow to allow caller to handle as well
+	}
+	
+	auto& field = entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr);
+	for (int addVal : std::get<std::vector<int>>(value)) {
+		field.push_back(addVal);
+		std::clog << "Added value " << addVal << " to field \"" << animeMeta[fieldIndex].name
+			<< "\" for entry ID " << entry.id << ".\n";
+	}
+
+	try {
+		validateField(field, fieldIndex);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
+		throw; // Rethrow to allow caller to handle as well
+	}
+}
+void entryDB::removeFieldValue(entryData& entry, size_t fieldIndex, const recordField& value) {
+	// This function only concerns vectors
+	// Need to first check if the value is a valid one, then we check if it exists in the field. 
+	if (!std::holds_alternative<vecPTR>(animeMeta[fieldIndex].ptr)) {
+		throw std::runtime_error("Remove value only works with vector fields: " + animeMeta[fieldIndex].name);
+	}
+
+	if (!std::holds_alternative<std::vector<int>>(value)) {
+		throw std::runtime_error("Remove field value expects a Vector of integers");
+	}
+
+	try {
+		validateField(value, fieldIndex);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
+		throw; // Rethrow to allow caller to handle as well
+	}
+
+	auto& field = entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr);
+	for (int removeVal : std::get<std::vector<int>>(value)) {
+		// Process each value in the vector
+		std::erase(field, removeVal);
+		std::clog << "Removed value " << removeVal << " from field \"" << animeMeta[fieldIndex].name
+			<< "\" for entry ID " << entry.id << ".\n";
+	}
+
+	try {
+		validateField(field, fieldIndex);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
+		throw; // Rethrow to allow caller to handle as well
+	}
+}
+void entryDB::clearField(entryData& entry, size_t fieldIndex) {
+	// Type Dynamic function
+	if (animeMeta[fieldIndex].presence == fieldPresence::REQUIRED) {
+		throw std::runtime_error("Cannot clear required field: " + animeMeta[fieldIndex].name);
+	}
+
+	switch (animeMeta[fieldIndex].type) {
+	case schemaField::dataType::U8: {
+		entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = 0;
+		break;
+	}
+	case schemaField::dataType::U16: {
+		entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = 0;
+		break;
+	}
+	case schemaField::dataType::U32: {
+		entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = 0;
+		break;
+	}
+	case schemaField::dataType::STR: {
+		entry.*std::get<strPTR>(animeMeta[fieldIndex].ptr) = "";
+		break;
+	}
+	case schemaField::dataType::VECU8:
+	case schemaField::dataType::VECU16: {
+		entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr) = {};
+		break;
+	}
+	default:
+		throw std::runtime_error("Unsupported data type for clear field operation: " + animeMeta[fieldIndex].name);
+	}
+}
+
+
+
+//====================================
+//			Query Ops
+//====================================
 std::vector<size_t> entryDB::getFilteredIDS(const indexFilters& filters) {
 	std::vector<size_t> result;
 
@@ -358,14 +505,25 @@ std::vector<size_t> entryDB::getFilteredIDS(const indexFilters& filters) {
 
 	return result;
 }
+// Non Functional
+std::vector<int> entryDB::getSortedIDS() {
 
+
+
+	return {};
+}
+
+
+
+//====================================
+//			Index Construction
+//====================================
 void entryDB::constructIdMap(std::unordered_map<EntryId, size_t>& idMap) const {
 	idMap.clear();
 	for (size_t i = 0; i < database.size(); i++) {
 		idMap.emplace(database[i].id, i);
 	}
 }
-
 void entryDB::constructTableIndexes(IndexStructure& tableIndexes) const {
 	tableIndexes.clear();
 
@@ -417,20 +575,15 @@ void entryDB::constructTableIndexes(IndexStructure& tableIndexes) const {
 		}
 	}
 }
-
-// Need to update this along with the rest of talbe stuff
-size_t entryDB::getTableSize(const std::string& title) {
-	return lookupTables.at(title).size();
+EntryId entryDB::addId() {
+	if (idMap.find(nextId) != idMap.end())
+	{
+		throw std::runtime_error("Next Id is invalid!");
+	}
+	EntryId result = nextId;
+	nextId++;
+	return result;
 }
-
-// Non Functional
-std::vector<int> entryDB::getSortedIDS() {
-
-
-
-	return {};
-}
-
 bool entryDB::rankInsert(int rank) {
 	if (rank == 0) {
 		return false;
@@ -441,111 +594,11 @@ bool entryDB::rankInsert(int rank) {
 	return true;
 }
 
-fileHeader entryDB::getHeader(fileType type) {
-	fileHeader result;
-	result.type = type;
-
-	switch (type) {
-		case fileType::HEADER_DATABASE:
-			result.sectionCount = 1;
-			break;
-		case fileType::HEADER_TABLE:
-			result.sectionCount = lookupTables.size();
-			break;
-		default:
-			throw std::runtime_error("Unknown file type for header: " + std::to_string(static_cast<int>(type)));
-	}
-	return result;
-}
 
 
-// Currently Only Valid for Database Sections not Lookup Tables
-sectionHeader entryDB::getSection(fileType type, size_t sectionIndex) {
-	sectionHeader result;
-
-	result.type = sectionType::SECTION_DATABASE_RECORDS; // Placeholder
-	result.title = "ANIME_DATA";
-	result.recordCount = database.size();
-	result.fieldCount = animeMeta.size();
-	result.hasSchema = true;
-
-	return result;
-}
-
-
-// Should Function
-schemaData entryDB::getSchema(fileType type, size_t sectionIndex) {
-	schemaData result;
-	schemaField buffer;
-
-	for (size_t i = 0; i < animeMeta.size(); i++)
-	{
-		buffer.name = animeMeta[i].name;
-		buffer.type = animeMeta[i].type;
-		buffer.mode = animeMeta[i].mode;
-
-		result.push_back(buffer);
-	}
-
-	return result;
-}
-
-
-// Needs  Work, only works for entries and dosent use file type descrimination
-recordData entryDB::getRecord(fileType type, size_t sectionIndex, size_t recordIndex) {
-	recordData result;
-
-	recordField buffer;
-	for (size_t i = 0; i < animeMeta.size(); i++) {
-		buffer = getField(recordIndex, i);
-		result.push_back(buffer);
-	}
-
-	return result;
-}
-
-recordData entryDB::getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex) {
-	recordData result;
-
-
-
-	return result;
-}
-
-
-
-// Kinda want to re-write cause this uses ai code
-recordField entryDB::getField(size_t id, size_t fieldIndex)
-{
-	recordField result;
-
-	const entryData& record = database[id];
-	const memPTR& ptr = animeMeta[fieldIndex].ptr;
-
-	std::visit([&](auto memberPtr) {
-			result = record.*memberPtr;
-		}, ptr);
-
-	return result;
-}
-
-std::vector<entryData> entryDB::getEntry(std::vector<EntryId> ids) {
-	if (ids.size() == 1 and ids[0] == 0) { return database; }
-
-	std::vector<entryData> result;
-	for (EntryId id : ids) {
-		if (auto it = idMap.find(id); it != idMap.end()) {
-			result.push_back(database[it->second]);
-		}
-		else {
-			std::cerr << "Entry ID " << id << " not found in database.\n";
-			throw std::runtime_error("Entry ID not found: " + std::to_string(id));
-		}
-	}
-	return result;
-}
-
-
+//====================================
+//			Validation
+//====================================
 std::vector<size_t> entryDB::validateSchema(const schemaData& schema) {
 	std::vector<size_t> fieldIndices;
 	std::unordered_set<std::string> seen;
@@ -602,7 +655,6 @@ std::vector<size_t> entryDB::validateSchema(const schemaData& schema) {
 
 	return fieldIndices;
 }
-
 void entryDB::validateTable(const std::string& title) {
 	for (size_t i = 0; i < animeMeta.size(); i++) {
 		if (animeMeta[i].tableTitle == title) {
@@ -613,8 +665,141 @@ void entryDB::validateTable(const std::string& title) {
 	}
 	throw std::runtime_error("No field matches the table: " + title);
 }
+void entryDB::validateField(const recordField& value, const size_t fieldIndex) {
+	const fieldData& meta = animeMeta[fieldIndex];
+	switch (meta.type) {
+		case schemaField::dataType::U8: {
+			int intValue = std::get<int>(value);
+			try {
+				validateScalar(intValue, meta);
+			}
+			catch (const std::exception& e) {
+				throw std::runtime_error("Validation error for field \"" + meta.name + "\": " + e.what());
+			}
+			break;
+		}
+		case schemaField::dataType::U16: {
+			int intValue = std::get<int>(value);
+			try {
+				validateScalar(intValue, meta);
+			}
+			catch (const std::exception& e) {
+				throw std::runtime_error("Validation error for field \"" + meta.name + "\": " + e.what());
+			}
+			break;
+		}
+		case schemaField::dataType::U32: {
+			int intValue = std::get<int>(value);
+			try {
+				validateScalar(intValue, meta);
+			}
+			catch (const std::exception& e) {
+				throw std::runtime_error("Validation error for field \"" + meta.name + "\": " + e.what());
+			}
+			break;
+		}
+		case schemaField::dataType::STR: {
+			// Ensure that value is a string
+			if (!std::holds_alternative<std::string>(value)) {
+				throw std::runtime_error("Expected string value for field: " + meta.name);
+			}
+			break;
+		}
+		case schemaField::dataType::VECU8: {
+			std::vector<int> vecValue = std::get<std::vector<int>>(value);
+			for (int val : vecValue) {
+				try {
+					validateScalar(val, meta);
+				}
+				catch (const std::exception& e) {
+					throw std::runtime_error("Validation error for field \"" + meta.name + "\": " + e.what());
+				}
+			}
+			break;
+		}
+		case schemaField::dataType::VECU16: {
+			std::vector<int> vecValue = std::get<std::vector<int>>(value);
+			for (int val : vecValue) {
+				try {
+					validateScalar(val, meta);
+				}
+				catch (const std::exception& e) {
+					throw std::runtime_error("Validation error for field \"" + meta.name + "\": " + e.what());
+				}
+			}
+			break;
+		}
+		default:
+			throw std::runtime_error("Unknown data type for field: " + animeMeta[fieldIndex].name);
+	}
+}
+void entryDB::validateScalar(const int value, const fieldData& meta) {
+	switch (meta.reference) {
+		case ValueRef::LOOKUP_TABLE: {
+			if (value < 0) {
+				throw std::runtime_error("Negative value for table reference field: " + meta.name);
+			}
+			size_t tableSize = getTableSize(meta.tableTitle);
+			if (value >= tableSize) {
+				throw std::runtime_error("Value for field \"" + meta.name + "\" out of bounds of its reference table.");
+			}
+			break;
+		}
+		case ValueRef::BOUNDS: {
+			if (!meta.bounds.has_value()) {
+				throw std::runtime_error("Missing bounds for range field: " + meta.name);
+			}
+			if (value < meta.bounds->lower || value > meta.bounds->upper) {
+				throw std::runtime_error("Value for field \"" + meta.name + "\" out of specified range.");
+			}
+			break;
+		}
+		case ValueRef::NONE: {
+			break;
+		}
+		default:
+			throw std::runtime_error("Unknown value reference type for field: " + meta.name);
+	}
+}
 
 
+
+//====================================
+//			Utility
+//====================================
+// Kinda want to re-write cause this uses ai code
+recordField entryDB::getField(size_t id, size_t fieldIndex) {
+	return getFromEntry(database[id], fieldIndex);
+}
+recordField entryDB::getFromEntry(const entryData& entry, const size_t fieldIndex) {
+	recordField result;
+
+	const memPTR& ptr = animeMeta[fieldIndex].ptr;
+
+	std::visit([&](auto memberPtr) {
+		result = entry.*memberPtr;
+		}, ptr);
+
+	return result;
+}
+size_t entryDB::getTableSize(const std::string& title) {
+	return lookupTables.at(title).size();
+}
+std::unordered_map<std::string, size_t> buildFieldNames() {
+	std::unordered_map<std::string, size_t> result;
+
+	for (size_t i = 0; i < animeMeta.size(); i++) {
+		result.emplace(animeMeta[i].name, i);
+	}
+
+	return result;
+}
+
+
+
+//====================================
+//			Serialization
+//====================================
 // May want to re-write
 // Check This later 
 // 5/19/26 16:48
@@ -650,7 +835,6 @@ std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<siz
 
 	return result;
 }
-
 std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
 	ByteWriter writer;
 
@@ -662,7 +846,6 @@ std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
 
 	return writer.buffer;
 }
-
 entryData entrySerializer::readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices) {
 	entryData result;
 
@@ -693,7 +876,6 @@ entryData entrySerializer::readEntry(ByteReader& reader, std::vector<size_t>& fi
 	}
 	return result;
 }
-
 std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
 	ByteWriter writer;
 	writer.U32(schema.size());
@@ -706,7 +888,6 @@ std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
 
 	return writer.buffer;
 }
-
 std::vector<uint8_t> entrySerializer::Entry(const entryData& entry) {
 	ByteWriter writer;
 
@@ -734,7 +915,6 @@ std::vector<uint8_t> entrySerializer::Entry(const entryData& entry) {
 	}
 	return writer.buffer;
 }
-
 schemaData entrySerializer::readSchema(ByteReader& reader) {
 	schemaData result;
 	schemaField buffer;
@@ -750,7 +930,6 @@ schemaData entrySerializer::readSchema(ByteReader& reader) {
 
 	return result;
 }	
-
 sectionHeader entrySerializer::readSection(ByteReader& reader) {
 	sectionHeader header;
 
@@ -762,7 +941,46 @@ sectionHeader entrySerializer::readSection(ByteReader& reader) {
 
 	return header;
 }
+EntryUpdate entrySerializer::translateUpdate(const Update& update) {
+	EntryUpdate result;
+	result.id = update.id;
+	result.op = update.operation;
+	result.fieldIndex = update.fieldIndex;
 
+	switch (update.type) {
+		case dataType::U8:
+			result.value = static_cast<int>(std::get<uint8_t>(update.value));
+			break;
+		case dataType::U16:
+			result.value = static_cast<int>(std::get<uint16_t>(update.value));
+			break;
+		case dataType::U32: {
+			uint32_t raw = std::get<uint32_t>(update.value);
+			if (raw > static_cast<uint32_t>(std::numeric_limits<int>::max())) {
+				throw std::runtime_error("Update value exceeds entry integer range.");
+			}
+			result.value = static_cast<int>(raw);
+			break;
+		}
+		case dataType::STR:
+			result.value = std::get<std::string>(update.value);
+			break;
+		case dataType::VECU8:
+		case dataType::VECU16:
+			result.value = std::get<std::vector<int>>(update.value);
+			break;
+		default:
+			throw std::runtime_error("Unknown update value data type.");
+	}
+
+	return result;
+}
+
+
+
+//====================================
+//			Routing
+//====================================
 RouteResult entryRouter::route(Message& message, Context& context) {
 	RouteResult result;
 
@@ -793,8 +1011,26 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 		}
 		case ACTION_TYPE::ACT_UPDATE: {
 			ByteReader reader{ message.payload };
-			
+			std::vector<EntryUpdate> updates;
 
+			try {
+				size_t updateCount = reader.U32();
+				updates.reserve(updateCount);
+
+				for (size_t i = 0; i < updateCount; i++) {
+					Update update = codec.decodeUpdate(reader);
+					updates.push_back(serializer.translateUpdate(update));
+				}
+
+				context.entries.updateEntry(updates);
+			}
+			catch (const std::exception& e) {
+				std::cerr << "Error updating entries: " << e.what() << "\n";
+				std::string errorMsg = "Error updating entries: " + std::string(e.what());
+				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_UPDATE, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
+			}
+
+			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_UPDATE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}), false };
 			break;
 		}
 		case ACTION_TYPE::ACT_CREATE: {

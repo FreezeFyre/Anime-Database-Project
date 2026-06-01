@@ -53,8 +53,7 @@ struct Update {
 		uint16_t,
 		uint32_t,
 		std::string,
-		std::vector<uint8_t>,
-		std::vector<uint16_t>
+		std::vector<int>
 	> value;
 };
 
@@ -100,5 +99,7 @@ class MessageCodec {
 		Message decode(std::vector<uint8_t>& byteStream);
 
 		Message construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload);
+
+		Update decodeUpdate(ByteReader& reader);
 
 };

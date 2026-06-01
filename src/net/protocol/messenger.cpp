@@ -51,3 +51,42 @@ Message MessageCodec::decode(std::vector<uint8_t>& byteStream) {
 
 	return message;
 }
+
+Update MessageCodec::decodeUpdate(ByteReader& reader) {
+	Update r;
+
+	r.id = reader.U32();
+	r.operation = static_cast<UpdateOp>(reader.U8());
+	r.fieldIndex = reader.U8();
+	r.type = static_cast<dataType>(reader.U8());
+	switch (r.type) {
+		case dataType::U8: {
+			r.value = reader.U8();
+			break;
+		}
+		case dataType::U16: {
+			r.value = reader.U16();
+			break;
+		}
+		case dataType::U32: {
+			r.value = reader.U32();
+			break;
+		}
+		case dataType::STR: {
+			r.value = reader.STR();
+			break;
+		}
+		case dataType::VECU8: {
+			r.value = reader.VECU8();
+			break;
+		}
+		case dataType::VECU16: {
+			r.value = reader.VECU16();
+			break;
+		}
+		default:
+			throw std::runtime_error("Unknown update value data type.");
+	}
+
+	return r;
+}

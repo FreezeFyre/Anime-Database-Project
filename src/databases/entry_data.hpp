@@ -83,7 +83,7 @@ struct fieldData {
 	ValueRef reference = ValueRef::NONE;
 	std::optional<Bound> bounds;
 	std::string tableTitle;
-};
+}; // May want to add field default values to this
 
 // This Provides the Meta Data for each field in the entryData for use in other processes
 inline const std::array<fieldData, 15> animeMeta = { {
@@ -145,8 +145,14 @@ class entryDB {
 
 		// Entry operations
 		void addEntry(const entryData& entry);
-		void updateEntry(std::vector<EntryUpdate> updates);
+		void updateEntry(const std::vector<EntryUpdate>& updates);
 		std::vector<entryData> getEntry(std::vector<EntryId> ids);
+
+		// Operation Utilities
+		void setField(entryData& entry, size_t fieldIndex, const recordField& value);
+		void addFieldValue(entryData& entry, size_t fieldIndex, const recordField& value);
+		void removeFieldValue(entryData& entry, size_t fieldIndex, const recordField& value);
+		void clearField(entryData& entry, size_t fieldIndex);
 
 		// Query operations
 		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
@@ -155,22 +161,26 @@ class entryDB {
 		// Index construction
 		void constructIdMap(std::unordered_map<EntryId, size_t>& idMap) const;
 		void constructTableIndexes(IndexStructure& tableIndexes) const;
+		EntryId addId();
 		bool rankInsert(int rank);
 
 		// Validation
 		std::vector<size_t> validateSchema(const schemaData& schema);
-		void validateUpdate(const EntryUpdate& update);
 		void validateTable(const std::string& title);
+		void validateField(const recordField& value,const size_t fieldIndex);
+		void validateScalar(const int value, const fieldData& meta);
 
 		// Utility accessors
 		size_t getSize() { return database.size(); }
 		recordField getField(size_t id, size_t fieldIndex);
+		recordField getFromEntry(const entryData& entry, const size_t fieldIndex);
 		size_t getFieldCount() { return animeMeta.size(); }
 		size_t getTableSize(const std::string& title);
 
+
 	private:
 		std::unordered_map<EntryId, size_t> idMap; //Maps ids to their index in the vector allowing for database transforms
-		EntryId nextId = 0;
+		EntryId nextId = 50;
 
 		std::vector<entryData> database;
 		std::vector<size_t> fieldMap;
@@ -198,6 +208,9 @@ class entrySerializer {
 		schemaData readSchema(ByteReader& reader);
 
 		sectionHeader readSection(ByteReader& reader);
+
+		EntryUpdate translateUpdate(const Update& update);
+
 
 };
 
