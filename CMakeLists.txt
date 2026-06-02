@@ -43,6 +43,14 @@ add_executable(entry_update_test
 	"src/net/protocol/messenger.cpp"
 	"src/net/protocol/data.cpp")
 
+add_executable(entry_search_test
+	"src/tests/entry_search_test.cpp"
+	"src/io/fileHandling.cpp"
+	"src/databases/entry_data.cpp"
+	"src/filtering/filterProcessor.cpp"
+	"src/net/protocol/messenger.cpp"
+	"src/net/protocol/data.cpp")
+
 if(WIN32)
 	target_link_libraries(parser_stress_test PRIVATE Ws2_32)
 	target_link_libraries(parser_fuzz_test PRIVATE Ws2_32)
@@ -50,3 +58,4 @@ endif()
 
 add_test(NAME parser_fuzz_test COMMAND parser_fuzz_test)
 add_test(NAME entry_update_test COMMAND entry_update_test)
+add_test(NAME entry_search_test COMMAND entry_search_test)

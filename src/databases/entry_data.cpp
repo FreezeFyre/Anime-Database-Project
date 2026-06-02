@@ -250,8 +250,7 @@ void entryDB::addEntry(const entryData& entry) {
 }
 void entryDB::updateEntry(const std::vector<EntryUpdate>& updates) {
 	for (const EntryUpdate& update : updates) {
-		if (update.fieldIndex >= animeMeta.size())
-		{
+		if (update.fieldIndex >= animeMeta.size()) {
 			throw std::runtime_error("Update field out of bounds");
 		}
 
@@ -344,16 +343,34 @@ void entryDB::deleteEntry(const EntryId id) {
 	if (!admin) {
 		throw std::runtime_error("User does not meet account permission level to delete entries. \n");
 	}
+
 	if (idMap.find(id) != idMap.end()) {
-		database.erase(database.begin() + idMap.find(id)->second); // may want to use swap and popback or erase_if instead
+		size_t index = idMap.find(id)->second;
+		// Rank Re-Ordering
+		if (database[index].rank != 0) {
+			for (auto& entry : database) {
+				if (entry.rank > database[index].rank) {
+					entry.rank--;
+				}
+			}
+		}
+
+		database.erase(database.begin() + index); // may want to use swap and popback or erase_if instead
+		constructIdMap(idMap);
+	
+
 		std::clog << "Erased entry " << id << " from the database. \n";
 	}
 }
 std::vector<EntryId> entryDB::searchEntryTitles(const std::string& term) {
 	std::vector<EntryId> result;
 	std::string nTerm = normalizeString(term);
+	
+	if (nTerm.empty()) {
+		return result;
+	}
 
-	for (entryData& entry : database) {
+	for (const entryData& entry : database) {
 		// Should eventually make this search all string fields in animeMeta that have a qualifer like "SEARCHABLE"
 		if (normalizeString(entry.title).find(nTerm) != std::string::npos) {
 			result.push_back(entry.id);
@@ -1122,13 +1139,24 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_DELETE, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
 			}
 
-			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}) , false };
+			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_DELETE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}) , false };
 			break;
 		}
 		case ACTION_TYPE::ACT_SEARCH: {
+			std::vector<EntryId> entries;
+			try {
+				entries = context.entries.searchEntryTitles(reader.STR());
+			}
+			catch (const std::exception& e) {
+				std::cerr << "Error searching entries: " << e.what() << "\n";
+				std::string errorMsg = "Error searching entries: " + std::string(e.what());
+				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_SEARCH, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
+			}
+			ByteWriter w;
+			w.VECU32(entries);
+			std::vector<uint8_t> resp = w.buffer;
 
-
-
+			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_SEARCH, message.id, static_cast<uint32_t>(resp.size()), resp), false };
 			break;
 		}
 		default:
