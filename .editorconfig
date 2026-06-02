@@ -1,0 +1,16 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+[*.{c,cc,cxx,cpp,h,hpp,tpp}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+cpp_include_cleanup_add_missing_error_tag_type = none
+cpp_include_cleanup_remove_unused_error_tag_type = suggestion
