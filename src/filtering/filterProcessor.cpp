@@ -1,6 +1,6 @@
 #include "filterProcessor.hpp"
 
-bool filterProcessor::checkRange(const range& r, size_t value) {
+bool filterProcessor::checkRange(const Range& r, size_t value) {
 	if (r.max and value > *r.max) {
 		return false;
 	}

@@ -175,11 +175,16 @@ class entryDB {
 		void validateScalar(const int value, const fieldData& meta);
 
 		// Utility accessors
+		std::span<const fieldData> getMeta() {return animeMeta;}
 		size_t getSize() { return database.size(); }
 		recordField getField(size_t id, size_t fieldIndex);
 		recordField getFromEntry(const entryData& entry, const size_t fieldIndex);
 		size_t getFieldCount() { return animeMeta.size(); }
 		size_t getTableSize(const std::string& title);
+
+		std::span<const fieldData> getMeta() const {
+			return animeMeta;
+		}
 
 
 	private:
