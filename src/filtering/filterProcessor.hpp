@@ -14,6 +14,7 @@
 #include <array>
 #include <optional>
 #include <span>
+#include <concepts>
 
 #include "../io/fileHandling.hpp"
 
@@ -31,9 +32,20 @@ struct indexFilter {
 
 using indexFilters = std::vector<indexFilter>;
 
+template<typename Database>
+concept FilterableDatabase = requires(const Database& db, size_t index) {
+	typename Database::IdType;
+	{ db.getSize() } -> std::convertible_to<size_t>;
+	{ db.getFieldCount() } -> std::convertible_to<size_t>;
+	{ db.getFieldInfo(index).mode } -> std::convertible_to<schemaField::filterMode>;
+	{ db.getField(index, index) } -> std::same_as<recordField>;
+	{ db.getId(index) } -> std::same_as<typename Database::IdType>;
+};
+
+
 class filterProcessor {
 	public:
-		template<typename Database>
+		template<FilterableDatabase Database>
 		auto checkFilters(const indexFilters& filters, const Database& database)
 		-> std::vector<typename Database::IdType>;
 	private:

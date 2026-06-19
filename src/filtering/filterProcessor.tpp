@@ -2,7 +2,7 @@
 
 
 
-template<typename Database>
+template<FilterableDatabase Database>
 auto filterProcessor::checkFilters(const indexFilters& filters, const Database& database) -> std::vector<typename Database::IdType> {
 
 	std::vector<typename Database::IdType> result;
