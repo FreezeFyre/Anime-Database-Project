@@ -92,10 +92,10 @@ void entryDB::record(recordData& record, schemaData& schema) {
 
 	entryData anime;
 	for (size_t i = 0; i < fieldMap.size(); i++) {
-			if (auto mPTR = std::get_if<intPTR>(&animeMeta[fieldMap[i]].ptr)) {
+			if (auto mPTR = std::get_if<intPTR>(&EntryMeta[fieldMap[i]].ptr)) {
 				if (auto value = std::get_if<std::monostate>(&record[i])) {
-					if (animeMeta[fieldMap[i]].presence == fieldPresence::REQUIRED) {
-						throw std::runtime_error("Missing require data for field \"" + animeMeta[fieldMap[i]].name + "\" at index: " + std::to_string(i) +  ", ");
+					if (EntryMeta[fieldMap[i]].info.presence == fieldPresence::REQUIRED) {
+						throw std::runtime_error("Missing require data for field \"" + EntryMeta[fieldMap[i]].info.name + "\" at index: " + std::to_string(i) +  ", ");
 					}
 				}
 				else if (auto value = std::get_if<int>(&record[i])) {
@@ -105,10 +105,10 @@ void entryDB::record(recordData& record, schemaData& schema) {
 					throw std::runtime_error("Expected int in record field " + std::to_string(i));
 				}
 			}
-			else if (auto mPTR = std::get_if<vecPTR>(&animeMeta[fieldMap[i]].ptr)) {
+			else if (auto mPTR = std::get_if<vecPTR>(&EntryMeta[fieldMap[i]].ptr)) {
 				if (auto value = std::get_if<std::monostate>(&record[i])) {
-					if (animeMeta[fieldMap[i]].presence == fieldPresence::REQUIRED) {
-						throw std::runtime_error("Missing require data for field \"" + animeMeta[fieldMap[i]].name + "\" at index: " + std::to_string(i) + ", ");
+					if (EntryMeta[fieldMap[i]].info.presence == fieldPresence::REQUIRED) {
+						throw std::runtime_error("Missing require data for field \"" + EntryMeta[fieldMap[i]].info.name + "\" at index: " + std::to_string(i) + ", ");
 					}
 				}
 				else if (auto value = std::get_if<std::vector<int>>(&record[i])) {
@@ -119,10 +119,10 @@ void entryDB::record(recordData& record, schemaData& schema) {
 				}
 
 			}
-			else if (auto mPTR = std::get_if<strPTR>(&animeMeta[fieldMap[i]].ptr)) {
+			else if (auto mPTR = std::get_if<strPTR>(&EntryMeta[fieldMap[i]].ptr)) {
 				if (auto value = std::get_if<std::monostate>(&record[i])) {
-					if (animeMeta[fieldMap[i]].presence == fieldPresence::REQUIRED) {
-						throw std::runtime_error("Missing require data for field \"" + animeMeta[fieldMap[i]].name + "\" at index: " + std::to_string(i) + ", ");
+					if (EntryMeta[fieldMap[i]].info.presence == fieldPresence::REQUIRED) {
+						throw std::runtime_error("Missing require data for field \"" + EntryMeta[fieldMap[i]].info.name + "\" at index: " + std::to_string(i) + ", ");
 					}
 				}
 				else if (auto value = std::get_if<std::string>(&record[i])) {
@@ -178,7 +178,7 @@ sectionHeader entryDB::getSection(fileType type, size_t sectionIndex) {
 	result.type = sectionType::SECTION_DATABASE_RECORDS; // Placeholder
 	result.title = "ANIME_DATA";
 	result.recordCount = database.size();
-	result.fieldCount = animeMeta.size();
+	result.fieldCount = EntryMeta.size();
 	result.hasSchema = true;
 
 	return result;
@@ -187,11 +187,11 @@ schemaData entryDB::getSchema(fileType type, size_t sectionIndex) {
 	schemaData result;
 	schemaField buffer;
 
-	for (size_t i = 0; i < animeMeta.size(); i++)
+	for (size_t i = 0; i < EntryMeta.size(); i++)
 	{
-		buffer.name = animeMeta[i].name;
-		buffer.type = animeMeta[i].type;
-		buffer.mode = animeMeta[i].mode;
+		buffer.name = EntryMeta[i].info.name;
+		buffer.type = EntryMeta[i].info.type;
+		buffer.mode = EntryMeta[i].info.mode;
 
 		result.push_back(buffer);
 	}
@@ -202,7 +202,7 @@ recordData entryDB::getRecord(fileType type, size_t sectionIndex, size_t recordI
 	recordData result;
 
 	recordField buffer;
-	for (size_t i = 0; i < animeMeta.size(); i++) {
+	for (size_t i = 0; i < EntryMeta.size(); i++) {
 		buffer = getField(recordIndex, i);
 		result.push_back(buffer);
 	}
@@ -241,7 +241,7 @@ void entryDB::addEntry(const entryData& entry) {
 		result.rank = 0; // Default rank, can be updated later
 	}
 
-	for (size_t i = 2; i < animeMeta.size(); i++) {
+	for (size_t i = 2; i < EntryMeta.size(); i++) {
 		validateField(getFromEntry(result, i), i);
 	}
 	size_t index = database.size();
@@ -250,7 +250,7 @@ void entryDB::addEntry(const entryData& entry) {
 }
 void entryDB::updateEntry(const std::vector<EntryUpdate>& updates) {
 	for (const EntryUpdate& update : updates) {
-		if (update.fieldIndex >= animeMeta.size()) {
+		if (update.fieldIndex >= EntryMeta.size()) {
 			throw std::runtime_error("Update field out of bounds");
 		}
 
@@ -292,7 +292,7 @@ void entryDB::updateEntry(const std::vector<EntryUpdate>& updates) {
 				break;
 			}
 			case UpdateOp::ADD_VALUE: {
-				if (animeMeta[update.fieldIndex].type != schemaField::dataType::VECU8 and animeMeta[update.fieldIndex].type != schemaField::dataType::VECU16) {
+				if (EntryMeta[update.fieldIndex].info.type != schemaField::dataType::VECU8 and EntryMeta[update.fieldIndex].info.type != schemaField::dataType::VECU16) {
 					throw std::runtime_error("Add value only works with vectors");
 				}
 				try {
@@ -305,7 +305,7 @@ void entryDB::updateEntry(const std::vector<EntryUpdate>& updates) {
 				break;
 			}
 			case UpdateOp::REMOVE_VALUE: {
-				if (animeMeta[update.fieldIndex].type != schemaField::dataType::VECU8 and animeMeta[update.fieldIndex].type != schemaField::dataType::VECU16) {
+				if (EntryMeta[update.fieldIndex].info.type != schemaField::dataType::VECU8 and EntryMeta[update.fieldIndex].info.type != schemaField::dataType::VECU16) {
 					throw std::runtime_error("Remove value only works with vectors");
 				}
 				try {
@@ -371,7 +371,7 @@ std::vector<EntryId> entryDB::searchEntryTitles(const std::string& term) {
 	}
 
 	for (const entryData& entry : database) {
-		// Should eventually make this search all string fields in animeMeta that have a qualifer like "SEARCHABLE"
+		// Should eventually make this search all string fields in EntryMeta that have a qualifer like "SEARCHABLE"
 		if (normalizeString(entry.title).find(nTerm) != std::string::npos) {
 			result.push_back(entry.id);
 			continue;
@@ -396,46 +396,46 @@ void entryDB::setField(entryData& entry, size_t fieldIndex, const recordField& v
 		validateField(value, fieldIndex);
 	}
 	catch (const std::exception& e) {
-		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+		std::cerr << "Error validating field \"" << EntryMeta[fieldIndex].info.name
 			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
 		throw; // Rethrow to allow caller to handle as well
 	}
 
-	switch (animeMeta[fieldIndex].type) {
+	switch (EntryMeta[fieldIndex].info.type) {
 		case schemaField::dataType::U8: {
-			entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = std::get<int>(value);
+			entry.*std::get<intPTR>(EntryMeta[fieldIndex].ptr) = std::get<int>(value);
 			break;
 		}
 		case schemaField::dataType::U16: {
-			entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = std::get<int>(value);
+			entry.*std::get<intPTR>(EntryMeta[fieldIndex].ptr) = std::get<int>(value);
 			break;
 		}
 		case schemaField::dataType::U32: {
-			entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = std::get<int>(value);
+			entry.*std::get<intPTR>(EntryMeta[fieldIndex].ptr) = std::get<int>(value);
 			break;
 		}
 		case schemaField::dataType::STR: {
-			entry.*std::get<strPTR>(animeMeta[fieldIndex].ptr) = std::get<std::string>(value);
+			entry.*std::get<strPTR>(EntryMeta[fieldIndex].ptr) = std::get<std::string>(value);
 			break;
 		}
 		case schemaField::dataType::VECU8: {
-			entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr) = std::get<std::vector<int>>(value);
+			entry.*std::get<vecPTR>(EntryMeta[fieldIndex].ptr) = std::get<std::vector<int>>(value);
 			break;
 		}
 		case schemaField::dataType::VECU16: {
-			entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr) = std::get<std::vector<int>>(value);
+			entry.*std::get<vecPTR>(EntryMeta[fieldIndex].ptr) = std::get<std::vector<int>>(value);
 			break;
 		}
 		default:
-			throw std::runtime_error("Unsupported data type for set field operation: " + animeMeta[fieldIndex].name);
+			throw std::runtime_error("Unsupported data type for set field operation: " + EntryMeta[fieldIndex].info.name);
 	}
 
 }
 // Can probably re-write to convert scalar inputs to vectors
 void entryDB::addFieldValue(entryData& entry, size_t fieldIndex, const recordField& value) {
 	// This function only concerns vectors
-	if (!std::holds_alternative<vecPTR>(animeMeta[fieldIndex].ptr)) {
-		throw std::runtime_error("Add value only works with vector fields: " + animeMeta[fieldIndex].name);
+	if (!std::holds_alternative<vecPTR>(EntryMeta[fieldIndex].ptr)) {
+		throw std::runtime_error("Add value only works with vector fields: " + EntryMeta[fieldIndex].info.name);
 	}
 
 	if (!std::holds_alternative<std::vector<int>>(value)) {
@@ -446,15 +446,15 @@ void entryDB::addFieldValue(entryData& entry, size_t fieldIndex, const recordFie
 		validateField(value, fieldIndex);
 	}
 	catch (const std::exception& e) {
-		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+		std::cerr << "Error validating field \"" << EntryMeta[fieldIndex].info.name
 			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
 		throw; // Rethrow to allow caller to handle as well
 	}
 	
-	auto& field = entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr);
+	auto& field = entry.*std::get<vecPTR>(EntryMeta[fieldIndex].ptr);
 	for (int addVal : std::get<std::vector<int>>(value)) {
 		field.push_back(addVal);
-		std::clog << "Added value " << addVal << " to field \"" << animeMeta[fieldIndex].name
+		std::clog << "Added value " << addVal << " to field \"" << EntryMeta[fieldIndex].info.name
 			<< "\" for entry ID " << entry.id << ".\n";
 	}
 
@@ -462,7 +462,7 @@ void entryDB::addFieldValue(entryData& entry, size_t fieldIndex, const recordFie
 		validateField(field, fieldIndex);
 	}
 	catch (const std::exception& e) {
-		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+		std::cerr << "Error validating field \"" << EntryMeta[fieldIndex].info.name
 			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
 		throw; // Rethrow to allow caller to handle as well
 	}
@@ -470,8 +470,8 @@ void entryDB::addFieldValue(entryData& entry, size_t fieldIndex, const recordFie
 void entryDB::removeFieldValue(entryData& entry, size_t fieldIndex, const recordField& value) {
 	// This function only concerns vectors
 	// Need to first check if the value is a valid one, then we check if it exists in the field. 
-	if (!std::holds_alternative<vecPTR>(animeMeta[fieldIndex].ptr)) {
-		throw std::runtime_error("Remove value only works with vector fields: " + animeMeta[fieldIndex].name);
+	if (!std::holds_alternative<vecPTR>(EntryMeta[fieldIndex].ptr)) {
+		throw std::runtime_error("Remove value only works with vector fields: " + EntryMeta[fieldIndex].info.name);
 	}
 
 	if (!std::holds_alternative<std::vector<int>>(value)) {
@@ -482,16 +482,16 @@ void entryDB::removeFieldValue(entryData& entry, size_t fieldIndex, const record
 		validateField(value, fieldIndex);
 	}
 	catch (const std::exception& e) {
-		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+		std::cerr << "Error validating field \"" << EntryMeta[fieldIndex].info.name
 			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
 		throw; // Rethrow to allow caller to handle as well
 	}
 
-	auto& field = entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr);
+	auto& field = entry.*std::get<vecPTR>(EntryMeta[fieldIndex].ptr);
 	for (int removeVal : std::get<std::vector<int>>(value)) {
 		// Process each value in the vector
 		std::erase(field, removeVal);
-		std::clog << "Removed value " << removeVal << " from field \"" << animeMeta[fieldIndex].name
+		std::clog << "Removed value " << removeVal << " from field \"" << EntryMeta[fieldIndex].info.name
 			<< "\" for entry ID " << entry.id << ".\n";
 	}
 
@@ -499,41 +499,41 @@ void entryDB::removeFieldValue(entryData& entry, size_t fieldIndex, const record
 		validateField(field, fieldIndex);
 	}
 	catch (const std::exception& e) {
-		std::cerr << "Error validating field \"" << animeMeta[fieldIndex].name
+		std::cerr << "Error validating field \"" << EntryMeta[fieldIndex].info.name
 			<< "\" for entry ID " << entry.id << ": " << e.what() << "\n";
 		throw; // Rethrow to allow caller to handle as well
 	}
 }
 void entryDB::clearField(entryData& entry, size_t fieldIndex) {
 	// Type Dynamic function
-	if (animeMeta[fieldIndex].presence == fieldPresence::REQUIRED) {
-		throw std::runtime_error("Cannot clear required field: " + animeMeta[fieldIndex].name);
+	if (EntryMeta[fieldIndex].info.presence == fieldPresence::REQUIRED) {
+		throw std::runtime_error("Cannot clear required field: " + EntryMeta[fieldIndex].info.name);
 	}
 
-	switch (animeMeta[fieldIndex].type) {
+	switch (EntryMeta[fieldIndex].info.type) {
 	case schemaField::dataType::U8: {
-		entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = 0;
+		entry.*std::get<intPTR>(EntryMeta[fieldIndex].ptr) = 0;
 		break;
 	}
 	case schemaField::dataType::U16: {
-		entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = 0;
+		entry.*std::get<intPTR>(EntryMeta[fieldIndex].ptr) = 0;
 		break;
 	}
 	case schemaField::dataType::U32: {
-		entry.*std::get<intPTR>(animeMeta[fieldIndex].ptr) = 0;
+		entry.*std::get<intPTR>(EntryMeta[fieldIndex].ptr) = 0;
 		break;
 	}
 	case schemaField::dataType::STR: {
-		entry.*std::get<strPTR>(animeMeta[fieldIndex].ptr) = "";
+		entry.*std::get<strPTR>(EntryMeta[fieldIndex].ptr) = "";
 		break;
 	}
 	case schemaField::dataType::VECU8:
 	case schemaField::dataType::VECU16: {
-		entry.*std::get<vecPTR>(animeMeta[fieldIndex].ptr) = {};
+		entry.*std::get<vecPTR>(EntryMeta[fieldIndex].ptr) = {};
 		break;
 	}
 	default:
-		throw std::runtime_error("Unsupported data type for clear field operation: " + animeMeta[fieldIndex].name);
+		throw std::runtime_error("Unsupported data type for clear field operation: " + EntryMeta[fieldIndex].info.name);
 	}
 }
 std::string entryDB::normalizeString(const std::string& string) {
@@ -558,14 +558,12 @@ std::vector<size_t> entryDB::idToIndex(std::vector<EntryId> ids) {
 //====================================
 //			Query Ops
 //====================================
-std::vector<size_t> entryDB::getFilteredIDS(const indexFilters& filters) {
-	std::vector<size_t> result;
+std::vector<EntryId> entryDB::getFilteredIDS(const indexFilters& filters) const {
+	std::vector<EntryId> result;
 
 	filterProcessor processor;
 
-	result = processor.checkFilters(filters, *this);
-
-	return result;
+	return processor.checkFilters(filters, *this);
 }
 // Non Functional
 std::vector<int> entryDB::getSortedIDS() {
@@ -589,12 +587,12 @@ void entryDB::constructIdMap(std::unordered_map<EntryId, size_t>& idMap) const {
 void entryDB::constructTableIndexes(IndexStructure& tableIndexes) const {
 	tableIndexes.clear();
 
-	for (const fieldData& meta : animeMeta) {
-		if (meta.reference != ValueRef::LOOKUP_TABLE) {
+	for (const EntryField& meta : EntryMeta) {
+		if (meta.info.reference != ValueRef::LOOKUP_TABLE) {
 			continue;
 		}
 
-		const std::string& tableTitle = meta.tableTitle;
+		const std::string& tableTitle = meta.info.tableTitle;
 
 		auto table = lookupTables.find(tableTitle);
 		if (table == lookupTables.end()) {
@@ -615,7 +613,7 @@ void entryDB::constructTableIndexes(IndexStructure& tableIndexes) const {
 				int value = entry.*(*ptr);
 
 				if (value < 0 || static_cast<size_t>(value) >= table->second.size()) {
-					throw std::runtime_error("Invalid lookup value in field: " + meta.name);
+					throw std::runtime_error("Invalid lookup value in field: " + meta.info.name);
 				}
 
 				lookupIndex[static_cast<LookupId>(value)].push_back(entryId);
@@ -625,14 +623,14 @@ void entryDB::constructTableIndexes(IndexStructure& tableIndexes) const {
 
 				for (int value : values) {
 					if (value < 0 || static_cast<size_t>(value) >= table->second.size()) {
-						throw std::runtime_error("Invalid lookup value in field: " + meta.name);
+						throw std::runtime_error("Invalid lookup value in field: " + meta.info.name);
 					}
 
 					lookupIndex[static_cast<LookupId>(value)].push_back(entryId);
 				}
 			}
 			else {
-				throw std::runtime_error("Lookup table field is not int or vector<int>: " + meta.name);
+				throw std::runtime_error("Lookup table field is not int or vector<int>: " + meta.info.name);
 			}
 		}
 	}
@@ -679,13 +677,13 @@ std::vector<size_t> entryDB::validateSchema(const schemaData& schema) {
 		if (found == nameMap.end()) {
 			std::cerr << "Schema field: \"" << field.name
 				<< "\" at index: " << i
-				<< " not in animeMeta.\n";
-			throw std::runtime_error("Schema field not found in animeMeta: " + field.name);
+				<< " not in EntryMeta.\n";
+			throw std::runtime_error("Schema field not found in EntryMeta: " + field.name);
 		}
 
 		size_t metaIndex = found->second;
 
-		if (animeMeta[metaIndex].type != field.type) {
+		if (EntryMeta[metaIndex].info.type != field.type) {
 			std::cerr << "Schema field: \"" << field.name
 				<< "\" at index: " << i
 				<< " has incorrect data type.\n";
@@ -695,8 +693,8 @@ std::vector<size_t> entryDB::validateSchema(const schemaData& schema) {
 		fieldIndices.push_back(metaIndex);
 	}
 
-	for (size_t i = 0; i < animeMeta.size(); i++) {
-		const fieldData& meta = animeMeta[i];
+	for (size_t i = 0; i < EntryMeta.size(); i++) {
+		const FieldInfo& meta = EntryMeta[i].info;
 
 		if (!seen.contains(meta.name)) {
 			if (meta.presence == fieldPresence::REQUIRED) {
@@ -718,17 +716,19 @@ std::vector<size_t> entryDB::validateSchema(const schemaData& schema) {
 	return fieldIndices;
 }
 void entryDB::validateTable(const std::string& title) {
-	for (size_t i = 0; i < animeMeta.size(); i++) {
-		if (animeMeta[i].tableTitle == title) {
-			if (animeMeta[i].reference == ValueRef::LOOKUP_TABLE) { return; } 
-			std::cerr << "Field \"" << animeMeta[i].name << "\" does not need a reference table but one is provided. \n";
+	for (size_t i = 0; i < EntryMeta.size(); i++) {
+		if (EntryMeta[i].info.tableTitle == title) {
+			if (EntryMeta[i].info.reference == ValueRef::LOOKUP_TABLE) {
+				return;
+			} 
+			std::cerr << "Field \"" << EntryMeta[i].info.name << "\" does not need a reference table but one is provided. \n";
 			return;
 		}
 	}
 	throw std::runtime_error("No field matches the table: " + title);
 }
 void entryDB::validateField(const recordField& value, const size_t fieldIndex) {
-	const fieldData& meta = animeMeta[fieldIndex];
+	const FieldInfo& meta = EntryMeta[fieldIndex].info;
 	switch (meta.type) {
 		case schemaField::dataType::U8: {
 			int intValue = std::get<int>(value);
@@ -792,10 +792,10 @@ void entryDB::validateField(const recordField& value, const size_t fieldIndex) {
 			break;
 		}
 		default:
-			throw std::runtime_error("Unknown data type for field: " + animeMeta[fieldIndex].name);
+			throw std::runtime_error("Unknown data type for field: " + EntryMeta[fieldIndex].info.name);
 	}
 }
-void entryDB::validateScalar(const int value, const fieldData& meta) {
+void entryDB::validateScalar(const int value, const FieldInfo& meta) {
 	switch (meta.reference) {
 		case ValueRef::LOOKUP_TABLE: {
 			if (value < 0) {
@@ -830,13 +830,13 @@ void entryDB::validateScalar(const int value, const fieldData& meta) {
 //			Utility
 //====================================
 // Kinda want to re-write cause this uses ai code
-recordField entryDB::getField(size_t id, size_t fieldIndex) {
+recordField entryDB::getField(size_t id, size_t fieldIndex) const {
 	return getFromEntry(database[id], fieldIndex);
 }
-recordField entryDB::getFromEntry(const entryData& entry, const size_t fieldIndex) {
+recordField entryDB::getFromEntry(const entryData& entry, const size_t fieldIndex) const {
 	recordField result;
 
-	const memPTR& ptr = animeMeta[fieldIndex].ptr;
+	const memPTR& ptr = EntryMeta[fieldIndex].ptr;
 
 	std::visit([&](auto memberPtr) {
 		result = entry.*memberPtr;
@@ -850,8 +850,8 @@ size_t entryDB::getTableSize(const std::string& title) {
 std::unordered_map<std::string, size_t> buildFieldNames() {
 	std::unordered_map<std::string, size_t> result;
 
-	for (size_t i = 0; i < animeMeta.size(); i++) {
-		result.emplace(animeMeta[i].name, i);
+	for (size_t i = 0; i < EntryMeta.size(); i++) {
+		result.emplace(EntryMeta[i].info.name, i);
 	}
 
 	return result;
@@ -912,27 +912,27 @@ entryData entrySerializer::readEntry(ByteReader& reader, std::vector<size_t>& fi
 	entryData result;
 
 	for (size_t i = 0; i < fieldIndices.size(); i++) {
-		switch (animeMeta[fieldIndices[i]].type) {
+		switch (EntryMeta[fieldIndices[i]].info.type) {
 		case schemaField::dataType::U8:
-			result.*std::get<intPTR>(animeMeta[fieldIndices[i]].ptr) = reader.U8();
+			result.*std::get<intPTR>(EntryMeta[fieldIndices[i]].ptr) = reader.U8();
 			break;
 		case schemaField::dataType::U16:
-			result.*std::get<intPTR>(animeMeta[fieldIndices[i]].ptr) = reader.U16();
+			result.*std::get<intPTR>(EntryMeta[fieldIndices[i]].ptr) = reader.U16();
 			break;
 		case schemaField::dataType::U32:
-			result.*std::get<intPTR>(animeMeta[fieldIndices[i]].ptr) = reader.U32();
+			result.*std::get<intPTR>(EntryMeta[fieldIndices[i]].ptr) = reader.U32();
 			break;
 		case schemaField::dataType::STR:
-			result.*std::get<strPTR>(animeMeta[fieldIndices[i]].ptr) = reader.STR();
+			result.*std::get<strPTR>(EntryMeta[fieldIndices[i]].ptr) = reader.STR();
 			break;
 		case schemaField::dataType::VECU8:
-			result.*std::get<vecPTR>(animeMeta[fieldIndices[i]].ptr) = reader.VECU8();
+			result.*std::get<vecPTR>(EntryMeta[fieldIndices[i]].ptr) = reader.VECU8();
 			break;
 		case schemaField::dataType::VECU16:
-			result.*std::get<vecPTR>(animeMeta[fieldIndices[i]].ptr) = reader.VECU16();
+			result.*std::get<vecPTR>(EntryMeta[fieldIndices[i]].ptr) = reader.VECU16();
 			break;
 		default:
-			throw std::runtime_error("Unknown data type in schema for field: " + animeMeta[fieldIndices[i]].name);
+			throw std::runtime_error("Unknown data type in schema for field: " + EntryMeta[fieldIndices[i]].info.name);
 
 		}
 	}
@@ -953,25 +953,25 @@ std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
 std::vector<uint8_t> entrySerializer::Entry(const entryData& entry) {
 	ByteWriter writer;
 
-	for (size_t i = 0; i < animeMeta.size(); i++) {
-		switch (animeMeta[i].type) {
+	for (size_t i = 0; i < EntryMeta.size(); i++) {
+		switch (EntryMeta[i].info.type) {
 		case schemaField::dataType::U8:
-			writer.U8(entry.*std::get<intPTR>(animeMeta[i].ptr));
+			writer.U8(entry.*std::get<intPTR>(EntryMeta[i].ptr));
 			break;
 		case schemaField::dataType::U16:
-			writer.U16(entry.*std::get<intPTR>(animeMeta[i].ptr));
+			writer.U16(entry.*std::get<intPTR>(EntryMeta[i].ptr));
 			break;
 		case schemaField::dataType::U32:
-			writer.U32(entry.*std::get<intPTR>(animeMeta[i].ptr));
+			writer.U32(entry.*std::get<intPTR>(EntryMeta[i].ptr));
 			break;
 		case schemaField::dataType::STR:
-			writer.STR(entry.*std::get<strPTR>(animeMeta[i].ptr));
+			writer.STR(entry.*std::get<strPTR>(EntryMeta[i].ptr));
 			break;
 		case schemaField::dataType::VECU8:
-			writer.VECU8(entry.*std::get<vecPTR>(animeMeta[i].ptr));
+			writer.VECU8(entry.*std::get<vecPTR>(EntryMeta[i].ptr));
 			break;
 		case schemaField::dataType::VECU16:
-			writer.VECU16(entry.*std::get<vecPTR>(animeMeta[i].ptr));
+			writer.VECU16(entry.*std::get<vecPTR>(EntryMeta[i].ptr));
 			break;
 		}
 	}

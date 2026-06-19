@@ -2,26 +2,25 @@
 
 
 
-template<typename f>
-std::vector<size_t> filterProcessor::checkFilters(const indexFilters& filters, const f& database) {
+template<typename Database>
+auto filterProcessor::checkFilters(const indexFilters& filters, const Database& database) -> std::vector<typename Database::IdType> {
 
-	std::span<const fieldData> meta = database.getMeta();
-	std::vector<size_t> result;
+	std::vector<typename Database::IdType> result;
 	
 	for (size_t i = 0; i < database.getSize(); i++) {
 
 		bool passes = true;
 
-		for (size_t n = 0; n < meta.size(); n++) {
+		for (size_t n = 0; n < database.getFieldCount(); n++) {
 
-			if (!hasFilter(filters[n])) {
+			if (n >= filters.size() or !hasFilter(filters[n])) {
 				continue;
 			}
 
 			recordField field = database.getField(i, n);
 
-
-			switch (meta[n].mode) {
+			const auto& info = database.getFieldInfo(n);
+			switch (info.mode) {
 				case schemaField::filterMode::FM_RANGE: {
 					if (!checkRange(filters[n].range, std::get<int>(field))) {
 						passes = false;
@@ -47,7 +46,7 @@ std::vector<size_t> filterProcessor::checkFilters(const indexFilters& filters, c
 
 		}
 		if (passes) {
-			result.push_back(i);
+			result.push_back(database.getId(i));
 		}
 
 	}

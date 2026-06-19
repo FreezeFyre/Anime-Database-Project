@@ -33,8 +33,9 @@ using indexFilters = std::vector<indexFilter>;
 
 class filterProcessor {
 	public:
-		template<typename f>
-		std::vector<size_t> checkFilters(const indexFilters& filters, const f& database);
+		template<typename Database>
+		auto checkFilters(const indexFilters& filters, const Database& database)
+		-> std::vector<typename Database::IdType>;
 	private:
 
 		bool checkRange(const Range& r, size_t value);

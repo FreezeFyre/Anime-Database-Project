@@ -73,9 +73,8 @@ struct Bound{
 	int lower;
 	int upper;
 };
-struct fieldData {
+struct FieldInfo {
 	std::string name;
-	memPTR ptr;
 	schemaField::dataType type;
 	schemaField::filterMode mode;
 	fieldPresence presence;
@@ -85,33 +84,40 @@ struct fieldData {
 	std::string tableTitle;
 }; // May want to add field default values to this
 
+struct EntryField {
+	FieldInfo info;
+	memPTR ptr;
+};
+
+
 // This Provides the Meta Data for each field in the entryData for use in other processes
-inline const std::array<fieldData, 15> animeMeta = { {
-	{"id",            &entryData::id,            schemaField::dataType::U32,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED,       ValueRef::NONE,  std::nullopt,  ""},
-	{"rank",          &entryData::rank,          schemaField::dataType::U32,     schemaField::filterMode::FM_RMV,          fieldPresence::REQUIRED,       ValueRef::NONE,  std::nullopt,  ""},
-	{"title",         &entryData::title,         schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED,       ValueRef::NONE,  std::nullopt,  ""},
-	{"alt_title",     &entryData::alt_title,     schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt,  ""},
-	{"format",        &entryData::format,        schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt,  "format"},
-	{"status",        &entryData::status,        schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt,  "status"},
-	{"genres",        &entryData::genres,        schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt,  "genres"},
-	{"channels",      &entryData::channels,      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt,  "channels"},
-	{"audios",        &entryData::audios,        schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt,  "audios"},
-	{"subtitles",     &entryData::subtitles,     schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt,  "subtitles"},
-	{"fan_service",   &entryData::fan_service,   schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::BOUNDS, Bound{0, 10},  ""},
-	{"episode_count", &entryData::episode_count, schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt,  ""},
-	{"min_runtime",   &entryData::min_runtime,   schemaField::dataType::U16,     schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt,  ""},
-	{"characters",    &entryData::characters,    schemaField::dataType::VECU16,  schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt,  ""},
-	{"ip_group",      &entryData::ip_group,      schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,  std::nullopt,  ""}
+inline const std::array<EntryField, 15> EntryMeta = { {
+	{{"id",             schemaField::dataType::U32,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED,       ValueRef::NONE,         std::nullopt, ""          }, &entryData::id,           },
+	{{"rank",           schemaField::dataType::U32,     schemaField::filterMode::FM_RMV,          fieldPresence::REQUIRED,       ValueRef::NONE,         std::nullopt, ""          }, &entryData::rank,         },
+	{{"title",          schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED,       ValueRef::NONE,         std::nullopt, ""          }, &entryData::title,        },
+	{{"alt_title",      schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &entryData::alt_title,    },
+	{{"format",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "format"    }, &entryData::format,       },
+	{{"status",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "status"    }, &entryData::status,       },
+	{{"genres",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "genres"    }, &entryData::genres,       },
+	{{"channels",       schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "channels"  }, &entryData::channels,     },
+	{{"audios",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "audios"    }, &entryData::audios,       },
+	{{"subtitles",      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "subtitles" }, &entryData::subtitles,    },
+	{{"fan_service",    schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::BOUNDS,       Bound{0, 10}, ""          }, &entryData::fan_service,  },
+	{{"episode_count",  schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &entryData::episode_count,},
+	{{"min_runtime",    schemaField::dataType::U16,     schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &entryData::min_runtime,  },
+	{{"characters",     schemaField::dataType::VECU16,  schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &entryData::characters,   },
+	{{"ip_group",       schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &entryData::ip_group,     }
 } };
+
 
 std::unordered_map<std::string, size_t> buildFieldNames(); 
 inline const std::unordered_map<std::string, size_t> nameMap = buildFieldNames();
 
 /*
-This provides us with the index of animeMeta that corresponds to the current index field in schemaData,
+This provides us with the index of EntryMeta that corresponds to the current index field in schemaData,
 ie, schemaData[0] = fieldMap[0]
 
-prevents errors caused by schema and animeMeta field order differences
+prevents errors caused by schema and EntryMeta field order differences
 */
 
 struct EntryUpdate {
@@ -124,6 +130,7 @@ struct EntryUpdate {
 
 class entryDB {
 	public:
+		using IdType = EntryId;
 
 		// File load/save entry points
 		void loadEntries(std::string file);
@@ -142,6 +149,9 @@ class entryDB {
 		schemaData getSchema(fileType type, size_t sectionIndex);
 		recordData getRecord(fileType type, size_t sectionIndex, size_t recordIndex);
 		recordData getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex);
+		EntryId getId(size_t index) const {
+			return static_cast<EntryId>(database[index].id);
+		}
 
 		// Entry operations
 		void addEntry(const entryData& entry);
@@ -159,7 +169,7 @@ class entryDB {
 		std::vector<size_t> idToIndex(std::vector<EntryId> ids);
 
 		// Query operations
-		std::vector<size_t> getFilteredIDS(const indexFilters& filters);
+		std::vector<EntryId> getFilteredIDS(const indexFilters& filters) const;
 		std::vector<int> getSortedIDS();
 
 		// Index construction
@@ -172,20 +182,17 @@ class entryDB {
 		std::vector<size_t> validateSchema(const schemaData& schema);
 		void validateTable(const std::string& title);
 		void validateField(const recordField& value,const size_t fieldIndex);
-		void validateScalar(const int value, const fieldData& meta);
+		void validateScalar(const int value, const FieldInfo& meta);
 
 		// Utility accessors
-		std::span<const fieldData> getMeta() {return animeMeta;}
-		size_t getSize() { return database.size(); }
-		recordField getField(size_t id, size_t fieldIndex);
-		recordField getFromEntry(const entryData& entry, const size_t fieldIndex);
-		size_t getFieldCount() { return animeMeta.size(); }
-		size_t getTableSize(const std::string& title);
-
-		std::span<const fieldData> getMeta() const {
-			return animeMeta;
+		const FieldInfo& getFieldInfo(size_t fieldIndex) const {
+			return EntryMeta[fieldIndex].info;
 		}
-
+		size_t getSize() const { return database.size(); }
+		recordField getField(size_t id, size_t fieldIndex) const;
+		recordField getFromEntry(const entryData& entry, const size_t fieldIndex) const;
+		size_t getFieldCount() const { return EntryMeta.size(); }
+		size_t getTableSize(const std::string& title);
 
 	private:
 		std::unordered_map<EntryId, size_t> idMap; //Maps ids to their index in the vector allowing for database transforms
