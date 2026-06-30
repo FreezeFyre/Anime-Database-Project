@@ -45,7 +45,7 @@ public:
 	std::string STR();
 	std::vector<int> VECU8();
 	std::vector<int> VECU16();
-	std::vector<size_t> VECU32();
+	std::vector<uint32_t> VECU32();
 
 	template<typename T>
 	std::optional<T> OPTIONAL();

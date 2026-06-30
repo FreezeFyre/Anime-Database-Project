@@ -90,7 +90,7 @@ void searchRouteReturnsEncodedIds() {
 	assert(routeResult.message.payloadSize == routeResult.message.payload.size());
 
 	ByteReader reader{ routeResult.message.payload };
-	std::vector<size_t> ids = reader.VECU32();
+	std::vector<EntryId> ids = reader.VECU32();
 	assert(ids.size() == 1);
 	assert(ids[0] == frierenId);
 }

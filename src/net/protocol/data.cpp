@@ -112,9 +112,9 @@ std::vector<int> ByteReader::VECU16() {
 	return vec;
 }
 
-std::vector<size_t> ByteReader::VECU32() {
+std::vector<uint32_t> ByteReader::VECU32() {
 	uint32_t length = U32();
-	std::vector<size_t> vec;
+	std::vector<uint32_t> vec;
 	vec.reserve(length);
 	for (uint32_t i = 0; i < length; i++) {
 		vec.push_back(U32());

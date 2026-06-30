@@ -15,28 +15,43 @@
 #include <optional>
 #include <span>
 #include <concepts>
+#include <string_view>
 
 #include "../io/fileHandling.hpp"
+#include "../core.hpp"
+#include "../net/protocol/data.hpp"
+
+using FilterValue = uint32_t;
 
 struct Range {
-	std::optional<size_t> min;
-	std::optional<size_t> max;
+	std::optional<FilterValue> min;
+	std::optional<FilterValue> max;
 };
 
-struct indexFilter {
-	std::vector<size_t> includeAll;
-	std::vector<size_t> includeAny;
-	std::vector<size_t> exclude;
+struct FieldFilter {
+	std::string name;
+	std::vector<FilterValue> includeAll;
+	std::vector<FilterValue> includeAny;
+	std::vector<FilterValue> exclude;
 	Range range;
 };
 
-using indexFilters = std::vector<indexFilter>;
+
+using FilterRequest = std::vector<FieldFilter>;
+
+struct ValidatedFilter {
+	size_t fieldIndex;
+	const FieldFilter* filter;
+};
+
+using ValidatedFilters = std::vector<ValidatedFilter>;
 
 template<typename Database>
-concept FilterableDatabase = requires(const Database& db, size_t index) {
+concept FilterableDatabase = requires(const Database& db, size_t index, const std::string& fieldName) {
 	typename Database::IdType;
 	{ db.getSize() } -> std::convertible_to<size_t>;
 	{ db.getFieldCount() } -> std::convertible_to<size_t>;
+	{ db.getFieldIndex(fieldName) } -> std::same_as<size_t>;
 	{ db.getFieldInfo(index).mode } -> std::convertible_to<schemaField::filterMode>;
 	{ db.getField(index, index) } -> std::same_as<recordField>;
 	{ db.getId(index) } -> std::same_as<typename Database::IdType>;
@@ -45,34 +60,32 @@ concept FilterableDatabase = requires(const Database& db, size_t index) {
 
 class filterProcessor {
 	public:
-		template<FilterableDatabase Database>
-		auto checkFilters(const indexFilters& filters, const Database& database)
+		template <FilterableDatabase Database>
+		auto query(const FilterRequest& request, const Database& database)
 		-> std::vector<typename Database::IdType>;
-	private:
 
+		FilterRequest decode(ByteReader& reader);
+	private:
 		bool checkRange(const Range& r, size_t value);
 
 		bool includesAny(const std::vector<size_t>& vec, size_t value);
 
+		bool includesAny(const std::vector<FilterValue>& vec, FilterValue value);
+
 		bool includesAny(const std::vector<size_t>& vec, const std::vector<size_t>& value);
+
+		bool includesAny(const std::vector<FilterValue>& vec, const std::vector<int>& value);
 
 		bool includesAll(const std::vector<size_t>& reference, const std::vector<size_t>& values);
 
-		bool hasFilter(const indexFilter& filter);
+		bool includesAll(const std::vector<FilterValue>& reference, const std::vector<int>& values);
+
+		bool hasFilter(const FieldFilter& filter);
+
+		bool validateFilter(const FieldFilter& filter, const FieldInfo& info);
+
+		bool check(const FieldFilter& filter, const recordField& field, const FieldInfo& info);
 };
 
 
 #include "filterProcessor.tpp"
-
-
-// 	Do you want to place a bet, 
-// How much would you like to bet?
-// var bet;
-// What do you want to bet on?  even, odd, or input a number between 0 and 36?
-// 
-// 
-// int rollRoulette()
-// 
-// 
-// 
-// 

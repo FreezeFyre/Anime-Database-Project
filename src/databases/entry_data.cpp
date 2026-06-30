@@ -558,12 +558,10 @@ std::vector<size_t> entryDB::idToIndex(std::vector<EntryId> ids) {
 //====================================
 //			Query Ops
 //====================================
-std::vector<EntryId> entryDB::getFilteredIDS(const indexFilters& filters) const {
-	std::vector<EntryId> result;
-
+std::vector<EntryId> entryDB::getFilteredIDS(const FilterRequest& req) const {
 	filterProcessor processor;
 
-	return processor.checkFilters(filters, *this);
+	return processor.query(req, *this);
 }
 // Non Functional
 std::vector<int> entryDB::getSortedIDS() {
@@ -865,7 +863,7 @@ std::unordered_map<std::string, size_t> buildFieldNames() {
 // May want to re-write
 // Check This later 
 // 5/19/26 16:48
-std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<size_t>& ids) {
+std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<EntryId>& ids) {
 	std::vector<uint8_t> result;
 	
 	std::vector<uint8_t> buffer = Section(db.getSection(fileType::HEADER_DATABASE, 0));
@@ -878,16 +876,7 @@ std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<siz
 	result.insert(result.end(), buffer.begin(), buffer.end());
 	buffer.clear();
 
-	std::vector<EntryId> entryIds;
-	entryIds.reserve(ids.size());
-	for (size_t id : ids) {
-		if (id > std::numeric_limits<EntryId>::max()) {
-			throw std::runtime_error("Requested entry ID exceeds EntryId range.");
-		}
-		entryIds.push_back(static_cast<EntryId>(id));
-	}
-
-	std::vector<entryData> entries = db.getEntry(entryIds);
+	std::vector<entryData> entries = db.getEntry(ids);
 
 	for (const entryData& entry : entries) {
 		buffer = Entry(entry);
@@ -1057,7 +1046,7 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 			// Handle get action for entry domain
 			// Convert payload to get parameters, get parameters in this case should probably be a vector of ids to get or single id 0 for all E.X. [1, 2, 3] or [0]
 			
-			std::vector<size_t> reqIds = reader.VECU32(); // Convert into a usable vector of ids or single id
+			std::vector<EntryId> reqIds = reader.VECU32(); // Convert into a usable vector of ids or single id
 
 			try {
 				buffer = serializer.payload(context.entries, reqIds);
@@ -1157,6 +1146,22 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 			std::vector<uint8_t> resp = w.buffer;
 
 			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_SEARCH, message.id, static_cast<uint32_t>(resp.size()), resp), false };
+			break;
+		}
+		case ACTION_TYPE::ACT_FILTER: {
+			filterProcessor processor;
+			std::vector<EntryId> entries;
+			try {
+				entries = context.entries.getFilteredIDS(processor.decode(reader));
+			} catch (const std::exception& e) {
+				std::cerr << "Error filtering entries: " << e.what() << "\n";
+				std::string errorMsg = "Error filtering entries: " + std::string(e.what());
+				return {codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_FILTER, message.id, static_cast<uint32_t>(errorMsg.size()),std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())),false};
+			}
+			ByteWriter w;
+			w.VECU32(entries);
+			std::vector<uint8_t> resp = w.buffer;
+			return {codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_FILTER, message.id, static_cast<uint32_t>(resp.size()), resp), false};
 			break;
 		}
 		default:

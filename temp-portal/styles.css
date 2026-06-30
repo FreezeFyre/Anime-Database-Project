@@ -112,13 +112,26 @@ small,
   align-items: end;
 }
 
+.filter-panel {
+  margin-top: 16px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.25fr) minmax(100px, 0.55fr) minmax(100px, 0.55fr) auto;
+  gap: 14px;
+  padding: 18px;
+  align-items: end;
+}
+
 label {
   display: grid;
   gap: 7px;
   font-weight: 700;
 }
 
-input {
+input,
+select {
   width: 100%;
   height: 42px;
   border: 1px solid var(--line);
@@ -129,7 +142,8 @@ input {
   background: #fbfcfb;
 }
 
-input:focus {
+input:focus,
+select:focus {
   outline: 3px solid rgba(15, 118, 110, 0.18);
   border-color: var(--accent);
 }
@@ -158,6 +172,11 @@ button:disabled {
 #clear-button {
   color: var(--accent);
   background: #e8f4f2;
+}
+
+.filter-note {
+  padding: 0 18px 18px;
+  font-size: 0.9rem;
 }
 
 .summary-strip {
@@ -241,6 +260,10 @@ pre {
   }
 
   .request-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-grid {
     grid-template-columns: 1fr;
   }
 }

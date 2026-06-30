@@ -22,6 +22,7 @@
 #include <optional>
 
 #include "../io/fileHandling.hpp"
+#include "../core.hpp"
 #include "../filtering/filterProcessor.hpp"
 #include "../net/protocol/data.hpp"
 #include "../net/protocol/messenger.hpp"
@@ -57,32 +58,6 @@ using intPTR = int entryData::*;
 using strPTR = std::string entryData::*;
 using vecPTR = std::vector<int> entryData::*;
 using memPTR = std::variant< intPTR, vecPTR, strPTR>;
-
-enum class fieldPresence {
-	REQUIRED,
-	RECOMMENDED,
-	FIELD_OPTIONAL
-};
-enum class ValueRef {
-	NONE,
-	BOUNDS,
-	LOOKUP_TABLE,
-	FOREIGN_RECORD
-};
-struct Bound{
-	int lower;
-	int upper;
-};
-struct FieldInfo {
-	std::string name;
-	schemaField::dataType type;
-	schemaField::filterMode mode;
-	fieldPresence presence;
-
-	ValueRef reference = ValueRef::NONE;
-	std::optional<Bound> bounds;
-	std::string tableTitle;
-}; // May want to add field default values to this
 
 struct EntryField {
 	FieldInfo info;
@@ -152,6 +127,13 @@ class entryDB {
 		EntryId getId(size_t index) const {
 			return static_cast<EntryId>(database[index].id);
 		}
+	    size_t getFieldIndex(const std::string& fieldName) const {
+		    auto it = nameMap.find(fieldName);
+		    if (it != nameMap.end()) {
+			    return it->second;
+		    }
+		    throw std::runtime_error("Field name not found: " + fieldName);
+	    }
 
 		// Entry operations
 		void addEntry(const entryData& entry);
@@ -169,7 +151,7 @@ class entryDB {
 		std::vector<size_t> idToIndex(std::vector<EntryId> ids);
 
 		// Query operations
-		std::vector<EntryId> getFilteredIDS(const indexFilters& filters) const;
+		std::vector<EntryId> getFilteredIDS(const FilterRequest& filters) const;
 		std::vector<int> getSortedIDS();
 
 		// Index construction
@@ -212,7 +194,7 @@ class entryDB {
 class entrySerializer {
 
 	public:
-		std::vector<uint8_t> payload(entryDB& db, const std::vector<size_t>& ids);
+		std::vector<uint8_t> payload(entryDB& db, const std::vector<EntryId>& ids);
 
 		std::vector<uint8_t> Entry(const entryData& entry);
 

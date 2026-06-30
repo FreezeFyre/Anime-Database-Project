@@ -11,6 +11,15 @@ const DOMAIN_TYPE = {
 
 const ACTION_TYPE = {
   ACT_GET: 1,
+  ACT_FILTER: 8,
+};
+
+const FILTER_FLAGS = {
+  INCLUDE_ALL: 1 << 0,
+  INCLUDE_ANY: 1 << 1,
+  EXCLUDE: 1 << 2,
+  RANGE_MIN: 1 << 3,
+  RANGE_MAX: 1 << 4,
 };
 
 const DATA_TYPES = {
@@ -24,19 +33,27 @@ const DATA_TYPES = {
 
 const fields = {
   form: document.querySelector("#request-form"),
+  filterForm: document.querySelector("#filter-form"),
   serverUrl: document.querySelector("#server-url"),
   entryIds: document.querySelector("#entry-ids"),
+  filterField: document.querySelector("#filter-field"),
+  filterAny: document.querySelector("#filter-any"),
+  filterMin: document.querySelector("#filter-min"),
+  filterMax: document.querySelector("#filter-max"),
   sendButton: document.querySelector("#send-button"),
+  filterButton: document.querySelector("#filter-button"),
   clearButton: document.querySelector("#clear-button"),
   status: document.querySelector("#status"),
   messageId: document.querySelector("#message-id"),
   recordCount: document.querySelector("#record-count"),
   payloadSize: document.querySelector("#payload-size"),
+  filteredIds: document.querySelector("#filtered-ids"),
   entriesBody: document.querySelector("#entries-body"),
   rawOutput: document.querySelector("#raw-output"),
 };
 
 let nextMessageId = 1;
+let cachedEntries = [];
 
 fields.form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -48,12 +65,14 @@ fields.form.addEventListener("submit", async (event) => {
 
   try {
     const ids = parseIds(fields.entryIds.value);
-    const response = await requestEntries(fields.serverUrl.value.trim(), ids, messageId);
+    const response = await sendRequest(fields.serverUrl.value.trim(), ACTION_TYPE.ACT_GET, encodeVecU32(ids), messageId);
     const decoded = decodeEntriesPayload(response.payload);
+    cachedEntries = decoded.entries;
     renderEntries(decoded.entries);
     renderRaw(response, decoded);
     fields.recordCount.textContent = String(decoded.entries.length);
     fields.payloadSize.textContent = `${response.payloadSize} bytes`;
+    fields.filteredIds.textContent = "-";
     setStatus("success", "Received");
   } catch (error) {
     setStatus("error", "Error");
@@ -63,16 +82,49 @@ fields.form.addEventListener("submit", async (event) => {
   }
 });
 
+fields.filterForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const messageId = nextMessageId++;
+
+  setStatus("loading", "Filtering");
+  fields.filterButton.disabled = true;
+  fields.messageId.textContent = String(messageId);
+
+  try {
+    const filter = readFilterForm();
+    const payload = encodeFilterRequest([filter]);
+    const response = await sendRequest(fields.serverUrl.value.trim(), ACTION_TYPE.ACT_FILTER, payload, messageId);
+    const ids = decodeVecU32(response.payload);
+    const visibleEntries = cachedEntries.length > 0
+      ? cachedEntries.filter((entry) => ids.includes(Number(entry.id)))
+      : [];
+
+    fields.filteredIds.textContent = ids.length > 0 ? ids.join(", ") : "(none)";
+    fields.recordCount.textContent = cachedEntries.length > 0 ? String(visibleEntries.length) : "0";
+    fields.payloadSize.textContent = `${response.payloadSize} bytes`;
+    renderEntries(visibleEntries);
+    renderFilterRaw(response, filter, ids, visibleEntries);
+    setStatus("success", "Filtered");
+  } catch (error) {
+    setStatus("error", "Error");
+    renderError(error);
+  } finally {
+    fields.filterButton.disabled = false;
+  }
+});
+
 fields.clearButton.addEventListener("click", () => {
+  cachedEntries = [];
   renderEntries([]);
   fields.rawOutput.textContent = "Waiting for a request...";
   fields.messageId.textContent = "-";
   fields.recordCount.textContent = "0";
   fields.payloadSize.textContent = "0 bytes";
+  fields.filteredIds.textContent = "-";
   setStatus("idle", "Idle");
 });
 
-function requestEntries(url, ids, messageId) {
+function sendRequest(url, action, payload, messageId) {
   return new Promise((resolve, reject) => {
     const socket = new WebSocket(url);
     const timeout = window.setTimeout(() => {
@@ -87,9 +139,9 @@ function requestEntries(url, ids, messageId) {
       socket.send(encodeMessage({
         comType: COM_TYPE.REQ,
         domain: DOMAIN_TYPE.ENTRY,
-        action: ACTION_TYPE.ACT_GET,
+        action,
         id: messageId,
-        payload: encodeVecU32(ids),
+        payload,
       }));
     });
 
@@ -154,6 +206,48 @@ function encodeVecU32(values) {
   const writer = new ByteWriter(4 + values.length * 4);
   writer.u32(values.length);
   values.forEach((value) => writer.u32(value));
+  return new Uint8Array(writer.buffer);
+}
+
+function decodeVecU32(payload) {
+  const reader = new ByteReader(payload);
+  return reader.vecU32();
+}
+
+function encodeFilterRequest(filters) {
+  const encoder = new TextEncoder();
+  let size = 4;
+  const prepared = filters.map((filter) => {
+    const nameBytes = encoder.encode(filter.name);
+    let flags = 0;
+    if (filter.includeAll.length > 0) flags |= FILTER_FLAGS.INCLUDE_ALL;
+    if (filter.includeAny.length > 0) flags |= FILTER_FLAGS.INCLUDE_ANY;
+    if (filter.exclude.length > 0) flags |= FILTER_FLAGS.EXCLUDE;
+    if (filter.range.min !== null) flags |= FILTER_FLAGS.RANGE_MIN;
+    if (filter.range.max !== null) flags |= FILTER_FLAGS.RANGE_MAX;
+
+    size += 4 + nameBytes.length + 1;
+    if (flags & FILTER_FLAGS.INCLUDE_ALL) size += 4 + filter.includeAll.length * 4;
+    if (flags & FILTER_FLAGS.INCLUDE_ANY) size += 4 + filter.includeAny.length * 4;
+    if (flags & FILTER_FLAGS.EXCLUDE) size += 4 + filter.exclude.length * 4;
+    if (flags & FILTER_FLAGS.RANGE_MIN) size += 4;
+    if (flags & FILTER_FLAGS.RANGE_MAX) size += 4;
+
+    return { ...filter, flags, nameBytes };
+  });
+
+  const writer = new ByteWriter(size);
+  writer.u32(prepared.length);
+  prepared.forEach((filter) => {
+    writer.strBytes(filter.nameBytes);
+    writer.u8(filter.flags);
+    if (filter.flags & FILTER_FLAGS.INCLUDE_ALL) writer.vecU32(filter.includeAll);
+    if (filter.flags & FILTER_FLAGS.INCLUDE_ANY) writer.vecU32(filter.includeAny);
+    if (filter.flags & FILTER_FLAGS.EXCLUDE) writer.vecU32(filter.exclude);
+    if (filter.flags & FILTER_FLAGS.RANGE_MIN) writer.u32(filter.range.min);
+    if (filter.flags & FILTER_FLAGS.RANGE_MAX) writer.u32(filter.range.max);
+  });
+
   return new Uint8Array(writer.buffer);
 }
 
@@ -229,6 +323,60 @@ function parseIds(input) {
   return ids;
 }
 
+function readFilterForm() {
+  const selected = fields.filterField.selectedOptions[0];
+  const kind = selected.dataset.kind;
+  const filter = {
+    name: fields.filterField.value,
+    includeAll: [],
+    includeAny: [],
+    exclude: [],
+    range: {
+      min: null,
+      max: null,
+    },
+  };
+
+  if (kind === "multi") {
+    filter.includeAny = parseOptionalU32List(fields.filterAny.value);
+    if (filter.includeAny.length === 0) {
+      throw new Error("Enter at least one Include Any value for multi-value filters.");
+    }
+    return filter;
+  }
+
+  filter.range.min = parseOptionalU32(fields.filterMin.value, "Min");
+  filter.range.max = parseOptionalU32(fields.filterMax.value, "Max");
+  if (filter.range.min === null && filter.range.max === null) {
+    throw new Error("Enter a Min, Max, or both for range filters.");
+  }
+  if (filter.range.min !== null && filter.range.max !== null && filter.range.min > filter.range.max) {
+    throw new Error("Min cannot be greater than Max.");
+  }
+  return filter;
+}
+
+function parseOptionalU32List(input) {
+  return input
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => parseU32(part, "Filter value"));
+}
+
+function parseOptionalU32(input, label) {
+  const trimmed = input.trim();
+  return trimmed === "" ? null : parseU32(trimmed, label);
+}
+
+function parseU32(input, label) {
+  const value = Number(input);
+  if (!Number.isInteger(value) || value < 0 || value > 0xffffffff) {
+    throw new Error(`${label} must be an integer from 0 to 4294967295.`);
+  }
+  return value;
+}
+
 function renderEntries(entries) {
   if (entries.length === 0) {
     fields.entriesBody.innerHTML = '<tr><td colspan="7" class="empty">No entries to display.</td></tr>';
@@ -269,6 +417,24 @@ function renderRaw(message, decoded) {
   fields.rawOutput.textContent = JSON.stringify(printable, null, 2);
 }
 
+function renderFilterRaw(message, filter, ids, visibleEntries) {
+  const printable = {
+    message: {
+      encodeVersion: message.encodeVersion,
+      comType: message.comType,
+      domain: message.domain,
+      action: message.action,
+      id: message.id,
+      payloadSize: message.payloadSize,
+    },
+    request: filter,
+    filteredIds: ids,
+    displayedFromCache: visibleEntries,
+  };
+
+  fields.rawOutput.textContent = JSON.stringify(printable, null, 2);
+}
+
 function renderError(error) {
   fields.rawOutput.textContent = error.stack || error.message || String(error);
   fields.entriesBody.innerHTML = '<tr><td colspan="7" class="empty">Request failed. Check the decoded response panel.</td></tr>';
@@ -303,6 +469,16 @@ class ByteWriter {
   u32(value) {
     this.view.setUint32(this.offset, value, false);
     this.offset += 4;
+  }
+
+  strBytes(bytes) {
+    this.u32(bytes.length);
+    this.bytes(bytes);
+  }
+
+  vecU32(values) {
+    this.u32(values.length);
+    values.forEach((value) => this.u32(value));
   }
 
   bytes(bytes) {
@@ -357,6 +533,11 @@ class ByteReader {
   vecU16() {
     const length = this.u32();
     return Array.from({ length }, () => this.u16());
+  }
+
+  vecU32() {
+    const length = this.u32();
+    return Array.from({ length }, () => this.u32());
   }
 
   bytes(length) {
