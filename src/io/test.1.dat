@@ -1,7 +1,0 @@
-ADP0|1001|0|1|
-
-0|ANIME_DATA|1|15|1|
-
-[id:U32;N,rank:U32;RMV,title:STR;N,alt_title:STR;N,format:U8;MV,status:U8;MV,genres:VECU8;MV,channels:VECU8;MV,audios:VECU8;MV,subtitles:VECU8;MV,fan_service:U8;R,episode_count:U8;R,min_runtime:U16;R,characters:VECU16;MV,ip_group:U8;MV]
-
-{0,1,"Test","Alt Test Title",0,0,{0,1},{0},{0},{0},0,26,24,{0,1,2},0}

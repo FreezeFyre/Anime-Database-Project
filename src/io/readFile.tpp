@@ -58,7 +58,7 @@ void fileProcessor::readFile(std::string file, f& handler, const fileType& expec
 		}
 		if (readSchemaLine) {
 			schema = readSchema(line, section.fieldCount);
-			handler.schema(schema);
+			handler.schema(section, schema);
 			readRecordLine = true;
 			readSchemaLine = false;
 			continue;
@@ -74,7 +74,7 @@ void fileProcessor::readFile(std::string file, f& handler, const fileType& expec
 				}
 
 				try {
-					handler.record(record, schema);
+					handler.record(section, record, schema);
 				}
 				catch (const std::exception& e) {
 					throw std::runtime_error(e.what() + std::string(" In Record ") + std::to_string(record_pos) + " of Section " + section.title);
@@ -84,7 +84,7 @@ void fileProcessor::readFile(std::string file, f& handler, const fileType& expec
 				buffer = line;
 				buffer.erase(0, 2);
 				buffer.erase(buffer.size() - 2, 2);
-				handler.table(buffer, section.title);
+				handler.table(section, buffer);
 			}
 		}
 		if (record_pos == section.recordCount)

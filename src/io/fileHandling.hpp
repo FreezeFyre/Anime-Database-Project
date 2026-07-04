@@ -104,9 +104,9 @@ concept FileReadHandler = requires(
 	std::string str
 	) {
 		{ h.section(section) } -> std::same_as<void>;
-		{ h.schema(schema) } -> std::same_as<void>;
-		{ h.record(record, schema) } -> std::same_as<void>;
-		{ h.table(str, str) } -> std::same_as<void>;
+		{ h.schema(section, schema) } -> std::same_as<void>;
+		{ h.record(section, record, schema) } -> std::same_as<void>;
+		{ h.table(section, str) } -> std::same_as<void>;
 };
 
 template<typename f>

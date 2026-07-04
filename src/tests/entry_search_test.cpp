@@ -11,8 +11,8 @@ namespace {
 constexpr EntryId frierenId = 50;
 constexpr EntryId kaguyaId = 51;
 
-entryData makeEntry(const std::string& title, const std::string& altTitle) {
-	entryData entry;
+Entry makeEntry(const std::string& title, const std::string& altTitle) {
+	Entry entry;
 	entry.rank = 0;
 	entry.title = title;
 	entry.alt_title = altTitle;

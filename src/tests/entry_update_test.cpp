@@ -13,8 +13,8 @@ namespace {
 
 constexpr EntryId firstGeneratedId = 50;
 
-entryData makeEntry() {
-	entryData entry;
+Entry makeEntry() {
+	Entry entry;
 	entry.rank = 0;
 	entry.title = "Original Title";
 	entry.alt_title = "Original Alt";
@@ -67,7 +67,7 @@ void appliesSupportedUpdateOps() {
 		EntryUpdate{ firstGeneratedId, UpdateOp::CLEAR_FIELD, 3, std::monostate{} },
 	});
 
-	const entryData updated = db.getEntry({ firstGeneratedId }).front();
+	const Entry updated = db.getEntry({ firstGeneratedId }).front();
 	assert(updated.title == "Updated Title");
 	assert(updated.fan_service == 5);
 	assert(updated.alt_title.empty());

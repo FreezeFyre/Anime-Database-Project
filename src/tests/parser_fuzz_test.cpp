@@ -17,19 +17,19 @@ struct FuzzHandler {
 	int recordCount = 0;
 	std::vector<std::string> tables;
 
-	void section(sectionHeader& section) {
+	void section(const sectionHeader& section) {
 		lastSection = section;
 	}
 
-	void schema(::schemaData& incoming) {
+	void schema(const sectionHeader&, const ::schemaData& incoming) {
 		parsedSchema = incoming;
 	}
 
-	void record(recordData&, ::schemaData&) {
+	void record(const sectionHeader&, const recordData&, const ::schemaData&) {
 		++recordCount;
 	}
 
-	void table(std::string& value, std::string&) {
+	void table(const sectionHeader&, const std::string& value) {
 		tables.push_back(value);
 	}
 };

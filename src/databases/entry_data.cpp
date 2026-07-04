@@ -9,7 +9,7 @@
 
 
 //====================================
-//			File Load/Save
+//				I/O
 //====================================
 void entryDB::loadEntries(std::string file) {
 	fileProcessor parser;
@@ -51,7 +51,7 @@ void entryDB::saveEntries(std::string file) {
 //====================================
 //			Read Handlers
 //====================================
-void entryDB::section(sectionHeader& header) {
+void entryDB::section(const sectionHeader& header) {
 	if (header.type == sectionType::SECTION_DATABASE_RECORDS) {
 		database.reserve(header.recordCount);
 		return;
@@ -77,11 +77,11 @@ void entryDB::section(sectionHeader& header) {
 		}
 	}
 }
-void entryDB::schema(schemaData& schema) {
+void entryDB::schema(const sectionHeader& section, const schemaData& schema) {
 	fieldMap.clear();
 	fieldMap = validateSchema(schema);
 }
-void entryDB::record(recordData& record, schemaData& schema) {
+void entryDB::record(const sectionHeader& section, const recordData& record, const schemaData& schema) {
 
 	// Check For ID, will probably change to check against a map of existing ids to ensure there arent duplicates
 	int id = std::get<int>(record[0]);
@@ -90,7 +90,7 @@ void entryDB::record(recordData& record, schemaData& schema) {
 		throw std::runtime_error("Non-sequential or corrupt ID in file.");
 	}
 
-	entryData anime;
+	Entry anime;
 	for (size_t i = 0; i < fieldMap.size(); i++) {
 			if (auto mPTR = std::get_if<intPTR>(&EntryMeta[fieldMap[i]].ptr)) {
 				if (auto value = std::get_if<std::monostate>(&record[i])) {
@@ -141,11 +141,11 @@ void entryDB::record(recordData& record, schemaData& schema) {
 	database.emplace_back(std::move(anime));
 	idMap.emplace(static_cast<EntryId>(database[index].id), index);
 }
-void entryDB::table(std::string& table, std::string& title) {
-	auto found = lookupTables.find(title);
+void entryDB::table(const sectionHeader& section, const std::string& table) {
+	auto found = lookupTables.find(section.title);
 
 	if (found == lookupTables.end()) {
-		throw std::runtime_error("Lookup table was not initialized: " + title);
+		throw std::runtime_error("Lookup table was not initialized: " + section.title);
 	}
 
 	found->second.push_back(table);
@@ -187,8 +187,7 @@ schemaData entryDB::getSchema(fileType type, size_t sectionIndex) {
 	schemaData result;
 	schemaField buffer;
 
-	for (size_t i = 0; i < EntryMeta.size(); i++)
-	{
+	for (size_t i = 0; i < EntryMeta.size(); i++) {
 		buffer.name = EntryMeta[i].info.name;
 		buffer.type = EntryMeta[i].info.type;
 		buffer.mode = EntryMeta[i].info.mode;
@@ -201,9 +200,10 @@ schemaData entryDB::getSchema(fileType type, size_t sectionIndex) {
 recordData entryDB::getRecord(fileType type, size_t sectionIndex, size_t recordIndex) {
 	recordData result;
 
-	recordField buffer;
 	for (size_t i = 0; i < EntryMeta.size(); i++) {
-		buffer = getField(recordIndex, i);
+		recordField buffer;
+
+		buffer = getField(database[recordIndex].id, i);
 		result.push_back(buffer);
 	}
 
@@ -222,8 +222,8 @@ recordData entryDB::getTableRecord(fileType type, size_t sectionIndex, size_t ro
 //====================================
 //			Operations
 //====================================
-void entryDB::addEntry(const entryData& entry) {
-	entryData result = entry;
+void entryDB::addEntry(const Entry& entry) {
+	Entry result = entry;
 
 	try {
 		result.id = addId();
@@ -322,10 +322,10 @@ void entryDB::updateEntry(const std::vector<EntryUpdate>& updates) {
 		}
 	}
 }
-std::vector<entryData> entryDB::getEntry(std::vector<EntryId> ids) {
+std::vector<Entry> entryDB::getEntry(std::vector<EntryId> ids) {
 	if (ids.size() == 1 and ids[0] == 0) { return database; }
 
-	std::vector<entryData> result;
+	std::vector<Entry> result;
 	for (EntryId id : ids) {
 		if (auto it = idMap.find(id); it != idMap.end()) {
 			result.push_back(database[it->second]);
@@ -370,7 +370,7 @@ std::vector<EntryId> entryDB::searchEntryTitles(const std::string& term) {
 		return result;
 	}
 
-	for (const entryData& entry : database) {
+	for (const Entry& entry : database) {
 		// Should eventually make this search all string fields in EntryMeta that have a qualifer like "SEARCHABLE"
 		if (normalizeString(entry.title).find(nTerm) != std::string::npos) {
 			result.push_back(entry.id);
@@ -390,7 +390,7 @@ std::vector<EntryId> entryDB::searchEntryTitles(const std::string& term) {
 //====================================
 //			Operation Utilities
 //====================================
-void entryDB::setField(entryData& entry, size_t fieldIndex, const recordField& value) {
+void entryDB::setField(Entry& entry, size_t fieldIndex, const recordField& value) {
 	// Type Dynamic function
 	try {
 		validateField(value, fieldIndex);
@@ -432,7 +432,7 @@ void entryDB::setField(entryData& entry, size_t fieldIndex, const recordField& v
 
 }
 // Can probably re-write to convert scalar inputs to vectors
-void entryDB::addFieldValue(entryData& entry, size_t fieldIndex, const recordField& value) {
+void entryDB::addFieldValue(Entry& entry, size_t fieldIndex, const recordField& value) {
 	// This function only concerns vectors
 	if (!std::holds_alternative<vecPTR>(EntryMeta[fieldIndex].ptr)) {
 		throw std::runtime_error("Add value only works with vector fields: " + EntryMeta[fieldIndex].info.name);
@@ -467,7 +467,7 @@ void entryDB::addFieldValue(entryData& entry, size_t fieldIndex, const recordFie
 		throw; // Rethrow to allow caller to handle as well
 	}
 }
-void entryDB::removeFieldValue(entryData& entry, size_t fieldIndex, const recordField& value) {
+void entryDB::removeFieldValue(Entry& entry, size_t fieldIndex, const recordField& value) {
 	// This function only concerns vectors
 	// Need to first check if the value is a valid one, then we check if it exists in the field. 
 	if (!std::holds_alternative<vecPTR>(EntryMeta[fieldIndex].ptr)) {
@@ -504,7 +504,7 @@ void entryDB::removeFieldValue(entryData& entry, size_t fieldIndex, const record
 		throw; // Rethrow to allow caller to handle as well
 	}
 }
-void entryDB::clearField(entryData& entry, size_t fieldIndex) {
+void entryDB::clearField(Entry& entry, size_t fieldIndex) {
 	// Type Dynamic function
 	if (EntryMeta[fieldIndex].info.presence == fieldPresence::REQUIRED) {
 		throw std::runtime_error("Cannot clear required field: " + EntryMeta[fieldIndex].info.name);
@@ -564,7 +564,7 @@ std::vector<EntryId> entryDB::getFilteredIDS(const FilterRequest& req) const {
 	return processor.query(req, *this);
 }
 // Non Functional
-std::vector<int> entryDB::getSortedIDS() {
+std::vector<EntryId> entryDB::getSortedIDS() {
 
 
 
@@ -604,7 +604,7 @@ void entryDB::constructTableIndexes(IndexStructure& tableIndexes) const {
 			lookupIndex.emplace(lookupId, std::vector<EntryId>{});
 		}
 
-		for (const entryData& entry : database) {
+		for (const Entry& entry : database) {
 			EntryId entryId = static_cast<EntryId>(entry.id);
 
 			if (auto ptr = std::get_if<intPTR>(&meta.ptr)) {
@@ -829,9 +829,10 @@ void entryDB::validateScalar(const int value, const FieldInfo& meta) {
 //====================================
 // Kinda want to re-write cause this uses ai code
 recordField entryDB::getField(size_t id, size_t fieldIndex) const {
-	return getFromEntry(database[id], fieldIndex);
+	size_t index = idMap.at(id);
+	return getFromEntry(database[index], fieldIndex);
 }
-recordField entryDB::getFromEntry(const entryData& entry, const size_t fieldIndex) const {
+recordField entryDB::getFromEntry(const Entry& entry, const size_t fieldIndex) const {
 	recordField result;
 
 	const memPTR& ptr = EntryMeta[fieldIndex].ptr;
@@ -876,10 +877,10 @@ std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<Ent
 	result.insert(result.end(), buffer.begin(), buffer.end());
 	buffer.clear();
 
-	std::vector<entryData> entries = db.getEntry(ids);
+	std::vector<Entry> entries = db.getEntry(ids);
 
-	for (const entryData& entry : entries) {
-		buffer = Entry(entry);
+	for (const Entry& entry : entries) {
+		buffer = serializeEntry(entry);
 		result.insert(result.end(), buffer.begin(), buffer.end());
 		buffer.clear();
 	}
@@ -897,8 +898,8 @@ std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
 
 	return writer.buffer;
 }
-entryData entrySerializer::readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices) {
-	entryData result;
+Entry entrySerializer::readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices) {
+	Entry result;
 
 	for (size_t i = 0; i < fieldIndices.size(); i++) {
 		switch (EntryMeta[fieldIndices[i]].info.type) {
@@ -939,7 +940,7 @@ std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
 
 	return writer.buffer;
 }
-std::vector<uint8_t> entrySerializer::Entry(const entryData& entry) {
+std::vector<uint8_t> entrySerializer::serializeEntry(const Entry& entry) {
 	ByteWriter writer;
 
 	for (size_t i = 0; i < EntryMeta.size(); i++) {
@@ -1103,7 +1104,7 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 
 			for (size_t i = 0; i < recordCount; i++) {
 				try {
-					entryData newEntry = serializer.readEntry(reader, fieldIndices);
+					Entry newEntry = serializer.readEntry(reader, fieldIndices);
 					context.entries.addEntry(newEntry);
 				}
 				catch (const std::exception& e) {

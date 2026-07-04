@@ -25,15 +25,15 @@ struct StressHandler {
 	std::vector<ParsedRecord> records;
 	std::vector<std::string> tables;
 
-	void section(sectionHeader& section) {
+	void section(const sectionHeader& section) {
 		lastSection = section;
 	}
 
-	void schema(schemaData& schema) {
+	void schema(const sectionHeader&, const schemaData& schema) {
 		lastSchema = schema;
 	}
 
-	void record(recordData& record, schemaData&) {
+	void record(const sectionHeader&, const recordData& record, const schemaData&) {
 		ParsedRecord parsed;
 		parsed.id = std::get<int>(record.at(0));
 		parsed.title = std::get<std::string>(record.at(1));
@@ -43,7 +43,7 @@ struct StressHandler {
 		records.push_back(std::move(parsed));
 	}
 
-	void table(std::string& value, std::string&) {
+	void table(const sectionHeader&, const std::string& value) {
 		tables.push_back(value);
 	}
 };
