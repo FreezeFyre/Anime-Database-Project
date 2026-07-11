@@ -26,7 +26,9 @@ enum class ACTION_TYPE : uint8_t {
 	ACT_SEARCH = 5,
 	ACT_SORT = 6,
 	ACT_APPLY = 7,
-	ACT_FILTER = 8
+	ACT_FILTER = 8,
+	ACT_LOGIN = 9,
+	ACT_LOGOUT = 10
 };
 enum class DOMAIN_TYPE : uint8_t {
 	ENTRY = 1,

@@ -25,7 +25,8 @@ enum class UserRole : uint8_t {
 enum class LoginProvider : uint8_t {
 	PASSWORD = 0,
 	GOOGLE = 1,
-	APPLE = 2
+	APPLE = 2,
+	GITHUB = 3
 };
 
 struct User {
@@ -70,30 +71,15 @@ struct IdentityField {
 	UserIdentityMemPtr ptr;
 };
 inline const std::array<IdentityField, 8> UserIdentityMeta = {
-	{{{"id", schemaField::dataType::U32, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED, ValueRef::NONE,
-	   std::nullopt, ""},
-	  &UserIdentity::id},
-	 {{"user_id", schemaField::dataType::U32, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED, ValueRef::NONE,
-	   std::nullopt, ""},
-	  &UserIdentity::userId},
-	 {{"provider", schemaField::dataType::U8, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,
-	   ValueRef::NONE, std::nullopt, ""},
-	  &UserIdentity::provider},
-	 {{"login_key", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,
-	   ValueRef::NONE, std::nullopt, ""},
-	  &UserIdentity::loginKey},
-	 {{"email", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,
-	   std::nullopt, ""},
-	  &UserIdentity::email},
-	 {{"provider_user_id", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL,
-	   ValueRef::NONE, std::nullopt, ""},
-	  &UserIdentity::providerUserId},
-	 {{"password_hash", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL,
-	   ValueRef::NONE, std::nullopt, ""},
-	  &UserIdentity::passwordHash},
-	 {{"disabled", schemaField::dataType::U8, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED, ValueRef::NONE,
-	   std::nullopt, ""},
-	  &UserIdentity::disabled}}};
+	{{{"id",               schemaField::dataType::U32, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::id             },
+	 {{"user_id",          schemaField::dataType::U32, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::userId         },
+	 {{"provider",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::provider       },
+	 {{"login_key",        schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::loginKey       },
+	 {{"email",            schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL, ValueRef::NONE, std::nullopt, ""},&UserIdentity::email          },
+	 {{"provider_user_id", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL, ValueRef::NONE, std::nullopt, ""},&UserIdentity::providerUserId },
+	 {{"password_hash",    schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL, ValueRef::NONE, std::nullopt, ""},&UserIdentity::passwordHash   },
+	 {{"disabled",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::disabled       }
+	}};
 std::unordered_map<std::string, size_t> buildIdentityFieldNames(); 
 inline const std::unordered_map<std::string, size_t> identityNameMap = buildIdentityFieldNames();
 
@@ -119,13 +105,19 @@ class userDB {
 		// Mutate Operations
 		void addUser(const User& user);
 		void elevateUser(UserId id, UserRole newRole);
+		void addIdentity(const UserIdentity& identity);
 
 		// Query Operations
+	    const UserIdentity& getIdentity(IdentityId id) const;
+	    const UserIdentity& getIdentity(size_t index) const;
+		IdentityId getIdentityId_LoginKey(const std::string& loginKey) const;
+
 
 
 		// Indexing
 		void constructUserIdMap(std::unordered_map<UserId, size_t>& userIdMap) const;
 		void constructIdentityIdMap(std::unordered_map<IdentityId, size_t>& identityIdMap) const;
+	    std::unordered_map<std::string, IdentityId> constructKeyMap(LoginProvider provider);
 
 
 		// Validation
@@ -139,7 +131,6 @@ class userDB {
 		recordField getFromUser(const User& user, const size_t fieldIndex) const;
 		recordField getFromIdentity(const UserIdentity& identity, const size_t fieldIndex) const;
 
-
 	private:
 		UserId nextUserId = 1;
 		IdentityId nextIdentityId = 1;
@@ -148,6 +139,7 @@ class userDB {
 		std::unordered_map<UserId, size_t> userIdMap;
 		std::unordered_map<IdentityId, size_t> identityIdMap;
 
+		std::unordered_map<std::string, IdentityId> passwordMap;
 
 		std::vector<size_t> userFieldMap;
 		std::vector<size_t> identityFieldMap;

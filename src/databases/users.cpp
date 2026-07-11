@@ -15,6 +15,7 @@ void userDB::load(const std::string& filename) {
 		f.readFile(filename, *this, fileType::HEADER_DATABASE);
 		constructUserIdMap(userIdMap);
 		constructIdentityIdMap(identityIdMap);
+		passwordMap = constructKeyMap(LoginProvider::PASSWORD);
 	} catch (const std::exception& e) {
 		std::cerr << "Error Loading User Database: " << e.what() << "\n";
 	}
@@ -279,11 +280,41 @@ void userDB::elevateUser(UserId id, UserRole newRole) {
 	}
 	users[it->second].role = newRole;
 }
+void userDB::addIdentity(const UserIdentity& identity) {
+	if (identityIdMap.find(identity.id) != identityIdMap.end()) {
+		throw std::runtime_error("Identity with ID " + std::to_string(identity.id) + " already exists.");
+	}
+	size_t index = identities.size();
+	identities.push_back(identity);
+	identityIdMap[identity.id] = index;
+}
+
 
 
 //====================================
 //			Query Operations
 //====================================
+const UserIdentity& userDB::getIdentity(IdentityId id) const {
+	auto it = identityIdMap.find(id);
+	if (it == identityIdMap.end()) {
+		throw std::runtime_error("Identity with ID " + std::to_string(id) + " does not exist.");
+	}
+	return identities[it->second];
+}
+const UserIdentity& userDB::getIdentity(size_t index) const {
+	if (index >= identities.size()) {
+		throw std::runtime_error("Identity index " + std::to_string(index) + " is out of bounds.");
+	}
+	return identities[index];
+}
+IdentityId userDB::getIdentityId_LoginKey(const std::string& loginKey) const {
+	auto it = passwordMap.find(loginKey);
+	if (it == passwordMap.end()) {
+		throw std::runtime_error("User Identity key: " + loginKey + " does not exist. \n");
+	}
+	return it->second;
+}
+
 
 
 
@@ -301,6 +332,20 @@ void userDB::constructIdentityIdMap(std::unordered_map<IdentityId, size_t>& iden
 	for (size_t i = 0; i < identities.size(); i++) {
 		identityIdMap.emplace(identities[i].id, i);
 	}
+}
+std::unordered_map<std::string, IdentityId> userDB::constructKeyMap(LoginProvider provider) {
+	std::unordered_map<std::string, IdentityId> result;
+
+	for (const UserIdentity& identity : identities) {
+		if (identity.provider == provider) {
+			result[identity.email] = identity.id;
+			result[identity.loginKey] = identity.id;
+		} else {
+			continue;
+		}
+	}
+		
+	return result;
 }
 
 

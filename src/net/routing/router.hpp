@@ -22,11 +22,15 @@
 // Temporary context stuff, move to app
 #include "../../databases/entry_data.hpp"
 #include "../../filtering/filterProcessor.hpp"
+#include "../../core.hpp"
+#include "../../databases/users.hpp"
 #include "../protocol/data.hpp"
+#include "../../databases/auth/auth_service.hpp"
 
 struct Context {
 	entryDB entries;
 	filterProcessor fltrSrvc;
+	userDB users;
 };
 /*
 
