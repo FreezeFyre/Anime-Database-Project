@@ -1,0 +1,8 @@
+{
+  "name": "anime-database-project",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "argon2"
+  ],
+  "builtin-baseline": "f87344cac03158cbf1467264565f1fd36b382a24"
+}

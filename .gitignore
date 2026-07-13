@@ -42,6 +42,8 @@ build-*/
 CMakeFiles/
 CMakeCache.txt
 cmake-build-*/
+vcpkg/
+vcpkg_installed/
 
 # ========================
 # macOS and Windows clutter

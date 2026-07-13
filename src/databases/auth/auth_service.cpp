@@ -1,12 +1,13 @@
 #include "auth_service.hpp"
 
+#include "../../net/routing/router.hpp"
 
-
+Auth::Auth(Context& context) : context(context) {}
 
 AuthResult Auth::login(const LoginRequest& request) {
 	switch (request.provider) {
 		case LoginProvider::PASSWORD: {
-			return password(request.loginKey, request.secret);
+			return password(passwordService, request);
 			break;
 		}
 		//case LoginProvider::GOOGLE:
@@ -20,6 +21,17 @@ AuthResult Auth::login(const LoginRequest& request) {
 	}
 }
 
+AuthResult Auth::create(const CreateAccountRequest& request) {
+	switch (request.provider) {
+		case LoginProvider::PASSWORD: {
+			context.users.createAccount(request, passwordService.hash(request.secret));
+			return {true, std::nullopt, UserRole::VIEWER, ""};
+		}
+		default:
+			return {false, std::nullopt, UserRole::VIEWER, "Unsupported login provider."};
+	}
+}
+
 
 AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& request) {
 	AuthResult result;
@@ -27,16 +39,16 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 	result.role = UserRole::VIEWER;
 
 	try {
-		IdentityId identityId = context.userDB.getIdentityId_LoginKey(request.loginKey);
-		const UserIdentity& identity = context.userDB.getIdentity(identityId);
-		const User& user = context.userDB.getUser(identity.userId);
+		IdentityId identityId = context.users.getIdentityId_LoginKey(request.loginKey);
+		const UserIdentity& identity = context.users.getIdentity(identityId);
+		const User& user = context.users.getUser(identity.userId);
 
 		if (identity.disabled || user.disabled) {
 			result.error = "Invalid login.";
 			return result;
 		}
 
-		if (!passwordService.verifyPassword(request.secret, identity.passwordHash)) {
+		if (!passwordService.verifyPassword(request.secret, identity.passwordHash.c_str())) {
 			result.error = "Invalid login.";
 			return result;
 		}
@@ -54,14 +66,13 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 }
 
 
-LoginRequest AuthRouter::readLogin(const uint8_t& bytes) {
+LoginRequest AuthRouter::readLogin(const std::vector<uint8_t>& bytes) {
 	LoginRequest result;
-	ByteReader r;
+	ByteReader r{bytes};
 
-	r.input = bytes;
 	result.provider = static_cast<LoginProvider>(r.U8());
-	result.loginKey = r.STR;
-	result.secret = r.STR;
+	result.loginKey = r.STR();
+	result.secret = r.STR();
 	
 	return result;
 }
@@ -87,7 +98,9 @@ RouteResult AuthRouter::route(Message& message, Context& context) {
 		
 			break;
 		}
-		default:
+		default: {
+			break;
+		}
 	}
 
 

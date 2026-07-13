@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 enable_testing()
 
+find_package(unofficial-argon2 CONFIG REQUIRED)
+
 if(WIN32)
 	list(APPEND PROJECT_COMMON_LIBS Ws2_32 Bcrypt)
 endif()
@@ -23,6 +25,8 @@ set(PROJECT_CORE_SOURCES
 	"src/net/websocket/base64.cpp"
 	"src/databases/users.cpp"
 	"src/databases/groups.cpp"
+	"src/databases/auth/password.cpp"
+	"src/databases/auth/auth_service.cpp"
 )
 
 set(PROJECT_ENTRY_TEST_SOURCES
@@ -41,7 +45,7 @@ add_executable(anime_database_project
 )
 
 target_include_directories(anime_database_project PRIVATE include)
-target_link_libraries(anime_database_project PRIVATE ${PROJECT_COMMON_LIBS})
+target_link_libraries(anime_database_project PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)
 
 add_executable(parser_stress_test
 	"src/tests/parser_stress_test.cpp"

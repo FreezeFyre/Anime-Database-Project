@@ -47,6 +47,20 @@ struct UserIdentity {
 	bool disabled = false;
 };
 
+struct CreateAccountRequest {
+	LoginProvider provider;
+	std::string loginKey;
+	std::string secret;
+	std::string email; // Optional, only used for password provided login. Must be requested for providers.
+	std::string displayName;
+};
+
+struct LoginRequest {
+	LoginProvider provider;
+	std::string loginKey;
+	std::string secret;
+};
+
 
 using UserMemPtr = std::variant<UserId User::*, std::string User::*, UserRole User::*, bool User::*>;
 
@@ -106,13 +120,14 @@ class userDB {
 		void addUser(const User& user);
 		void elevateUser(UserId id, UserRole newRole);
 		void addIdentity(const UserIdentity& identity);
+	    void createAccount(const CreateAccountRequest& request, const std::string& argon_password);
 
 		// Query Operations
+	    const User& getUser(UserId id) const;
+	    const User& getUser(size_t index) const;
 	    const UserIdentity& getIdentity(IdentityId id) const;
 	    const UserIdentity& getIdentity(size_t index) const;
 		IdentityId getIdentityId_LoginKey(const std::string& loginKey) const;
-
-
 
 		// Indexing
 		void constructUserIdMap(std::unordered_map<UserId, size_t>& userIdMap) const;

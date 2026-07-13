@@ -288,12 +288,55 @@ void userDB::addIdentity(const UserIdentity& identity) {
 	identities.push_back(identity);
 	identityIdMap[identity.id] = index;
 }
+void userDB::createAccount(const CreateAccountRequest& request, const std::string& argon_password) {
+	User user;
+	UserIdentity identity;
+	
 
+	// this all should work but i need to add duplicate verification and such, also need to add other login methods
+	user.id = nextUserId;
+	nextUserId++;
+	identity.userId = user.id;
+	identity.id = nextIdentityId;
+	nextIdentityId++;
+
+	user.displayName = request.displayName;
+	identity.provider = request.provider;
+	identity.loginKey = request.loginKey;
+
+	switch (request.provider) {
+		case LoginProvider::PASSWORD: {
+			identity.passwordHash = argon_password;
+			identity.email = request.email;
+			passwordMap[request.email] = identity.id;
+			passwordMap[request.loginKey] = identity.id;
+			break;
+		}
+		default:
+			throw std::runtime_error("Invalid login provider for creating a account \n");
+	}
+
+	addUser(user);
+	addIdentity(identity);
+}
 
 
 //====================================
 //			Query Operations
 //====================================
+const User& userDB::getUser(UserId id) const {
+	auto it = userIdMap.find(id);
+	if (it == userIdMap.end()) {
+		throw std::runtime_error("User with ID " + std::to_string(id) + " does not exist.");
+	}
+	return users[it->second];
+}
+const User& userDB::getUser(size_t index) const {
+	if (index >= users.size()) {
+		throw std::runtime_error("User index " + std::to_string(index) + " is out of bounds.");
+	}
+	return users[index];
+}
 const UserIdentity& userDB::getIdentity(IdentityId id) const {
 	auto it = identityIdMap.find(id);
 	if (it == identityIdMap.end()) {
