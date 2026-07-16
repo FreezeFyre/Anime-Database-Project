@@ -1,6 +1,12 @@
 #include "data.hpp"
 
 
+
+
+void ByteWriter::BOOL(bool value) {
+	U8(value ? 1 : 0);
+}
+
 void ByteWriter::U8(uint8_t value) {
 	buffer.push_back(value);
 }
@@ -50,6 +56,10 @@ void ByteWriter::VECU8(const std::vector<int>& vec) {
 	}
 }
 
+
+bool ByteReader::BOOL() {
+    return U8() != 0;
+}
 
 
 uint8_t ByteReader::U8() {

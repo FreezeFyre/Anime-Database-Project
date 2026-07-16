@@ -107,6 +107,7 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 		size_t index = users.size();
 		users.emplace_back(std::move(user));
 		userIdMap.emplace(static_cast<UserId>(users[index].id), index);
+		nextUserId++;
 	} else if (section.title == "IDENTITY_DATA") {
 		UserIdentity identity;
 
@@ -153,6 +154,7 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 		size_t index = identities.size();
 		identities.emplace_back(std::move(identity));
 		identityIdMap.emplace(static_cast<IdentityId>(identities[index].id), index);
+		nextIdentityId++;
 	} else {
 		throw std::runtime_error("Unknown section title for user database: " + section.title);
 	}
@@ -381,7 +383,9 @@ std::unordered_map<std::string, IdentityId> userDB::constructKeyMap(LoginProvide
 
 	for (const UserIdentity& identity : identities) {
 		if (identity.provider == provider) {
-			result[identity.email] = identity.id;
+			if (validateEmail(identity.email)) {
+				result[identity.email] = identity.id;
+			}
 			result[identity.loginKey] = identity.id;
 		} else {
 			continue;

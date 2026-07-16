@@ -66,7 +66,41 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 }
 
 
-LoginRequest AuthRouter::readLogin(const std::vector<uint8_t>& bytes) {
+
+
+RouteResult AuthRouter::route(Message& message, Context& context) {
+	RouteResult result;
+
+	auth.context = context;
+
+	MessageCodec codec;
+	ByteReader reader{ message.payload };
+	std::vector<uint8_t> buffer;
+
+	switch (message.action) {
+		case ACTION_TYPE::ACT_LOGIN: {
+			std::vector<uint8_t> authResult = serializer.authResult(auth.login(serializer.readLogin(message.payload)));
+			break;
+		}
+		case ACTION_TYPE::ACT_LOGOUT: { 
+			std::vector<uint8_t> authResult = serializer.authResult(auth.logout());
+			break;
+		}
+		case ACTION_TYPE::ACT_CREATE: { 
+			std::vector<uint8_t> authResult = serializer.authResult(auth.create(serializer.readCreateAccount(message.payload)));
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+
+
+	return result;
+}
+
+
+LoginRequest AuthSerializer::readLogin(const std::vector<uint8_t>& bytes) {
 	LoginRequest result;
 	ByteReader r{bytes};
 
@@ -77,32 +111,32 @@ LoginRequest AuthRouter::readLogin(const std::vector<uint8_t>& bytes) {
 	return result;
 }
 
+CreateAccountRequest AuthSerializer::readCreateAccount(const std::vector<uint8_t>& bytes) {
+	CreateAccountRequest result;
+	ByteReader r{bytes};
 
-RouteResult AuthRouter::route(Message& message, Context& context) {
-	RouteResult result;
-
-	MessageCodec codec;
-	ByteReader reader{ message.payload };
-	std::vector<uint8_t> buffer;
-
-	switch (message.action) {
-		case ACTION_TYPE::ACT_LOGIN: {
-
-			break;
-		}
-		case ACTION_TYPE::ACT_LOGOUT: { 
-		
-			break;
-		}
-		case ACTION_TYPE::ACT_CREATE: { 
-		
-			break;
-		}
-		default: {
-			break;
-		}
-	}
-
+	result.provider = static_cast<LoginProvider>(r.U8());
+	result.loginKey = r.STR();
+	result.secret = r.STR();
+	result.email = r.STR();
+	result.displayName = r.STR();
 
 	return result;
+}
+
+
+std::vector<uint8_t> AuthSerializer::authResult(const AuthResult& result)  {
+	ByteWriter w;
+	
+	w.BOOL(result.success);
+	if (result.userId.has_value()) {
+		w.BOOL(true);
+		w.U32(static_cast<uint32_t>(result.userId.value()));
+	} else {
+		w.BOOL(false);
+	}
+	w.U8(static_cast<uint8_t>(result.role));
+	w.STR(result.error);
+
+	return w.buffer;
 }

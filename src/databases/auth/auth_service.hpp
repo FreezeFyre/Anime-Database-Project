@@ -19,7 +19,6 @@ struct AuthResult {
 	std::string error;
 };
 
-
 class Auth {
 	public:
 		Context& context;
@@ -28,6 +27,8 @@ class Auth {
 		explicit Auth(Context& context);
 
 		AuthResult login(const LoginRequest& request);
+
+		AuthResult logout();
 
 		AuthResult create(const CreateAccountRequest& request);
 
@@ -40,19 +41,24 @@ class Auth {
 
 };
 
-class AuthRouter {
-	public:
-		RouteResult route(Message& message, Context& context);
-
-	private:
-		LoginRequest readLogin(const std::vector<uint8_t>& bytes);
-};
 
 class AuthSerializer {
 	public:
+	    LoginRequest readLogin(const std::vector<uint8_t>& bytes);
+		CreateAccountRequest readCreateAccount(const std::vector<uint8_t>& bytes);
+
+		std::vector<uint8_t> authResult(const AuthResult& result);
+
 
 };
 
+class AuthRouter {
+	Auth auth;
+	AuthSerializer serializer;
+
+	public:
+		RouteResult route(Message& message, Context& context);
+};
 // Possible auth messages are Logging in, creating a account, and logging out,
 // a login request should be a Uint8_t for provider then a string that holds the login key and a string that holds the secret
 // a create account request should include a uin8_t for provider, a string for login key, a string for secret and a optional string for email

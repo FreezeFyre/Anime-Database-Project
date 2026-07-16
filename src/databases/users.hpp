@@ -139,6 +139,10 @@ class userDB {
 		bool validatePresence(const recordField& field, const FieldInfo& info) const;
 		std::vector<size_t> validateUserSchema(const schemaData& schema) const;
 		std::vector<size_t> validateIdentitySchema(const schemaData& schema) const;
+	    bool validateUserIds() const;
+	    bool validateIdentityIds() const;
+	    bool validateEmail(const std::string& email) const;
+
 
 		// Utilities
 		recordField getUserField(size_t id, size_t fieldIndex) const;

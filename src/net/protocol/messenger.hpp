@@ -35,6 +35,7 @@ enum class DOMAIN_TYPE : uint8_t {
 	GROUPS = 2,
 	CHARACTERS = 3,
 	FILTERS = 4,
+	USERS = 9,
 	AUTH = 10
 };
 

@@ -4,7 +4,7 @@ RouteResult Router::route(Message& message, Context& context) {
 	RouteResult result;
 
 	entryRouter eRoute;
-	AuthRouter authRoute;
+	AuthRouter aRoute;
 
 	ByteReader reader{ message.payload };
 	// This is where the routing logic will go, for now it just prints the message type
@@ -24,7 +24,7 @@ RouteResult Router::route(Message& message, Context& context) {
 			case DOMAIN_TYPE::AUTH:
 				// Handle auth domain actions
 
-				return authRoute.route(message, context);
+				return aRoute.route(message, context);
 
 				break;
 			default:

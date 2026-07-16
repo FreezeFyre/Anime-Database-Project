@@ -13,7 +13,8 @@
 class ByteWriter {
 public:
 	std::vector<uint8_t> buffer;
-
+	
+	void BOOL(bool value);
 	void U8(uint8_t value);
 	void U16(uint16_t value);
 	void U32(uint32_t value); 
@@ -36,6 +37,7 @@ public:
 	const std::vector<uint8_t>& input;
 	size_t offset = 0;
 
+	bool BOOL();
 	uint8_t U8();
 	uint16_t U16();
 	uint32_t U32();
