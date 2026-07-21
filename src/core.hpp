@@ -9,6 +9,16 @@
 
 #include "io/fileHandling.hpp"
 
+using UserId = uint32_t;
+using IdentityId = uint32_t;
+using SessionId = uint32_t;
+
+enum class UserRole : uint8_t {
+	VIEWER = 0,
+	EDITOR = 1,
+	ADMIN = 2
+};
+
 enum class fieldPresence {
 	REQUIRED,
 	RECOMMENDED,

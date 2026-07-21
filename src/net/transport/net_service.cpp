@@ -62,6 +62,9 @@ void NetService::start(uint16_t port) {
 		return;
 	}
 
+
+
+
 	// Rebuild to use multithreading and allow multiple clients
 	while (running) {
 		SocketHandle ClientSocket = InvalidSocket;
@@ -75,8 +78,12 @@ void NetService::start(uint16_t port) {
 			return;
 		}
 
-		clientHandler(ClientSocket);
-
+		try {
+			std::thread clientWorker(&NetService::clientHandler, this, ClientSocket);
+			clientWorker.detach();
+		} catch (std::system_error const &e) {
+			std::cerr << e.what() << std::endl;
+		}
 	}
 
 	// Socket closing should be handled by stop function and errors
@@ -91,7 +98,6 @@ void NetService::clientHandler(SocketHandle ClientSocket) {
 		closeSocket(ClientSocket);
 		return;
 	}
-
 	Session session;
 
 

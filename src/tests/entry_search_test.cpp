@@ -35,8 +35,8 @@ void seedEntries(entryDB& db) {
 		std::filesystem::path(__FILE__).parent_path().parent_path() / "io" / "animeLookupTables.1.dat";
 
 	db.loadLookupTables(lookupPath.string());
-	db.addEntry(makeEntry("Frieren: Beyond Journey's End", "Sousou no Frieren"));
-	db.addEntry(makeEntry("Kaguya-sama: Love is War", "Kaguya-sama wa Kokurasetai"));
+	db.addEntry(makeEntry("Frieren: Beyond Journey's End", "Sousou no Frieren"), UserRole::ADMIN);
+	db.addEntry(makeEntry("Kaguya-sama: Love is War", "Kaguya-sama wa Kokurasetai"), UserRole::ADMIN);
 }
 
 bool contains(const std::vector<EntryId>& ids, EntryId id) {
@@ -81,7 +81,8 @@ void searchRouteReturnsEncodedIds() {
 	);
 
 	entryRouter router;
-	RouteResult routeResult = router.route(request, context);
+	Session session;
+	RouteResult routeResult = router.route(request, context, session);
 
 	assert(routeResult.message.comType == COM_TYPE::RESP);
 	assert(routeResult.message.domain == DOMAIN_TYPE::ENTRY);

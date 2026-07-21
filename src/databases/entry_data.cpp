@@ -1059,7 +1059,11 @@ RouteResult entryRouter::route(Message& message, Context& context, Session& sess
 			std::vector<EntryId> reqIds = reader.VECU32(); // Convert into a usable vector of ids or single id
 
 			try {
-				buffer = serializer.payload(context.entries, reqIds);
+				// Shared Mutex Lock
+				{
+					std::shared_lock lock(context.entriesMutex);
+					buffer = serializer.payload(context.entries, reqIds);
+				}
 			}
 			catch (const std::exception& e) {
 				std::cerr << "Error generating payload: " << e.what() << "\n";
@@ -1083,7 +1087,11 @@ RouteResult entryRouter::route(Message& message, Context& context, Session& sess
 					updates.push_back(serializer.translateUpdate(update));
 				}
 
-				context.entries.updateEntry(updates, session.role);
+				// Exclusive Mutex Lock
+				{
+					std::unique_lock lock(context.entriesMutex);
+					context.entries.updateEntry(updates, session.role);
+				}
 			}
 			catch (const std::exception& e) {
 				std::cerr << "Error updating entries: " << e.what() << "\n";
@@ -1111,15 +1119,21 @@ RouteResult entryRouter::route(Message& message, Context& context, Session& sess
 
 			size_t recordCount = reader.U32();
 
-			for (size_t i = 0; i < recordCount; i++) {
-				try {
-					Entry newEntry = serializer.readEntry(reader, fieldIndices);
-					context.entries.addEntry(newEntry, session.role);
-				}
-				catch (const std::exception& e) {
-					std::cerr << "Error adding entry: " << e.what() << "\n";
-					std::string errorMsg = "Error adding entry: " + std::string(e.what());
-					return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
+			// Exclusive Mutex Lock
+			// might want to change my approach to exclude serialization
+			{
+				std::unique_lock lock(context.entriesMutex);
+				for (size_t i = 0; i < recordCount; i++) {
+					try {
+						Entry newEntry = serializer.readEntry(reader, fieldIndices);
+						
+						context.entries.addEntry(newEntry, session.role);
+						
+					} catch (const std::exception& e) {
+						std::cerr << "Error adding entry: " << e.what() << "\n";
+						std::string errorMsg = "Error adding entry: " + std::string(e.what());
+						return {codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id,static_cast<uint32_t>(errorMsg.size()),std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())),false};
+					}
 				}
 			}
 			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}) , false};
@@ -1130,7 +1144,11 @@ RouteResult entryRouter::route(Message& message, Context& context, Session& sess
 			EntryId deleteId = reader.U32();
 
 			try {
-				context.entries.deleteEntry(deleteId, session.role);
+				// Exclusive Mutex Lock
+				{
+					std::unique_lock lock(context.entriesMutex);
+					context.entries.deleteEntry(deleteId, session.role);
+				}
 			}
 			catch (const std::exception& e) {
 				std::cerr << "Error deleting entry: " << e.what() << "\n";
@@ -1144,7 +1162,11 @@ RouteResult entryRouter::route(Message& message, Context& context, Session& sess
 		case ACTION_TYPE::ACT_SEARCH: {
 			std::vector<EntryId> entries;
 			try {
-				entries = context.entries.searchEntryTitles(reader.STR());
+				// Shared Mutex Lock
+				{
+					std::shared_lock lock(context.entriesMutex);
+					entries = context.entries.searchEntryTitles(reader.STR());
+				}
 			}
 			catch (const std::exception& e) {
 				std::cerr << "Error searching entries: " << e.what() << "\n";
@@ -1162,7 +1184,12 @@ RouteResult entryRouter::route(Message& message, Context& context, Session& sess
 			filterProcessor processor;
 			std::vector<EntryId> entries;
 			try {
-				entries = context.entries.getFilteredIDS(processor.decode(reader));
+				// Shared Mutex Lock
+				FilterRequest req = processor.decode(reader);
+				{
+					std::shared_lock lock(context.entriesMutex);
+					entries = context.entries.getFilteredIDS(req);
+				}
 			} catch (const std::exception& e) {
 				std::cerr << "Error filtering entries: " << e.what() << "\n";
 				std::string errorMsg = "Error filtering entries: " + std::string(e.what());

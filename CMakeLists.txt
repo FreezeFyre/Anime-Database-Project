@@ -42,7 +42,7 @@ set(PROJECT_ENTRY_TEST_SOURCES
 add_executable(anime_database_project
 	"src/main.cpp"
 	${PROJECT_CORE_SOURCES}
- "src/net/transport/session.cpp")
+ "src/net/transport/session.cpp" "src/net/resource_manager/resource_manager.cpp")
 
 target_include_directories(anime_database_project PRIVATE include)
 target_link_libraries(anime_database_project PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)
@@ -57,7 +57,7 @@ add_custom_command(TARGET anime_database_project POST_BUILD
 add_executable(parser_stress_test
 	"src/tests/parser_stress_test.cpp"
 	"src/io/fileHandling.cpp"
- "src/net/transport/session.cpp")
+ "src/net/transport/session.cpp" "src/net/resource_manager/resource_manager.cpp")
 
 target_link_libraries(parser_stress_test PRIVATE ${PROJECT_COMMON_LIBS})
 
@@ -66,21 +66,21 @@ add_test(NAME parser_stress_test COMMAND parser_stress_test)
 add_executable(parser_fuzz_test
 	"src/tests/parser_fuzz_test.cpp"
 	"src/io/fileHandling.cpp"
- "src/net/transport/session.cpp")
+ "src/net/transport/session.cpp" "src/net/resource_manager/resource_manager.cpp")
 
 target_link_libraries(parser_fuzz_test PRIVATE ${PROJECT_COMMON_LIBS})
 
 add_executable(entry_update_test
 	"src/tests/entry_update_test.cpp"
 	${PROJECT_ENTRY_TEST_SOURCES}
- "src/net/transport/session.cpp")
+ "src/net/transport/session.cpp" "src/net/resource_manager/resource_manager.cpp")
 
 target_link_libraries(entry_update_test PRIVATE ${PROJECT_COMMON_LIBS})
 
 add_executable(entry_search_test
 	"src/tests/entry_search_test.cpp"
 	${PROJECT_ENTRY_TEST_SOURCES}
- "src/net/transport/session.cpp")
+ "src/net/transport/session.cpp" "src/net/resource_manager/resource_manager.cpp")
 
 target_link_libraries(entry_search_test PRIVATE ${PROJECT_COMMON_LIBS})
 

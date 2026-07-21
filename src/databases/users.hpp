@@ -12,23 +12,12 @@
 
 #include "../io/fileHandling.hpp"
 #include "../core.hpp"
-#include "../net/transport/session.hpp"
-
-
-using UserId = uint32_t;
-using IdentityId = uint32_t;
 
 enum class LoginProvider : uint8_t {
 	PASSWORD = 0,
 	GOOGLE = 1,
 	APPLE = 2,
 	GITHUB = 3
-};
-
-enum class UserRole : uint8_t {
-	VIEWER = 0,
-	EDITOR = 1,
-	ADMIN = 2
 };
 
 struct User {

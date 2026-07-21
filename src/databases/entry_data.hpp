@@ -20,6 +20,8 @@
 #include <array>
 #include <typeinfo>
 #include <optional>
+#include <shared_mutex>
+#include <mutex>
 
 #include "../io/fileHandling.hpp"
 #include "../core.hpp"

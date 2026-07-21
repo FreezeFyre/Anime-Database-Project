@@ -1,9 +1,7 @@
 #pragma once
 
 #include <optional>
-#include "../../databases/users.hpp"
-
-using SessionId = uint32_t;
+#include "../../core.hpp"
 
 struct Session {
 	bool signedIn = false;

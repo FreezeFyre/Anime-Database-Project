@@ -15,6 +15,8 @@
 #include <queue>
 #include <typeinfo>
 
+#include <shared_mutex>
+
 #include "../protocol/messenger.hpp"
 
 
@@ -30,8 +32,11 @@
 
 struct Context {
 	entryDB entries;
-	filterProcessor fltrSrvc;
+	filterProcessor filterService;
 	userDB users;
+
+	mutable std::shared_mutex entriesMutex;
+	mutable std::shared_mutex usersMutex;
 };
 /*
 

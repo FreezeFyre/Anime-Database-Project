@@ -38,7 +38,7 @@ entryDB makeDbWithEntry() {
 		std::filesystem::path(__FILE__).parent_path().parent_path() / "io" / "animeLookupTables.1.dat";
 
 	db.loadLookupTables(lookupPath.string());
-	db.addEntry(makeEntry());
+	db.addEntry(makeEntry(), UserRole::ADMIN);
 	return db;
 }
 
@@ -65,7 +65,7 @@ void appliesSupportedUpdateOps() {
 		EntryUpdate{ firstGeneratedId, UpdateOp::ADD_VALUE, 6, std::vector<int>{ 1, 2 } },
 		EntryUpdate{ firstGeneratedId, UpdateOp::REMOVE_VALUE, 6, std::vector<int>{ 0 } },
 		EntryUpdate{ firstGeneratedId, UpdateOp::CLEAR_FIELD, 3, std::monostate{} },
-	});
+	}, UserRole::ADMIN);
 
 	const Entry updated = db.getEntry({ firstGeneratedId }).front();
 	assert(updated.title == "Updated Title");
@@ -80,23 +80,23 @@ void rejectsUnsupportedOrInvalidUpdates() {
 	entryDB db = makeDbWithEntry();
 
 	expectThrows("id update", [&] {
-		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::SET_FIELD, 0, 99 } });
+		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::SET_FIELD, 0, 99 } }, UserRole::ADMIN);
 	});
 
 	expectThrows("rank update", [&] {
-		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::SET_FIELD, 1, 1 } });
+		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::SET_FIELD, 1, 1 } }, UserRole::ADMIN);
 	});
 
 	expectThrows("clear required field", [&] {
-		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::CLEAR_FIELD, 2, std::monostate{} } });
+		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::CLEAR_FIELD, 2, std::monostate{} } }, UserRole::ADMIN);
 	});
 
 	expectThrows("add value to scalar field", [&] {
-		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::ADD_VALUE, 10, std::vector<int>{ 1 } } });
+		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::ADD_VALUE, 10, std::vector<int>{ 1 } } }, UserRole::ADMIN);
 	});
 
 	expectThrows("lookup value out of range", [&] {
-		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::SET_FIELD, 4, 99 } });
+		db.updateEntry({ EntryUpdate{ firstGeneratedId, UpdateOp::SET_FIELD, 4, 99 } }, UserRole::ADMIN);
 	});
 }
 
