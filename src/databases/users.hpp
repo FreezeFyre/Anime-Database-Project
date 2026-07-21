@@ -9,6 +9,8 @@
 #include <unordered_set>
 #include <variant>
 #include <vector>
+#include <shared_mutex>
+#include <mutex>
 
 #include "../io/fileHandling.hpp"
 #include "../core.hpp"

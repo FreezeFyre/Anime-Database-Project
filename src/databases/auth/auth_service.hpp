@@ -1,6 +1,8 @@
 #pragma once
 
 #include <optional>
+#include <shared_mutex>
+#include <mutex>
 
 #include "../../core.hpp"
 #include "../users.hpp"

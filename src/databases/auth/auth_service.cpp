@@ -79,7 +79,7 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 
 
 RouteResult AuthRouter::route(Message& message, Context& context, Session& session) {
-	RouteResult result;
+	RouteResult res;
 
 	Auth auth{context};
 
@@ -89,21 +89,40 @@ RouteResult AuthRouter::route(Message& message, Context& context, Session& sessi
 
 	switch (message.action) {
 		case ACTION_TYPE::ACT_LOGIN: {
-			std::vector<uint8_t> authResult = serializer.authResult(auth.login(serializer.readLogin(message.payload), session));
-			result.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
-			return result;
+			LoginRequest req = serializer.readLogin(message.payload);
+			AuthResult result;
+
+			// Shared Mutex lock
+			{
+				std::shared_lock lock(context.usersMutex);
+				result = auth.login(req, session);
+			}
+			std::vector<uint8_t> authResult = serializer.authResult(result);
+
+			res.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
+			return res;
 			break;
 		}
 		case ACTION_TYPE::ACT_LOGOUT: { 
+
 			std::vector<uint8_t> authResult = serializer.authResult(auth.logout(session));
-			result.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
-			return result;
+			res.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
+			return res;
 			break;
 		}
 		case ACTION_TYPE::ACT_CREATE: { 
-			std::vector<uint8_t> authResult = serializer.authResult(auth.create(serializer.readCreateAccount(message.payload),session));
-			result.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
-			return result;
+			CreateAccountRequest req = serializer.readCreateAccount(message.payload);
+			AuthResult result;
+			
+			// Exclusive Mutex Lock 
+			{
+				std::unique_lock lock(context.usersMutex);
+				result = auth.create(req, session);
+			}
+			std::vector<uint8_t> authResult = serializer.authResult(result);
+
+			res.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
+			return res;
 			break;
 		}
 		default: {
@@ -112,7 +131,7 @@ RouteResult AuthRouter::route(Message& message, Context& context, Session& sessi
 	}
 
 
-	return result;
+	return res;
 }
 
 
