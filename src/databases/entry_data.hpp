@@ -23,9 +23,11 @@
 
 #include "../io/fileHandling.hpp"
 #include "../core.hpp"
+#include "users.hpp"
 #include "../filtering/filterProcessor.hpp"
 #include "../net/protocol/data.hpp"
 #include "../net/protocol/messenger.hpp"
+#include "../net/transport/session.hpp"
 
 struct Context;
 struct Message;
@@ -137,10 +139,10 @@ class entryDB {
 	    }
 
 		// Entry operations
-		void addEntry(const Entry& entry);
-		void updateEntry(const std::vector<EntryUpdate>& updates);
+		void addEntry(const Entry& entry, const UserRole& role);
+		void updateEntry(const std::vector<EntryUpdate>& updates, const UserRole& role);
 		std::vector<Entry> getEntry(std::vector<EntryId> ids);
-		void deleteEntry(const EntryId id);
+		void deleteEntry(const EntryId id, const UserRole& role);
 		std::vector<EntryId> searchEntryTitles(const std::string& term);
 
 		// Operation Utilities
@@ -215,6 +217,6 @@ class entrySerializer {
 
 class entryRouter {
 	public:
-		RouteResult route(Message& message, Context& context);
+		RouteResult route(Message& message, Context& context, Session& session);
 	private:
 };

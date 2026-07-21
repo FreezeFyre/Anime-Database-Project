@@ -1,6 +1,6 @@
 #include "router.hpp"
 
-RouteResult Router::route(Message& message, Context& context) {
+RouteResult Router::route(Message& message, Context& context, Session& session) {
 	RouteResult result;
 
 	entryRouter eRoute;
@@ -12,7 +12,7 @@ RouteResult Router::route(Message& message, Context& context) {
 		switch (message.domain) {
 			case DOMAIN_TYPE::ENTRY:
 
-				return eRoute.route(message, context);
+				return eRoute.route(message, context, session);
 
 				break;
 			case DOMAIN_TYPE::CHARACTERS:
@@ -24,7 +24,7 @@ RouteResult Router::route(Message& message, Context& context) {
 			case DOMAIN_TYPE::AUTH:
 				// Handle auth domain actions
 
-				return aRoute.route(message, context);
+				return aRoute.route(message, context, session);
 
 				break;
 			default:

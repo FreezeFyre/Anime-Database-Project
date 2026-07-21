@@ -26,6 +26,7 @@
 #include "../../databases/users.hpp"
 #include "../protocol/data.hpp"
 #include "../../databases/auth/auth_service.hpp"
+#include "../transport/session.hpp"
 
 struct Context {
 	entryDB entries;
@@ -50,7 +51,7 @@ struct RouteResult {
 
 class Router {
 	public:
-		RouteResult route(Message& message, Context& context);
+		RouteResult route(Message& message, Context& context, Session& session);
 
 	private:
 };

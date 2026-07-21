@@ -92,6 +92,9 @@ void NetService::clientHandler(SocketHandle ClientSocket) {
 		return;
 	}
 
+	Session session;
+
+
 	Request reqbuf = { ClientSocket, Message() };
 
 	do {
@@ -120,7 +123,7 @@ void NetService::clientHandler(SocketHandle ClientSocket) {
 			continue;
 		}
 
-		RouteResult res = router.route(reqbuf.message, context);
+		RouteResult res = router.route(reqbuf.message, context, session);
 		std::vector<uint8_t> encRes = codec.encode(res.message);
 
 		if (!sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_BINARY, encRes)) {

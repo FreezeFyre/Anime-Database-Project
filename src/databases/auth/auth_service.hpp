@@ -7,6 +7,7 @@
 #include "password.hpp"
 #include "../../net/protocol/data.hpp"
 #include "../../net/protocol/messenger.hpp"
+#include "../../net/transport/session.hpp"
 
 struct Context;
 struct Message;
@@ -26,18 +27,18 @@ class Auth {
 
 		explicit Auth(Context& context);
 
-		AuthResult login(const LoginRequest& request);
+		AuthResult login(const LoginRequest& request, Session& session);
 
-		AuthResult logout();
+		AuthResult logout(Session& session);
 
-		AuthResult create(const CreateAccountRequest& request);
+		AuthResult create(const CreateAccountRequest& request, Session& session);
 
 
 	private:
-		AuthResult password(PasswordService& passwordService, const LoginRequest& request);
-		AuthResult google(std::string_view token);
-		AuthResult apple(std::string_view token);
-		AuthResult github(std::string_view token);
+		AuthResult password(PasswordService& passwordService, const LoginRequest& request, Session& session);
+		AuthResult google(std::string_view token, Session& session);
+		AuthResult apple(std::string_view token, Session& session);
+		AuthResult github(std::string_view token, Session& session);
 
 };
 
@@ -53,11 +54,10 @@ class AuthSerializer {
 };
 
 class AuthRouter {
-	Auth auth;
 	AuthSerializer serializer;
 
 	public:
-		RouteResult route(Message& message, Context& context);
+		RouteResult route(Message& message, Context& context, Session& session);
 };
 // Possible auth messages are Logging in, creating a account, and logging out,
 // a login request should be a Uint8_t for provider then a string that holds the login key and a string that holds the secret

@@ -4,10 +4,10 @@
 
 Auth::Auth(Context& context) : context(context) {}
 
-AuthResult Auth::login(const LoginRequest& request) {
+AuthResult Auth::login(const LoginRequest& request, Session& session) {
 	switch (request.provider) {
 		case LoginProvider::PASSWORD: {
-			return password(passwordService, request);
+			return password(passwordService, request, session);
 			break;
 		}
 		//case LoginProvider::GOOGLE:
@@ -21,7 +21,14 @@ AuthResult Auth::login(const LoginRequest& request) {
 	}
 }
 
-AuthResult Auth::create(const CreateAccountRequest& request) {
+AuthResult Auth::logout(Session& session) {
+	session.signedIn = false;
+	session.userId = std::nullopt;
+	session.role = UserRole::VIEWER;
+    return {true, session.userId, session.role, ""};
+}
+
+AuthResult Auth::create(const CreateAccountRequest& request, Session& session) {
 	switch (request.provider) {
 		case LoginProvider::PASSWORD: {
 			context.users.createAccount(request, passwordService.hash(request.secret));
@@ -33,7 +40,7 @@ AuthResult Auth::create(const CreateAccountRequest& request) {
 }
 
 
-AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& request) {
+AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& request, Session& session) {
 	AuthResult result;
 	result.success = false;
 	result.role = UserRole::VIEWER;
@@ -56,6 +63,9 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 		result.success = true;
 		result.userId = user.id;
 		result.role = user.role;
+		session.role = user.role;
+		session.signedIn = true;
+		session.userId = user.id;
 		return result;
 	}
 	catch (const std::runtime_error& e) {
@@ -68,10 +78,10 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 
 
 
-RouteResult AuthRouter::route(Message& message, Context& context) {
+RouteResult AuthRouter::route(Message& message, Context& context, Session& session) {
 	RouteResult result;
 
-	auth.context = context;
+	Auth auth{context};
 
 	MessageCodec codec;
 	ByteReader reader{ message.payload };
@@ -79,15 +89,21 @@ RouteResult AuthRouter::route(Message& message, Context& context) {
 
 	switch (message.action) {
 		case ACTION_TYPE::ACT_LOGIN: {
-			std::vector<uint8_t> authResult = serializer.authResult(auth.login(serializer.readLogin(message.payload)));
+			std::vector<uint8_t> authResult = serializer.authResult(auth.login(serializer.readLogin(message.payload), session));
+			result.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
+			return result;
 			break;
 		}
 		case ACTION_TYPE::ACT_LOGOUT: { 
-			std::vector<uint8_t> authResult = serializer.authResult(auth.logout());
+			std::vector<uint8_t> authResult = serializer.authResult(auth.logout(session));
+			result.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
+			return result;
 			break;
 		}
 		case ACTION_TYPE::ACT_CREATE: { 
-			std::vector<uint8_t> authResult = serializer.authResult(auth.create(serializer.readCreateAccount(message.payload)));
+			std::vector<uint8_t> authResult = serializer.authResult(auth.create(serializer.readCreateAccount(message.payload),session));
+			result.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
+			return result;
 			break;
 		}
 		default: {

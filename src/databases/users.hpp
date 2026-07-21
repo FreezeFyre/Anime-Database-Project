@@ -12,21 +12,23 @@
 
 #include "../io/fileHandling.hpp"
 #include "../core.hpp"
+#include "../net/transport/session.hpp"
+
 
 using UserId = uint32_t;
 using IdentityId = uint32_t;
-
-enum class UserRole : uint8_t {
-	VIEWER = 0,
-	EDITOR = 1,
-	ADMIN = 2
-};
 
 enum class LoginProvider : uint8_t {
 	PASSWORD = 0,
 	GOOGLE = 1,
 	APPLE = 2,
 	GITHUB = 3
+};
+
+enum class UserRole : uint8_t {
+	VIEWER = 0,
+	EDITOR = 1,
+	ADMIN = 2
 };
 
 struct User {
@@ -118,7 +120,7 @@ class userDB {
 
 		// Mutate Operations
 		void addUser(const User& user);
-		void elevateUser(UserId id, UserRole newRole);
+		void elevateUser(UserId id, UserRole newRole, const UserRole& role);
 		void addIdentity(const UserIdentity& identity);
 	    void createAccount(const CreateAccountRequest& request, const std::string& argon_password);
 

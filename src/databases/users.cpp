@@ -275,7 +275,10 @@ void userDB::addUser(const User& user) {
 	users.push_back(user);
 	userIdMap[user.id] = index;
 }
-void userDB::elevateUser(UserId id, UserRole newRole) {
+void userDB::elevateUser(UserId id, UserRole newRole, const UserRole& role) {
+	if (role != UserRole::ADMIN) {
+		return;
+	}
 	auto it = userIdMap.find(id);
 	if (it == userIdMap.end()) {
 		throw std::runtime_error("User with ID " + std::to_string(id) + " does not exist.");
@@ -516,6 +519,29 @@ std::vector<size_t> userDB::validateIdentitySchema(const schemaData& schema) con
 	}
 
 	return fieldIndices;
+}
+bool userDB::validateEmail(const std::string& email) const {
+	if (email.size() < 4 or email.empty()) {
+		return false;
+	}
+	size_t pos = email.find('@');
+	size_t dot_pos = email.find('.', pos);
+	if (pos == std::string::npos) {
+	// requires one @
+		std::clog << email << " requires one @. \n";
+		return false;
+	}
+	if (pos == email.size() - 1) {
+		std::clog << email << " is invalid(to short) \n";
+		return false;
+	}
+
+	if (dot_pos == std::string::npos) {
+	// invalid email domain
+		std::clog << email << " invalid domain(dosent contain .) \n";
+		return false;
+	}
+    return true;
 }
 
 

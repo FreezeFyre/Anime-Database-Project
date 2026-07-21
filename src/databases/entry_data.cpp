@@ -222,7 +222,12 @@ recordData entryDB::getTableRecord(fileType type, size_t sectionIndex, size_t ro
 //====================================
 //			Operations
 //====================================
-void entryDB::addEntry(const Entry& entry) {
+void entryDB::addEntry(const Entry& entry, const UserRole& role) {
+	if (role == UserRole::VIEWER) {
+		throw std::runtime_error("User does not meet account permission level to add entries. \n");
+		return;
+	}
+
 	Entry result = entry;
 
 	try {
@@ -248,7 +253,12 @@ void entryDB::addEntry(const Entry& entry) {
 	database.push_back(result);
 	idMap.emplace(static_cast<EntryId>(result.id), index);
 }
-void entryDB::updateEntry(const std::vector<EntryUpdate>& updates) {
+void entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const UserRole& role) {
+	if (role == UserRole::VIEWER) {
+		throw std::runtime_error("User does not meet account permission level to update entries. \n");
+		return;
+	}
+
 	for (const EntryUpdate& update : updates) {
 		if (update.fieldIndex >= EntryMeta.size()) {
 			throw std::runtime_error("Update field out of bounds");
@@ -337,11 +347,10 @@ std::vector<Entry> entryDB::getEntry(std::vector<EntryId> ids) {
 	}
 	return result;
 }
-void entryDB::deleteEntry(const EntryId id) {
-	//check user perm level
-	bool admin = false;
-	if (!admin) {
+void entryDB::deleteEntry(const EntryId id, const UserRole& role) {
+	if (role == UserRole::VIEWER) {
 		throw std::runtime_error("User does not meet account permission level to delete entries. \n");
+		return;
 	}
 
 	if (idMap.find(id) != idMap.end()) {
@@ -1033,7 +1042,7 @@ EntryUpdate entrySerializer::translateUpdate(const Update& update) {
 //====================================
 //			Routing
 //====================================
-RouteResult entryRouter::route(Message& message, Context& context) {
+RouteResult entryRouter::route(Message& message, Context& context, Session& session) {
 	RouteResult result;
 
 	MessageCodec codec;
@@ -1074,7 +1083,7 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 					updates.push_back(serializer.translateUpdate(update));
 				}
 
-				context.entries.updateEntry(updates);
+				context.entries.updateEntry(updates, session.role);
 			}
 			catch (const std::exception& e) {
 				std::cerr << "Error updating entries: " << e.what() << "\n";
@@ -1105,7 +1114,7 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 			for (size_t i = 0; i < recordCount; i++) {
 				try {
 					Entry newEntry = serializer.readEntry(reader, fieldIndices);
-					context.entries.addEntry(newEntry);
+					context.entries.addEntry(newEntry, session.role);
 				}
 				catch (const std::exception& e) {
 					std::cerr << "Error adding entry: " << e.what() << "\n";
@@ -1121,7 +1130,7 @@ RouteResult entryRouter::route(Message& message, Context& context) {
 			EntryId deleteId = reader.U32();
 
 			try {
-				context.entries.deleteEntry(deleteId);
+				context.entries.deleteEntry(deleteId, session.role);
 			}
 			catch (const std::exception& e) {
 				std::cerr << "Error deleting entry: " << e.what() << "\n";
