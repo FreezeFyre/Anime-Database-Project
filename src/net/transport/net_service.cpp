@@ -99,6 +99,8 @@ void NetService::clientHandler(SocketHandle ClientSocket) {
 		return;
 	}
 	Session session;
+	MessageCodec codec;
+	Router router;
 
 
 	Request reqbuf = { ClientSocket, Message() };

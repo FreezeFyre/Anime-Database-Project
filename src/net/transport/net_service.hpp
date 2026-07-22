@@ -69,10 +69,8 @@ class NetService {
 		void stop();
 
 	private:
-		Router router;
 		Context& context;
-		MessageCodec codec;
-		bool running = false;
+	    std::atomic_bool running = false;
 
 		void clientHandler(SocketHandle ClientSocket);
 
