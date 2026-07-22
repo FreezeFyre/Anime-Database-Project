@@ -31,7 +31,13 @@ AuthResult Auth::logout(Session& session) {
 AuthResult Auth::create(const CreateAccountRequest& request, Session& session) {
 	switch (request.provider) {
 		case LoginProvider::PASSWORD: {
-			context.users.createAccount(request, passwordService.hash(request.secret));
+			const std::string pw = passwordService.hash(request.secret);
+
+			// Exclusive Mutex Lock
+			{
+				std::unique_lock lock(context.usersMutex);
+				context.users.createAccount(request, pw);
+			}
 			return {true, std::nullopt, UserRole::VIEWER, ""};
 		}
 		default:
@@ -46,9 +52,16 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 	result.role = UserRole::VIEWER;
 
 	try {
-		IdentityId identityId = context.users.getIdentityId_LoginKey(request.loginKey);
-		const UserIdentity& identity = context.users.getIdentity(identityId);
-		const User& user = context.users.getUser(identity.userId);
+		IdentityId identityId;
+		UserIdentity identity;
+		User user;
+		// Shared Mutex Lock
+		{
+			std::shared_lock lock(context.usersMutex);
+			identityId = context.users.getIdentityId_LoginKey(request.loginKey);
+			identity = context.users.getIdentity(identityId);
+			user = context.users.getUser(identity.userId);
+		}
 
 		if (identity.disabled || user.disabled) {
 			result.error = "Invalid login.";
@@ -92,11 +105,9 @@ RouteResult AuthRouter::route(Message& message, Context& context, Session& sessi
 			LoginRequest req = serializer.readLogin(message.payload);
 			AuthResult result;
 
-			// Shared Mutex lock
-			{
-				std::shared_lock lock(context.usersMutex);
-				result = auth.login(req, session);
-			}
+			// Shared Mutex lock within function to not hold on password hashing
+			result = auth.login(req, session);
+			
 			std::vector<uint8_t> authResult = serializer.authResult(result);
 
 			res.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
@@ -114,11 +125,8 @@ RouteResult AuthRouter::route(Message& message, Context& context, Session& sessi
 			CreateAccountRequest req = serializer.readCreateAccount(message.payload);
 			AuthResult result;
 			
-			// Exclusive Mutex Lock 
-			{
-				std::unique_lock lock(context.usersMutex);
-				result = auth.create(req, session);
-			}
+			// Exclusive Mutex Lock within function to not hold on password hashing
+			result = auth.create(req, session);
 			std::vector<uint8_t> authResult = serializer.authResult(result);
 
 			res.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
