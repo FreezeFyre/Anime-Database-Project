@@ -33,7 +33,7 @@ body {
 
 
 ul, li {
-	font-family: 'Inter', sans-serif !important;
+	font-family: inherit, sans-serif !important;
 }
 
 
@@ -45,9 +45,13 @@ ul, li {
 	gap: 32px;
 }
 
+.globalnav-link {
+	text-decoration: none;
+}
+
 .globalnav-link-text {
 	color: #FFF;
-	font-family: Inter;
+	font-family: inherit;
 	font-size: 16px;
 	font-style: normal;
 	font-weight: 500;

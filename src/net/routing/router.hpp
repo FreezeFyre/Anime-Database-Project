@@ -38,6 +38,30 @@ struct Context {
 	mutable std::shared_mutex entriesMutex;
 	mutable std::shared_mutex usersMutex;
 };
+
+using AppPayload = std::variant<
+	std::monostate,
+	EntryPayload
+>;
+
+using ResponsePayload = std::variant<
+	std::monostate
+	EntryResponse
+>;
+
+struct AppRequest {
+	COM_TYPE type;
+	DOMAIN_TYPE domain;
+	ACTION_TYPE action;
+	uint32_t id;
+	AppPayload payload;
+};
+
+struct AppResponse {
+	uint32_t id;
+	ResponsePayload payload;
+};
+
 /*
 
 [ENCODE_VERSION]

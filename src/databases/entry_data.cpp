@@ -907,7 +907,7 @@ std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
 
 	return writer.buffer;
 }
-Entry entrySerializer::readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices) {
+Entry EntryWebSocketCodec::readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices) {
 	Entry result;
 
 	for (size_t i = 0; i < fieldIndices.size(); i++) {
@@ -976,7 +976,7 @@ std::vector<uint8_t> entrySerializer::serializeEntry(const Entry& entry) {
 	}
 	return writer.buffer;
 }
-schemaData entrySerializer::readSchema(ByteReader& reader) {
+schemaData EntryWebSocketCodec::readSchema(ByteReader& reader) {
 	schemaData result;
 	schemaField buffer;
 
@@ -991,7 +991,7 @@ schemaData entrySerializer::readSchema(ByteReader& reader) {
 
 	return result;
 }	
-sectionHeader entrySerializer::readSection(ByteReader& reader) {
+sectionHeader EntryWebSocketCodec::readSection(ByteReader& reader) {
 	sectionHeader header;
 
 	header.type = static_cast<sectionType>(reader.U8());
@@ -1002,7 +1002,7 @@ sectionHeader entrySerializer::readSection(ByteReader& reader) {
 
 	return header;
 }
-EntryUpdate entrySerializer::translateUpdate(const Update& update) {
+EntryUpdate EntryWebSocketCodec::translateUpdate(const Update& update) {
 	EntryUpdate result;
 	result.id = update.id;
 	result.op = update.operation;
@@ -1037,7 +1037,99 @@ EntryUpdate entrySerializer::translateUpdate(const Update& update) {
 	return result;
 }
 
+EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Session& session) {
+	MessageCodec codec;
 
+	ByteReader reader{ message.payload };
+	std::vector<uint8_t> buffer;
+
+	EntryRequest req;
+	// Set Request Id here
+
+	switch (message.action) {
+		case ACTION_TYPE::ACT_GET:
+		{
+			EntryGetRequest getReq;
+			getReq.ids = reader.VECU32();
+			req.payload = getReq;
+
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_UPDATE: {
+			EntryUpdateRequest updateReq;
+
+			size_t updateCount = reader.U32();
+			updateReq.updates.reserve(updateCount);
+
+			for (size_t i = 0; i < updateCount; i++) {
+				Update update = codec.decodeUpdate(reader);
+				updateReq.updates.push_back(translateUpdate(update));
+			}
+			req.payload = updateReq;
+
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_CREATE: {
+			EntryCreateRequest createReq;
+
+			// Check and validate schema
+			schemaData schema = readSchema(reader);
+			std::vector<size_t> fieldIndices;
+			try {
+				 fieldIndices = context.entries.validateSchema(schema);
+			}
+			catch (const std::exception& e) {
+				std::cerr << "Schema validation failed: " << e.what() << "\n";
+				std::string errorMsg = "Schema validation failed: " + std::string(e.what());
+				return;
+			}
+
+			// Construct Entries Vector
+			size_t recordCount = reader.U32();
+			createReq.entries.reserve(recordCount);
+			for (size_t i = 0; i < recordCount; i++) {
+				createReq.entries.emplace_back(readEntry(reader, fieldIndices));
+			}
+
+			req.payload = createReq;
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_DELETE: {
+			EntryDeleteRequest deleteReq;
+
+			deleteReq.ids = reader.VECU32();
+			req.payload = deleteReq;
+
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_SEARCH: {
+			EntrySearchRequest searchReq;
+
+			searchReq.searchTerm = reader.STR();
+			req.payload = searchReq;
+
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_FILTER: {
+			filterProcessor processor;
+			EntryFilterRequest filterReq;
+
+			filterReq.filters = processor.decode(reader);
+			req.payload = filterReq;
+
+			return req;
+			break;
+		}
+		default:
+			std::cerr << "Unknown action type: " << static_cast<int>(message.action) << "\n";
+			break;
+	}
+}
 
 //====================================
 //			Routing

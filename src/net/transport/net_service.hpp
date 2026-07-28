@@ -22,7 +22,7 @@
 #include "../protocol/messenger.hpp"
 #include "../routing/router.hpp"
 #include "socket_compat.hpp"
-#include "../websocket/webSocket.hpp"
+#include "../web socket/webSocket.hpp"
 #include "session.hpp"
 
 #ifdef _WIN32
@@ -45,6 +45,11 @@
 
 #define DEFAULT_BUFLEN 512
 
+const uint16_t SERVER_PORT = 443;
+
+const uint16_t INTERNAL_HTTP_PORT = 8081;
+const uint16_t INTERNAL_WS_PORT = 8080;
+
 struct Request {
 	SocketHandle client;
     Message message;
@@ -65,14 +70,18 @@ class NetService {
 	public:
 		explicit NetService(Context& context);
 
-		void start(uint16_t port);
+		void start();
 
 		void stop();
-
 	private:
 		Context& context;
 	    std::atomic_bool running = false;
 
 		void clientHandler(SocketHandle ClientSocket);
 
+		void tcpServer(uint16_t socket, void (NetService::*handler)(SocketHandle));
+
+		void websocketHandler(SocketHandle ClientSocket);
+
+		void httpHandler(SocketHandle ClientSocket);
 };

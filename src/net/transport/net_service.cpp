@@ -6,7 +6,9 @@ NetService::NetService(Context& context)
 	: context(context) {}
 
 
-void NetService::start(uint16_t port) {
+
+
+void NetService::tcpServer(uint16_t port, void (NetService::* handler)(SocketHandle)) {
 	running = true;
 	int iResult;
 	struct addrinfo* result = NULL;
@@ -62,9 +64,6 @@ void NetService::start(uint16_t port) {
 		return;
 	}
 
-
-
-
 	while (running) {
 		SocketHandle ClientSocket = InvalidSocket;
 
@@ -79,8 +78,7 @@ void NetService::start(uint16_t port) {
 
 
 		try {
-			std::thread clientWorker(&NetService::clientHandler, this, ClientSocket);
-			clientWorker.detach();
+			std::thread([this, handler, ClientSocket] { (this->*handler)(ClientSocket); }).detach();
 
 			auto now = std::chrono::system_clock::now();
 			std::clog << now << "\t" << "[INFO] client connected\n";
@@ -88,11 +86,14 @@ void NetService::start(uint16_t port) {
 			std::cerr << e.what() << std::endl;
 		}
 	}
+}
 
-	// Socket closing should be handled by stop function and errors
-	closeSocket(ListenSocket);
-	cleanupSockets(); // can be passed to stop function
-	return;
+
+void NetService::start() {
+	std::thread wsThread(&NetService::tcpServer, this, INTERNAL_WS_PORT, &NetService::websocketHandler);
+	wsThread.detach();
+	std::thread httpThread(&NetService::tcpServer, this, INTERNAL_HTTP_PORT, &NetService::httpHandler);
+	httpThread.detach();
 }
 
 
