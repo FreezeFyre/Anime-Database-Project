@@ -183,7 +183,32 @@ sectionHeader entryDB::getSection(fileType type, size_t sectionIndex) {
 
 	return result;
 }
+sectionHeader entryDB::getSection() {
+	sectionHeader result;
+
+	result.type = sectionType::SECTION_DATABASE_RECORDS; // Placeholder
+	result.title = "ANIME_DATA";
+	result.recordCount = database.size();
+	result.fieldCount = EntryMeta.size();
+	result.hasSchema = true;
+
+	return result;
+}
 schemaData entryDB::getSchema(fileType type, size_t sectionIndex) {
+	schemaData result;
+	schemaField buffer;
+
+	for (size_t i = 0; i < EntryMeta.size(); i++) {
+		buffer.name = EntryMeta[i].info.name;
+		buffer.type = EntryMeta[i].info.type;
+		buffer.mode = EntryMeta[i].info.mode;
+
+		result.push_back(buffer);
+	}
+
+	return result;
+}
+schemaData entryDB::getSchema() {
 	schemaData result;
 	schemaField buffer;
 
@@ -332,7 +357,7 @@ void entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const UserRol
 		}
 	}
 }
-std::vector<Entry> entryDB::getEntry(std::vector<EntryId> ids) {
+std::vector<Entry> entryDB::getEntries(std::vector<EntryId> ids) {
 	if (ids.size() == 1 and ids[0] == 0) { return database; }
 
 	std::vector<Entry> result;
@@ -868,45 +893,98 @@ std::unordered_map<std::string, size_t> buildFieldNames() {
 
 
 //====================================
-//			Serialization
+//		Web Socket Codec
 //====================================
-// May want to re-write
-// Check This later 
-// 5/19/26 16:48
-std::vector<uint8_t> entrySerializer::payload(entryDB& db, const std::vector<EntryId>& ids) {
-	std::vector<uint8_t> result;
-	
-	std::vector<uint8_t> buffer = Section(db.getSection(fileType::HEADER_DATABASE, 0));
+EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Session& session) {
+	MessageCodec codec;
 
-	result.insert(result.end(), buffer.begin(), buffer.end());
+	ByteReader reader{ message.payload };
+	std::vector<uint8_t> buffer;
 
-	buffer.clear();
-	buffer = Schema(db.getSchema(fileType::HEADER_DATABASE, 0));
+	EntryRequest req;
+	req.id = message.id;
 
-	result.insert(result.end(), buffer.begin(), buffer.end());
-	buffer.clear();
+	switch (message.action) {
+		case ACTION_TYPE::ACT_GET:
+		{
+			EntryGetRequest getReq;
+			getReq.ids = reader.VECU32();
+			req.payload = getReq;
 
-	std::vector<Entry> entries = db.getEntry(ids);
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_UPDATE: {
+			EntryUpdateRequest updateReq;
 
-	for (const Entry& entry : entries) {
-		buffer = serializeEntry(entry);
-		result.insert(result.end(), buffer.begin(), buffer.end());
-		buffer.clear();
+			size_t updateCount = reader.U32();
+			updateReq.updates.reserve(updateCount);
+
+			for (size_t i = 0; i < updateCount; i++) {
+				Update update = codec.decodeUpdate(reader);
+				updateReq.updates.push_back(translateUpdate(update));
+			}
+			req.payload = updateReq;
+
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_CREATE: {
+			EntryCreateRequest createReq;
+
+			// Check and validate schema
+			schemaData schema = readSchema(reader);
+			std::vector<size_t> fieldIndices;
+			fieldIndices = context.entries.validateSchema(schema);
+			
+			// Construct Entries Vector
+			size_t recordCount = reader.U32();
+			createReq.entries.reserve(recordCount);
+			for (size_t i = 0; i < recordCount; i++) {
+				createReq.entries.emplace_back(readEntry(reader, fieldIndices));
+			}
+
+			req.payload = createReq;
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_DELETE: {
+			EntryDeleteRequest deleteReq;
+
+			deleteReq.ids = reader.VECU32();
+			req.payload = deleteReq;
+
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_SEARCH: {
+			EntrySearchRequest searchReq;
+
+			searchReq.searchTerm = reader.STR();
+			req.payload = searchReq;
+
+			return req;
+			break;
+		}
+		case ACTION_TYPE::ACT_FILTER: {
+			filterProcessor processor;
+			EntryFilterRequest filterReq;
+
+			filterReq.filters = processor.decode(reader);
+			req.payload = filterReq;
+
+			return req;
+			break;
+		}
+		default:
+			std::cerr << "Unknown action type: " << static_cast<int>(message.action) << "\n";
+			break;
 	}
-
-	return result;
 }
-std::vector<uint8_t> entrySerializer::Section(const sectionHeader& header) {
-	ByteWriter writer;
-
-	writer.U8(static_cast<uint8_t>(header.type));
-	writer.STR(header.title);
-	writer.U32(header.recordCount);
-	writer.U32(header.fieldCount);
-	writer.U8(static_cast<uint8_t>(header.hasSchema));
-
-	return writer.buffer;
+ByteVector EntryWebSocketCodec::encode(const EntryResponse& response) {
+	return std::visit([&](const auto& resp) { return encodeResponse(resp); }, response.payload);
 }
+
 Entry EntryWebSocketCodec::readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices) {
 	Entry result;
 
@@ -936,45 +1014,6 @@ Entry EntryWebSocketCodec::readEntry(ByteReader& reader, std::vector<size_t>& fi
 		}
 	}
 	return result;
-}
-std::vector<uint8_t> entrySerializer::Schema(const schemaData& schema) {
-	ByteWriter writer;
-	writer.U32(schema.size());
-
-	for (const auto& field : schema) {
-		writer.STR(field.name);
-		writer.U8(static_cast<uint8_t>(field.type));
-		writer.U8(static_cast<uint8_t>(field.mode));
-	}
-
-	return writer.buffer;
-}
-std::vector<uint8_t> entrySerializer::serializeEntry(const Entry& entry) {
-	ByteWriter writer;
-
-	for (size_t i = 0; i < EntryMeta.size(); i++) {
-		switch (EntryMeta[i].info.type) {
-		case schemaField::dataType::U8:
-			writer.U8(entry.*std::get<intPTR>(EntryMeta[i].ptr));
-			break;
-		case schemaField::dataType::U16:
-			writer.U16(entry.*std::get<intPTR>(EntryMeta[i].ptr));
-			break;
-		case schemaField::dataType::U32:
-			writer.U32(entry.*std::get<intPTR>(EntryMeta[i].ptr));
-			break;
-		case schemaField::dataType::STR:
-			writer.STR(entry.*std::get<strPTR>(EntryMeta[i].ptr));
-			break;
-		case schemaField::dataType::VECU8:
-			writer.VECU8(entry.*std::get<vecPTR>(EntryMeta[i].ptr));
-			break;
-		case schemaField::dataType::VECU16:
-			writer.VECU16(entry.*std::get<vecPTR>(EntryMeta[i].ptr));
-			break;
-		}
-	}
-	return writer.buffer;
 }
 schemaData EntryWebSocketCodec::readSchema(ByteReader& reader) {
 	schemaData result;
@@ -1037,265 +1076,175 @@ EntryUpdate EntryWebSocketCodec::translateUpdate(const Update& update) {
 	return result;
 }
 
-EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Session& session) {
-	MessageCodec codec;
+void EntryWebSocketCodec::encodeSection(ByteWriter& encoder, const sectionHeader& section) {
+	encoder.U8(static_cast<uint8_t>(section.type));
+	encoder.STR(section.title);
+	encoder.U32(section.recordCount);
+	encoder.U32(section.fieldCount);
+	encoder.U8(static_cast<uint8_t>(section.hasSchema));
+}
+void EntryWebSocketCodec::encodeSchema(ByteWriter& encoder, const schemaData& schema) {
+	encoder.U32(schema.size());
 
-	ByteReader reader{ message.payload };
-	std::vector<uint8_t> buffer;
-
-	EntryRequest req;
-	// Set Request Id here
-
-	switch (message.action) {
-		case ACTION_TYPE::ACT_GET:
-		{
-			EntryGetRequest getReq;
-			getReq.ids = reader.VECU32();
-			req.payload = getReq;
-
-			return req;
-			break;
-		}
-		case ACTION_TYPE::ACT_UPDATE: {
-			EntryUpdateRequest updateReq;
-
-			size_t updateCount = reader.U32();
-			updateReq.updates.reserve(updateCount);
-
-			for (size_t i = 0; i < updateCount; i++) {
-				Update update = codec.decodeUpdate(reader);
-				updateReq.updates.push_back(translateUpdate(update));
-			}
-			req.payload = updateReq;
-
-			return req;
-			break;
-		}
-		case ACTION_TYPE::ACT_CREATE: {
-			EntryCreateRequest createReq;
-
-			// Check and validate schema
-			schemaData schema = readSchema(reader);
-			std::vector<size_t> fieldIndices;
-			try {
-				 fieldIndices = context.entries.validateSchema(schema);
-			}
-			catch (const std::exception& e) {
-				std::cerr << "Schema validation failed: " << e.what() << "\n";
-				std::string errorMsg = "Schema validation failed: " + std::string(e.what());
-				return;
-			}
-
-			// Construct Entries Vector
-			size_t recordCount = reader.U32();
-			createReq.entries.reserve(recordCount);
-			for (size_t i = 0; i < recordCount; i++) {
-				createReq.entries.emplace_back(readEntry(reader, fieldIndices));
-			}
-
-			req.payload = createReq;
-			return req;
-			break;
-		}
-		case ACTION_TYPE::ACT_DELETE: {
-			EntryDeleteRequest deleteReq;
-
-			deleteReq.ids = reader.VECU32();
-			req.payload = deleteReq;
-
-			return req;
-			break;
-		}
-		case ACTION_TYPE::ACT_SEARCH: {
-			EntrySearchRequest searchReq;
-
-			searchReq.searchTerm = reader.STR();
-			req.payload = searchReq;
-
-			return req;
-			break;
-		}
-		case ACTION_TYPE::ACT_FILTER: {
-			filterProcessor processor;
-			EntryFilterRequest filterReq;
-
-			filterReq.filters = processor.decode(reader);
-			req.payload = filterReq;
-
-			return req;
-			break;
-		}
-		default:
-			std::cerr << "Unknown action type: " << static_cast<int>(message.action) << "\n";
-			break;
+	for (const auto& field : schema) {
+		encoder.STR(field.name);
+		encoder.U8(static_cast<uint8_t>(field.type));
+		encoder.U8(static_cast<uint8_t>(field.mode));
 	}
 }
+void EntryWebSocketCodec::encodeEntry(ByteWriter& encoder, const Entry& entry) {
+	for (size_t i = 0; i < EntryMeta.size(); i++) {
+		switch (EntryMeta[i].info.type) {
+		case schemaField::dataType::U8:
+			encoder.U8(entry.*std::get<intPTR>(EntryMeta[i].ptr));
+			break;
+		case schemaField::dataType::U16:
+			encoder.U16(entry.*std::get<intPTR>(EntryMeta[i].ptr));
+			break;
+		case schemaField::dataType::U32:
+			encoder.U32(entry.*std::get<intPTR>(EntryMeta[i].ptr));
+			break;
+		case schemaField::dataType::STR:
+			encoder.STR(entry.*std::get<strPTR>(EntryMeta[i].ptr));
+			break;
+		case schemaField::dataType::VECU8:
+			encoder.VECU8(entry.*std::get<vecPTR>(EntryMeta[i].ptr));
+			break;
+		case schemaField::dataType::VECU16:
+			encoder.VECU16(entry.*std::get<vecPTR>(EntryMeta[i].ptr));
+			break;
+		}
+	}
+}
+
+ByteVector EntryWebSocketCodec::encodeResponse(const EntryGetResponse& response) {
+	ByteWriter encoder;
+
+	encodeSchema(encoder, response.schema);
+	encoder.U32(response.entries.size());
+	for (const Entry& entry : response.entries) {
+		encodeEntry(encoder, entry);
+	}
+
+}
+ByteVector EntryWebSocketCodec::encodeResponse(const EntryIdsResponse& response) {
+	ByteWriter encoder;
+
+	encoder.VECU32(response.ids);
+
+	return encoder.buffer;
+}
+ByteVector EntryWebSocketCodec::encodeResponse(const EntrySuccessResponse& response) {
+	ByteWriter encoder;
+
+	encoder.STR(response.message);
+
+	return encoder.buffer;
+}
+ByteVector EntryWebSocketCodec::encodeResponse(const EntryErrorResponse& response) {
+	ByteWriter encoder;
+
+	encoder.STR(response.message);
+
+	return encoder.buffer;
+}
+
+
 
 //====================================
 //			Routing
 //====================================
-RouteResult entryRouter::route(Message& message, Context& context, Session& session) {
-	RouteResult result;
+EntryResponse EntryRouter::route(const EntryRequest& request, Context& context, Session& session) {
+	return std::visit([&](const auto& payload) { 
+		return handle(payload, context, session, request.id); 
+	}, request.payload);
+}
 
-	MessageCodec codec;
-	entrySerializer serializer;
-	ByteReader reader{ message.payload };
-	std::vector<uint8_t> buffer;
-
-	switch (message.action) {
-		case ACTION_TYPE::ACT_GET:
+EntryResponse EntryRouter::handle(const EntryGetRequest& request, Context& context, Session& session, uint32_t id) {
+	EntryWebSocketCodec domainCodec;
+	EntryGetResponse resp;
+	try {
 		{
-			// Handle get action for entry domain
-			// Convert payload to get parameters, get parameters in this case should probably be a vector of ids to get or single id 0 for all E.X. [1, 2, 3] or [0]
-			
-			std::vector<EntryId> reqIds = reader.VECU32(); // Convert into a usable vector of ids or single id
-
-			try {
-				// Shared Mutex Lock
-				{
-					std::shared_lock lock(context.entriesMutex);
-					buffer = serializer.payload(context.entries, reqIds);
-				}
-			}
-			catch (const std::exception& e) {
-				std::cerr << "Error generating payload: " << e.what() << "\n";
-				std::string errorMsg = "Error generating payload: " + std::string(e.what());
-				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_GET, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
-			}
-
-			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_GET, message.id, buffer.size(), buffer), false };
-			break;
+			std::shared_lock lock(context.entriesMutex);
+			resp.section = context.entries.getSection();
+			resp.schema = context.entries.getSchema();
+			resp.entries = context.entries.getEntries(request.ids);
 		}
-		case ACTION_TYPE::ACT_UPDATE: {
-			ByteReader reader{ message.payload };
-			std::vector<EntryUpdate> updates;
-
-			try {
-				size_t updateCount = reader.U32();
-				updates.reserve(updateCount);
-
-				for (size_t i = 0; i < updateCount; i++) {
-					Update update = codec.decodeUpdate(reader);
-					updates.push_back(serializer.translateUpdate(update));
-				}
-
-				// Exclusive Mutex Lock
-				{
-					std::unique_lock lock(context.entriesMutex);
-					context.entries.updateEntry(updates, session.role);
-				}
-			}
-			catch (const std::exception& e) {
-				std::cerr << "Error updating entries: " << e.what() << "\n";
-				std::string errorMsg = "Error updating entries: " + std::string(e.what());
-				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_UPDATE, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
-			}
-
-			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_UPDATE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}), false };
-			break;
-		}
-		case ACTION_TYPE::ACT_CREATE: {
-			// Handle create action for entry domain
-			ByteReader reader{ message.payload };
-			schemaData schema = serializer.readSchema(reader);
-
-			std::vector<size_t> fieldIndices;
-			try {
-				 fieldIndices = context.entries.validateSchema(schema);
-			}
-			catch (const std::exception& e) {
-				std::cerr << "Schema validation failed: " << e.what() << "\n";
-				std::string errorMsg = "Schema validation failed: " + std::string(e.what());
-				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
-			}
-
-			size_t recordCount = reader.U32();
-
-			// Exclusive Mutex Lock
-			// might want to change my approach to exclude serialization
-			{
-				std::unique_lock lock(context.entriesMutex);
-				for (size_t i = 0; i < recordCount; i++) {
-					try {
-						Entry newEntry = serializer.readEntry(reader, fieldIndices);
-						
-						context.entries.addEntry(newEntry, session.role);
-						
-					} catch (const std::exception& e) {
-						std::cerr << "Error adding entry: " << e.what() << "\n";
-						std::string errorMsg = "Error adding entry: " + std::string(e.what());
-						return {codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id,static_cast<uint32_t>(errorMsg.size()),std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())),false};
-					}
-				}
-			}
-			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_CREATE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}) , false};
-			break;
-		}
-		case ACTION_TYPE::ACT_DELETE: {
-			// Handle delete action for entry domain
-			EntryId deleteId = reader.U32();
-
-			try {
-				// Exclusive Mutex Lock
-				{
-					std::unique_lock lock(context.entriesMutex);
-					context.entries.deleteEntry(deleteId, session.role);
-				}
-			}
-			catch (const std::exception& e) {
-				std::cerr << "Error deleting entry: " << e.what() << "\n";
-				std::string errorMsg = "Error deleting entry: " + std::string(e.what());
-				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_DELETE, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
-			}
-
-			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_DELETE, message.id, 7, {'S', 'U', 'C', 'C', 'E', 'S', 'S'}) , false };
-			break;
-		}
-		case ACTION_TYPE::ACT_SEARCH: {
-			std::vector<EntryId> entries;
-			try {
-				// Shared Mutex Lock
-				{
-					std::shared_lock lock(context.entriesMutex);
-					entries = context.entries.searchEntryTitles(reader.STR());
-				}
-			}
-			catch (const std::exception& e) {
-				std::cerr << "Error searching entries: " << e.what() << "\n";
-				std::string errorMsg = "Error searching entries: " + std::string(e.what());
-				return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_SEARCH, message.id, static_cast<uint32_t>(errorMsg.size()), std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())), false };
-			}
-			ByteWriter w;
-			w.VECU32(entries);
-			std::vector<uint8_t> resp = w.buffer;
-
-			return { codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_SEARCH, message.id, static_cast<uint32_t>(resp.size()), resp), false };
-			break;
-		}
-		case ACTION_TYPE::ACT_FILTER: {
-			filterProcessor processor;
-			std::vector<EntryId> entries;
-			try {
-				// Shared Mutex Lock
-				FilterRequest req = processor.decode(reader);
-				{
-					std::shared_lock lock(context.entriesMutex);
-					entries = context.entries.getFilteredIDS(req);
-				}
-			} catch (const std::exception& e) {
-				std::cerr << "Error filtering entries: " << e.what() << "\n";
-				std::string errorMsg = "Error filtering entries: " + std::string(e.what());
-				return {codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_FILTER, message.id, static_cast<uint32_t>(errorMsg.size()),std::vector<uint8_t>(errorMsg.begin(), errorMsg.end())),false};
-			}
-			ByteWriter w;
-			w.VECU32(entries);
-			std::vector<uint8_t> resp = w.buffer;
-			return {codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::ENTRY, ACTION_TYPE::ACT_FILTER, message.id, static_cast<uint32_t>(resp.size()), resp), false};
-			break;
-		}
-		default:
-			std::cerr << "Unknown action type: " << static_cast<int>(message.action) << "\n";
-			break;
+	} catch (const std::exception& e) {
+		std::cerr << "Error generating payload: " << e.what() << "\n";
+		return {id, EntryErrorResponse{e.what()}};
 	}
-	return result;
+	return {id, resp};
+}
+EntryResponse EntryRouter::handle(const EntryUpdateRequest& request, Context& context, Session& session, uint32_t id) {	
+	try {
+		{
+			std::unique_lock lock(context.entriesMutex);
+			context.entries.updateEntry(request.updates, session.role);
+		}
+	} catch (const std::exception& e) {
+		std::cerr << "Error updating entries: " << e.what() << "\n";
+		return {id, EntryErrorResponse{e.what()}};
+	}
+
+	return {id, EntrySuccessResponse()};
+}
+EntryResponse EntryRouter::handle(const EntryCreateRequest& request, Context& context, Session& session, uint32_t id) {
+	try {
+		{
+			std::unique_lock lock(context.entriesMutex);
+			for (const Entry& entry : request.entries) {
+				context.entries.addEntry(entry, session.role); // Sloppy role check? probably fine because of catch
+			}
+		}
+	} catch (const std::exception& e) {
+		std::cerr << "Error adding entry: " << e.what() << "\n";
+		return {id, EntryErrorResponse{e.what()}};
+	}
+
+	return {id, EntrySuccessResponse()};
+}
+EntryResponse EntryRouter::handle(const EntryDeleteRequest& request, Context& context, Session& session, uint32_t id) {
+	try {
+		// Temporarily lock deletion into a single id at a time
+		if (request.ids.size() > 1) {throw std::runtime_error(" Can only delete one entry at a time right now. ");}
+		{
+			std::unique_lock lock(context.entriesMutex);
+			context.entries.deleteEntry(request.ids[0], session.role);
+		}
+	} catch (const std::exception& e) {
+		std::cerr << "Error deleting entry: " << e.what() << "\n";
+		return {id, EntryErrorResponse{e.what()}};
+	}
+
+	return {id, EntrySuccessResponse()};
+}
+EntryResponse EntryRouter::handle(const EntrySearchRequest& request, Context& context, Session& session, uint32_t id) {
+	EntryIdsResponse resp;
+	try {
+		{
+			std::shared_lock lock(context.entriesMutex);
+			resp.ids = context.entries.searchEntryTitles(request.searchTerm);
+		}
+	} catch (const std::exception& e) {
+		std::cerr << "Error searching entry titles: " << e.what() << "\n";
+		return {id, EntryErrorResponse{e.what()}};
+	}
+
+	return {id, resp};
+}
+EntryResponse EntryRouter::handle(const EntryFilterRequest& request, Context& context, Session& session, uint32_t id) {
+	EntryIdsResponse resp;
+
+	try {
+		{
+			std::shared_lock lock(context.entriesMutex);
+			resp.ids = context.entries.getFilteredIDS(request.filters);
+		}
+	} catch (const std::exception& e) {
+		std::cerr << "Error filtering entries: " << e.what() << "\n";
+		return {id, EntryErrorResponse{e.what()}};
+	}
+
+	return {id, resp};
 }

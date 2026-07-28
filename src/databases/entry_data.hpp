@@ -126,7 +126,9 @@ class entryDB {
 		// File write sources
 		fileHeader getHeader(fileType type);
 		sectionHeader getSection(fileType type, size_t sectionIndex);
+		sectionHeader getSection();
 		schemaData getSchema(fileType type, size_t sectionIndex);
+		schemaData getSchema();
 		recordData getRecord(fileType type, size_t sectionIndex, size_t recordIndex);
 		recordData getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex);
 		EntryId getId(size_t index) const {
@@ -143,7 +145,7 @@ class entryDB {
 		// Entry operations
 		void addEntry(const Entry& entry, const UserRole& role);
 		void updateEntry(const std::vector<EntryUpdate>& updates, const UserRole& role);
-		std::vector<Entry> getEntry(std::vector<EntryId> ids);
+		std::vector<Entry> getEntries(std::vector<EntryId> ids);
 		void deleteEntry(const EntryId id, const UserRole& role);
 		std::vector<EntryId> searchEntryTitles(const std::string& term);
 
@@ -216,7 +218,6 @@ struct EntryFilterRequest {
 	FilterRequest filters;
 };
 using EntryPayload = std::variant<
-	std::monostate,
 	EntryGetRequest,
 	EntryUpdateRequest,
 	EntryCreateRequest,
@@ -230,6 +231,7 @@ struct EntryRequest {
 };
 
 struct EntryGetResponse {
+	sectionHeader section;
 	schemaData schema;
 	std::vector<Entry> entries;
 };
@@ -244,7 +246,6 @@ struct EntryErrorResponse {
     std::string message;
 };
 using EntryResponsePayload = std::variant<
-    std::monostate,
     EntryGetResponse,
     EntryIdsResponse,
     EntrySuccessResponse,
@@ -255,38 +256,36 @@ struct EntryResponse {
 	EntryResponsePayload payload;
 };
 
-class entrySerializer {
-
-	public:
-
-
-		std::vector<uint8_t> payload(entryDB& db, const std::vector<EntryId>& ids);
-
-		std::vector<uint8_t> serializeEntry(const Entry& entry);
-
-		std::vector<uint8_t> Schema(const schemaData& schema);
-		std::vector<uint8_t> Section(const sectionHeader& header);
-};
-
-class entryRouter {
-	public:
-		RouteResult route(Message& message, Context& context, Session& session);
-	private:
-};
-
 class EntryWebSocketCodec {
-    public:
+	public:
 		EntryRequest decode(Message& message, Context& context, Session& session);
-		EntryResponse endocde();
+		ByteVector encode(const EntryResponse& response);
 
 	private:
 		Entry readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices);
 		schemaData readSchema(ByteReader& reader);
 		sectionHeader readSection(ByteReader& reader);
 		EntryUpdate translateUpdate(const Update& update);
+
+		void encodeSection(ByteWriter& encoder, const sectionHeader& section);
+		void encodeSchema(ByteWriter& encoder, const schemaData& schema);
+		void encodeEntry(ByteWriter& encoder, const Entry& entry);
+
+		ByteVector encodeResponse(const EntryGetResponse& response);
+		ByteVector encodeResponse(const EntryIdsResponse& response);
+		ByteVector encodeResponse(const EntrySuccessResponse& response);
+		ByteVector encodeResponse(const EntryErrorResponse& response);
 };
 
 class EntryRouter {
-    public:
-	    EntryResponse route(const EntryRequest& request, Context& context, Session& session);
+	public:
+		EntryResponse route(const EntryRequest& request, Context& context, Session& session);
+
+	private:
+		EntryResponse handle(const EntryGetRequest& request, Context& context, Session& session, uint32_t id);
+		EntryResponse handle(const EntryUpdateRequest& request, Context& context, Session& session, uint32_t id);
+		EntryResponse handle(const EntryCreateRequest& request, Context& context, Session& session, uint32_t id);
+		EntryResponse handle(const EntryDeleteRequest& request, Context& context, Session& session, uint32_t id);
+		EntryResponse handle(const EntrySearchRequest& request, Context& context, Session& session, uint32_t id);
+		EntryResponse handle(const EntryFilterRequest& request, Context& context, Session& session, uint32_t id);
 };

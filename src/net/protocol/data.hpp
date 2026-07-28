@@ -9,10 +9,11 @@
 #undef OPTIONAL
 #endif
 
+using ByteVector = std::vector<uint8_t>;
 
 class ByteWriter {
 public:
-	std::vector<uint8_t> buffer;
+	ByteVector buffer;
 	
 	void BOOL(bool value);
 	void U8(uint8_t value);

@@ -67,7 +67,7 @@ void appliesSupportedUpdateOps() {
 		EntryUpdate{ firstGeneratedId, UpdateOp::CLEAR_FIELD, 3, std::monostate{} },
 	}, UserRole::ADMIN);
 
-	const Entry updated = db.getEntry({ firstGeneratedId }).front();
+	const Entry updated = db.getEntries({ firstGeneratedId }).front();
 	assert(updated.title == "Updated Title");
 	assert(updated.fan_service == 5);
 	assert(updated.alt_title.empty());

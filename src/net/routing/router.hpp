@@ -40,12 +40,10 @@ struct Context {
 };
 
 using AppPayload = std::variant<
-	std::monostate,
 	EntryPayload
 >;
 
 using ResponsePayload = std::variant<
-	std::monostate
 	EntryResponse
 >;
 
