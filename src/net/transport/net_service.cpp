@@ -65,7 +65,6 @@ void NetService::start(uint16_t port) {
 
 
 
-	// Rebuild to use multithreading and allow multiple clients
 	while (running) {
 		SocketHandle ClientSocket = InvalidSocket;
 
@@ -78,9 +77,13 @@ void NetService::start(uint16_t port) {
 			return;
 		}
 
+
 		try {
 			std::thread clientWorker(&NetService::clientHandler, this, ClientSocket);
 			clientWorker.detach();
+
+			auto now = std::chrono::system_clock::now();
+			std::clog << now << "\t" << "[INFO] client connected\n";
 		} catch (std::system_error const &e) {
 			std::cerr << e.what() << std::endl;
 		}

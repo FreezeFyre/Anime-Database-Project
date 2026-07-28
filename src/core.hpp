@@ -37,6 +37,14 @@ struct Bound {
 	int upper;
 };
 
+enum class LogLevel {
+	Error,
+	Warn,
+	Info,
+	Debug,
+	Trace
+};
+
 struct FieldInfo {
 	std::string name;
 	schemaField::dataType type;

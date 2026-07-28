@@ -1,132 +1,61 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Anime Database Portal</title>
-    <link rel="stylesheet" href="./styles.css">
-  </head>
-  <body>
-    <main class="shell">
-      <section class="panel controls-panel">
-        <div class="title-row">
-          <div>
-            <h1>Anime Database Portal</h1>
-            <p>WebSocket client for requesting entries from the local server.</p>
-          </div>
-          <span id="status" class="status idle">Idle</span>
-        </div>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Anime Database Portal</title>
+		<link rel="stylesheet" href="https://googleapis.com">
+		<link rel="stylesheet" href="./styles.css">
+	</head>
+	<body>
+		<main class="shell">
+			<nav class="header">
+				<div class=globalnav>
+					<ul class="globalnav-list">
+						<li class="globalnav-item">
+							<a class="globalnav-link" href="index.html">
+								<span class="globalnav-link-text">Home</span>
+							</a>
+						</li>
+						<li class="globalnav-item">
+							<a class="globalnav-link" href="">
+								<span class="globalnav-link-text">Movies</span>
+							</a>
+						</li>
+						<li class="globalnav-item">
+							<a class="globalnav-link" href="">
+								<span class="globalnav-link-text">Series</span>
+							</a>
+						</li>
+						<li class="globalnav-item">
+							<a class="globalnav-link" href="">
+								<span class="globalnav-link-text">News</span>
+							</a>
+						</li>
+						<li class="globalnav-item">
+							<a class="globalnav-link" href="">
+								<span class="globalnav-link-text">About</span>
+							</a>
+						</li>
+					</ul>
+				</div>
+				<div class="accountnav">
+					<a class="login-button" href="login.html">Login</a>
+				</div>
+			</nav>
+			<section class="focus-content">
 
-        <form id="request-form" class="request-grid">
-          <label>
-            Server URL
-            <input id="server-url" name="serverUrl" value="ws://127.0.0.1:8080" autocomplete="off">
-          </label>
+			</section>
+			<section class="database-display">
+				<div class="filter-column"></div>
+				<div class="database-column">
+					<div class="database-header"></div>
+					<div class="database-content"></div>
+				</div>
+			</section>
+			<section class="footer">
 
-          <label>
-            Entry IDs
-            <input id="entry-ids" name="entryIds" value="0" autocomplete="off">
-            <small>Use <strong>0</strong> for all entries, or comma-separated IDs like <strong>1, 2, 3</strong>.</small>
-          </label>
-
-          <button id="send-button" type="submit">Send GET</button>
-        </form>
-      </section>
-
-      <section class="panel filter-panel">
-        <div class="section-heading">
-          <h2>Filter Test</h2>
-        </div>
-        <form id="filter-form" class="filter-grid">
-          <label>
-            Field
-            <select id="filter-field" name="filterField">
-              <option value="format" data-kind="multi">format</option>
-              <option value="status" data-kind="multi">status</option>
-              <option value="genres" data-kind="multi">genres</option>
-              <option value="channels" data-kind="multi">channels</option>
-              <option value="audios" data-kind="multi">audios</option>
-              <option value="subtitles" data-kind="multi">subtitles</option>
-              <option value="fan_service" data-kind="range">fan_service</option>
-              <option value="episode_count" data-kind="range">episode_count</option>
-              <option value="min_runtime" data-kind="range">min_runtime</option>
-            </select>
-          </label>
-
-          <label>
-            Include Any
-            <input id="filter-any" name="filterAny" autocomplete="off" placeholder="0, 1, 2">
-          </label>
-
-          <label>
-            Min
-            <input id="filter-min" name="filterMin" autocomplete="off" inputmode="numeric">
-          </label>
-
-          <label>
-            Max
-            <input id="filter-max" name="filterMax" autocomplete="off" inputmode="numeric">
-          </label>
-
-          <button id="filter-button" type="submit">Send FILTER</button>
-        </form>
-        <p class="filter-note">Multi fields use Include Any. Range fields use Min and/or Max. Response is an ID list.</p>
-      </section>
-
-      <section class="summary-strip" aria-live="polite">
-        <div>
-          <span class="summary-label">Message ID</span>
-          <strong id="message-id">-</strong>
-        </div>
-        <div>
-          <span class="summary-label">Records</span>
-          <strong id="record-count">0</strong>
-        </div>
-        <div>
-          <span class="summary-label">Payload</span>
-          <strong id="payload-size">0 bytes</strong>
-        </div>
-        <div>
-          <span class="summary-label">Filtered IDs</span>
-          <strong id="filtered-ids">-</strong>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="section-heading">
-          <h2>Received Entries</h2>
-          <button id="clear-button" type="button">Clear</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Rank</th>
-                <th>Title</th>
-                <th>Format</th>
-                <th>Status</th>
-                <th>Episodes</th>
-                <th>Runtime</th>
-              </tr>
-            </thead>
-            <tbody id="entries-body">
-              <tr>
-                <td colspan="7" class="empty">No response received yet.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="panel raw-panel">
-        <div class="section-heading">
-          <h2>Decoded Response</h2>
-        </div>
-        <pre id="raw-output">Waiting for a request...</pre>
-      </section>
-    </main>
-
-    <script src="./portal.js"></script>
-  </body>
+			</section>
+		<script src="./portal.js"></script>
+	</body>
 </html>

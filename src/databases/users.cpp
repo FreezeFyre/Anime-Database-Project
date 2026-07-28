@@ -6,6 +6,7 @@
 #include <utility>
 
 
+
 //====================================
 //				I/O
 //====================================
@@ -16,6 +17,7 @@ void userDB::load(const std::string& filename) {
 		constructUserIdMap(userIdMap);
 		constructIdentityIdMap(identityIdMap);
 		passwordMap = constructKeyMap(LoginProvider::PASSWORD);
+		savePath = filename;
 	} catch (const std::exception& e) {
 		std::cerr << "Error Loading User Database: " << e.what() << "\n";
 	}
@@ -24,6 +26,9 @@ void userDB::save(const std::string& filename) {
 	fileProcessor f;
 	try {
 		f.saveFile(filename, *this, fileType::HEADER_DATABASE);
+
+		auto now = std::chrono::system_clock::now();
+		std::clog << now << "\t" << "[INFO] User data saved to file. " << "\n ";
 	} catch (const std::exception& e) {
 		std::cerr << "Error Saving User Database: " << e.what() << "\n";
 	}
@@ -274,6 +279,9 @@ void userDB::addUser(const User& user) {
 	size_t index = users.size();
 	users.push_back(user);
 	userIdMap[user.id] = index;
+
+	auto now = std::chrono::system_clock::now();
+	std::clog << now << "\t" << "[INFO] New user add, User id: " << user.id << "\n ";
 }
 void userDB::elevateUser(UserId id, UserRole newRole, const UserRole& role) {
 	if (role != UserRole::ADMIN) {
@@ -292,6 +300,9 @@ void userDB::addIdentity(const UserIdentity& identity) {
 	size_t index = identities.size();
 	identities.push_back(identity);
 	identityIdMap[identity.id] = index;
+
+	auto now = std::chrono::system_clock::now();
+	std::clog << now << "\t" << "[INFO] New user identity add, User id: " << identity.id << "\n ";
 }
 void userDB::createAccount(const CreateAccountRequest& request, const std::string& argon_password) {
 	User user;
@@ -323,6 +334,9 @@ void userDB::createAccount(const CreateAccountRequest& request, const std::strin
 
 	addUser(user);
 	addIdentity(identity);
+	auto now = std::chrono::system_clock::now();
+	std::clog << now << "\t" << "[INFO] new account created. " << "\n ";
+	save(savePath);
 }
 
 

@@ -79,6 +79,11 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 		session.role = user.role;
 		session.signedIn = true;
 		session.userId = user.id;
+
+		auto now = std::chrono::system_clock::now();
+		std::clog << now << "\t" << "[INFO] user login success, User id: " << user.id << "\n ";
+
+
 		return result;
 	}
 	catch (const std::runtime_error& e) {

@@ -182,7 +182,10 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 	for (char c : line) {
 		if (c == '{') { nestLevel++; }
 
-		if (nestLevel == 1 and c != '{' and c != ',' and c != '"' and c != '}') {
+		if (nestLevel == 1 and inString and c != '"') {
+			buffer.push_back(c);
+		}
+		else if (nestLevel == 1 and !inString and c != '{' and c != ',' and c != '"' and c != '}') {
 			buffer.push_back(c);
 		}
 		if (nestLevel >= 2)
