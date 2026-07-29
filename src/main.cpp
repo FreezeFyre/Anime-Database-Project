@@ -52,7 +52,7 @@ int main(int inSize, char* input[]) {
 	context.users.load("E:/Projects/Git/Anime-Database-Project/src/io/userDatabase.1.dat");
 
 	NetService net(context);
-	net.start(port);
+	net.start();
 
 	return 0;
 }

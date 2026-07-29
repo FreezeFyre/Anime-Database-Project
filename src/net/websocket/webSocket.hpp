@@ -17,6 +17,8 @@
 #include <cstdio>
 
 #include "../transport/socket_compat.hpp"
+#include "sha1.hpp"
+#include "base64.hpp"
 
 inline constexpr uint8_t WEB_SOCKET_OPCODE_CONTINUATION = 0x0;
 inline constexpr uint8_t WEB_SOCKET_OPCODE_TEXT = 0x1;
