@@ -7,6 +7,44 @@
 #include "entry_data.hpp"
 #include "../net/routing/router.hpp"
 
+Update decodeUpdate(ByteReader& reader) {
+	Update r;
+
+	r.id = reader.U32();
+	r.operation = static_cast<UpdateOp>(reader.U8());
+	r.fieldIndex = reader.U8();
+	r.type = static_cast<dataType>(reader.U8());
+	switch (r.type) {
+		case dataType::U8: {
+			r.value = reader.U8();
+			break;
+		}
+		case dataType::U16: {
+			r.value = reader.U16();
+			break;
+		}
+		case dataType::U32: {
+			r.value = reader.U32();
+			break;
+		}
+		case dataType::STR: {
+			r.value = reader.STR();
+			break;
+		}
+		case dataType::VECU8: {
+			r.value = reader.VECU8();
+			break;
+		}
+		case dataType::VECU16: {
+			r.value = reader.VECU16();
+			break;
+		}
+		default:
+			throw std::runtime_error("Unknown update value data type.");
+	}
+
+	return r;
+}
 
 //====================================
 //				I/O
@@ -896,8 +934,6 @@ std::unordered_map<std::string, size_t> buildFieldNames() {
 //		Web Socket Codec
 //====================================
 EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, uint32_t id, const ByteVector& payload, Context& context, Session& session) {
-	MessageCodec codec;
-
 	ByteReader reader{ payload };
 	std::vector<uint8_t> buffer;
 
@@ -920,7 +956,7 @@ EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, uint32_t id, const 
 			updateReq.updates.reserve(updateCount);
 
 			for (size_t i = 0; i < updateCount; i++) {
-				Update update = codec.decodeUpdate(reader);
+				Update update = decodeUpdate(reader);
 				updateReq.updates.push_back(translateUpdate(update));
 			}
 			req = updateReq;
@@ -977,6 +1013,7 @@ EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, uint32_t id, const 
 		}
 		default:
 			std::cerr << "Unknown action type: " << static_cast<int>(action) << "\n";
+			throw std::runtime_error("Unknown entry action type.");
 			break;
 	}
 }
@@ -1125,6 +1162,7 @@ ByteVector EntryWebSocketCodec::encodeResponse(const EntryGetResponse& response)
 		encodeEntry(encoder, entry);
 	}
 
+	return encoder.buffer;
 }
 ByteVector EntryWebSocketCodec::encodeResponse(const EntryIdsResponse& response) {
 	ByteWriter encoder;
@@ -1155,7 +1193,7 @@ ByteVector EntryWebSocketCodec::encodeResponse(const EntryErrorResponse& respons
 //====================================
 EntryResponse EntryRouter::route(const EntryRequest& request, Context& context, Session& session) {
 	return std::visit([&](const auto& payload) { 
-		return handle(payload, context, session, id); 
+		return handle(payload, context, session); 
 	}, request);
 }
 

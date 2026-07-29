@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <unordered_map>
 #include <cstdint>
@@ -8,77 +10,13 @@
 #include "../../io/fileHandling.hpp"
 
 #include "../../databases/entry_data.hpp"
+#include "../../databases/auth/auth_service.hpp"
 #include "../../filtering/filterProcessor.hpp"
 #include "../../core.hpp"
 #include "../../databases/users.hpp"
-#include "../../databases/auth/auth_service.hpp"
 #include "../transport/session.hpp"
 #include "../routing/router.hpp"
 
-
-#pragma once
-
-#define ENCODE_VERSION 1001
-
-
-enum class COM_TYPE : uint8_t {
-	REQ = 1,
-	RESP = 2,
-	STATUS = 3,
-	PING = 4
-};
-enum class ACTION_TYPE : uint8_t {
-	ACT_GET = 1,
-	ACT_UPDATE = 2,
-	ACT_CREATE = 3,
-	ACT_DELETE = 4,
-	ACT_SEARCH = 5,
-	ACT_SORT = 6,
-	ACT_APPLY = 7,
-	ACT_FILTER = 8,
-	ACT_LOGIN = 9,
-	ACT_LOGOUT = 10
-};
-enum class DOMAIN_TYPE : uint8_t {
-	ENTRY = 1,
-	GROUPS = 2,
-	CHARACTERS = 3,
-	FILTERS = 4,
-	USERS = 9,
-	AUTH = 10
-};
-
-enum class UpdateOp : uint8_t {
-	SET_FIELD,
-	CLEAR_FIELD,
-	ADD_VALUE,
-	REMOVE_VALUE
-};
-
-struct Update {
-	uint32_t id;
-	UpdateOp operation;
-	uint8_t fieldIndex;
-	dataType type;
-	std::variant<
-		std::monostate,
-		uint8_t,
-		uint16_t,
-		uint32_t,
-		std::string,
-		std::vector<int>
-	> value;
-};
-
-struct Message {
-	uint32_t encodeVersion;
-	COM_TYPE comType;
-	DOMAIN_TYPE domain;
-	ACTION_TYPE action;
-	uint32_t id;
-	uint32_t payloadSize;
-	std::vector<uint8_t> payload;
-};
 
 /*
 
@@ -97,31 +35,14 @@ REQUEST FORMAT
 */
 
 
-class MessageCodec {
 
-	/*
-	What is the Encoders job?
-	Encoders job is to take different variables and construct a byte vector that can be sent over network and decoded.
-
-	What is the Decoders job?
-	Decoders job is to take a byte vector and decode it into data that can be passed be used by a router to route the remainig un-decoded byte data (Payload) to the correct de-serializer and handler.
-	
-	*/
-	public:
-		std::vector<uint8_t> encode(const Message& message);
-
-		AppRequest decode(std::vector<uint8_t>& byteStream, Context& context, Session& session);
-
-		Message construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload);
-
-		Update decodeUpdate(ByteReader& reader);
-
-
-};
 
 class WebSocketCodec {
 	public:
 	    AppRequest decode(ByteVector& byteStream, Context& context, Session& session);
 
 		ByteVector encode(const AppRequest& request, const AppResponse& response);
+
+	private:
+	    ByteVector encodeHandler(const EntryResponse& response);
 };

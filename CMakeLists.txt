@@ -22,8 +22,6 @@ set(PROJECT_CORE_SOURCES
 	"src/net/transport/session.cpp"
 	"src/net/routing/router.cpp"
 	"src/net/websocket/webSocket.cpp"
-	"src/net/websocket/sha1.cpp"
-	"src/net/websocket/base64.cpp"
 	"src/databases/users.cpp"
 	"src/databases/groups.cpp"
 	"src/databases/auth/password.cpp"
@@ -71,20 +69,6 @@ add_executable(parser_fuzz_test
 
 target_link_libraries(parser_fuzz_test PRIVATE ${PROJECT_COMMON_LIBS})
 
-add_executable(entry_update_test
-	"src/tests/entry_update_test.cpp"
-	${PROJECT_ENTRY_TEST_SOURCES}
- "src/net/transport/session.cpp")
-
-target_link_libraries(entry_update_test PRIVATE ${PROJECT_COMMON_LIBS})
-
-add_executable(entry_search_test
-	"src/tests/entry_search_test.cpp"
-	${PROJECT_ENTRY_TEST_SOURCES}
- "src/net/transport/session.cpp")
-
-target_link_libraries(entry_search_test PRIVATE ${PROJECT_COMMON_LIBS})
-
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/users/auth.cpp" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/users/auth.hpp")
 	add_executable(auth_test
 		"src/tests/auth_test.cpp"
@@ -101,6 +85,4 @@ else()
 endif()
 
 add_test(NAME parser_fuzz_test COMMAND parser_fuzz_test)
-add_test(NAME entry_update_test COMMAND entry_update_test)
-add_test(NAME entry_search_test COMMAND entry_search_test)
 

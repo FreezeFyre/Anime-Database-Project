@@ -1,35 +1,8 @@
 #include "messenger.hpp"
 
-Message MessageCodec::construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload) {
-	Message message;
-	message.encodeVersion = ENCODE_VERSION;
-	message.comType = comType;
-	message.domain = domain;
-	message.action = action;
-	message.id = id;
-	message.payloadSize = payloadSize;
-	message.payload = payload;
-	return message;
-}
-
-std::vector<uint8_t> MessageCodec::encode(const Message& message) {
-	std::vector<uint8_t> buffer;
-
-	ByteWriter w;
-
-	w.U32(message.encodeVersion);
-	w.U8(static_cast<uint8_t>(message.comType));
-	w.U8(static_cast<uint8_t>(message.domain));
-	w.U8(static_cast<uint8_t>(message.action));
-	w.U32(message.id);
-	w.U32(message.payloadSize);
-	w.buffer.insert(w.buffer.end(), message.payload.begin(), message.payload.end());
-
-	return w.buffer;
-}
 
 
-AppRequest MessageCodec::decode(std::vector<uint8_t>& byteStream, Context& context, Session& session) {
+AppRequest WebSocketCodec::decode(ByteVector& byteStream, Context& context, Session& session) {
 	ByteReader decoder(byteStream);
 
 	uint32_t encodeVersion = decoder.U32();
@@ -58,42 +31,31 @@ AppRequest MessageCodec::decode(std::vector<uint8_t>& byteStream, Context& conte
 			throw std::runtime_error("Unknown WebSocket domain.");
 	}
 }
+ByteVector WebSocketCodec::encode(const AppRequest& request, const AppResponse& response) {
+	// Encode Version
+	// Com type
+	// Domain can be extracted based of the decodeHandler Used
+	// Action can be passed forwards from domain level?
+	// id can be grabbed from response.id
+	// payload size
+	// payload
 
-Update MessageCodec::decodeUpdate(ByteReader& reader) {
-	Update r;
+	ByteVector payload = std::visit([&](const auto& response) { return encodeHandler(response); }, response.payload);
 
-	r.id = reader.U32();
-	r.operation = static_cast<UpdateOp>(reader.U8());
-	r.fieldIndex = reader.U8();
-	r.type = static_cast<dataType>(reader.U8());
-	switch (r.type) {
-		case dataType::U8: {
-			r.value = reader.U8();
-			break;
-		}
-		case dataType::U16: {
-			r.value = reader.U16();
-			break;
-		}
-		case dataType::U32: {
-			r.value = reader.U32();
-			break;
-		}
-		case dataType::STR: {
-			r.value = reader.STR();
-			break;
-		}
-		case dataType::VECU8: {
-			r.value = reader.VECU8();
-			break;
-		}
-		case dataType::VECU16: {
-			r.value = reader.VECU16();
-			break;
-		}
-		default:
-			throw std::runtime_error("Unknown update value data type.");
-	}
+	ByteWriter writer;
+	writer.U32(ENCODE_VERSION);
+	writer.U8(static_cast<uint8_t>(COM_TYPE::RESP));
+	writer.U8(static_cast<uint8_t>(request.domain));
+	writer.U8(static_cast<uint8_t>(request.action));
+	writer.U32(response.id);
+	writer.U32(payload.size());
+	writer.buffer.insert(writer.buffer.end(), payload.begin(), payload.end());
 
-	return r;
+	return writer.buffer;
 }
+
+ByteVector WebSocketCodec::encodeHandler(const EntryResponse& response) {
+	EntryWebSocketCodec codec;
+	return codec.encode(response);
+}
+

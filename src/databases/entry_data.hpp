@@ -28,11 +28,9 @@
 #include "users.hpp"
 #include "../filtering/filterProcessor.hpp"
 #include "../net/protocol/data.hpp"
-#include "../net/protocol/messenger.hpp"
 #include "../net/transport/session.hpp"
 
 struct Context;
-struct Message;
 struct RouteResult;
 
 struct Entry {
@@ -68,6 +66,7 @@ struct EntryField {
 	memPTR ptr;
 };
 
+Update decodeUpdate(ByteReader& reader);
 
 // This Provides the Meta Data for each field in the Entry for use in other processes
 inline const std::array<EntryField, 15> EntryMeta = { {

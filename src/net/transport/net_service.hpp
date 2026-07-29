@@ -22,7 +22,7 @@
 #include "../protocol/messenger.hpp"
 #include "../routing/router.hpp"
 #include "socket_compat.hpp"
-#include "../web socket/webSocket.hpp"
+#include "../websocket/webSocket.hpp"
 #include "session.hpp"
 
 #ifdef _WIN32

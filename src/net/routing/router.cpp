@@ -1,16 +1,13 @@
 #include "router.hpp"
 
 AppResponse Router::route(AppRequest& request, Context& context, Session& session) {
-	switch (request.domain) {
-		case DOMAIN_TYPE::ENTRY: {
-			EntryRouter eRoute;
-			const EntryRequest& req = std::get<EntryRequest>(request.payload);
-			EntryResponse resp = eRoute.route(req, context, session);
-			return {request.id, resp, resp.closeConnection};
-		}
-		
-		
-		default:
-			throw std::runtime_error("[ERROR][App Router] \t Unexpected/Invalid Domain Type");
-	}
+	return std::visit([&](const auto& payload) {
+		return handle(payload, request.id, context, session);
+	},request.payload);
+}
+
+AppResponse Router::handle(const EntryRequest & request, uint32_t id, Context & context, Session & session) {
+	EntryRouter router;
+	EntryResponse resp = router.route(request, context, session);
+	return AppResponse{id, resp, resp.closeConnection};
 }

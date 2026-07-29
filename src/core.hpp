@@ -45,6 +45,58 @@ enum class LogLevel {
 	Trace
 };
 
+uint32_t ENCODE_VERSION = 1001;
+
+enum class COM_TYPE : uint8_t {
+	REQ = 1,
+	RESP = 2,
+	STATUS = 3
+};
+enum class ACTION_TYPE : uint8_t {
+	ACT_GET = 1,
+	ACT_UPDATE = 2,
+	ACT_CREATE = 3,
+	ACT_DELETE = 4,
+	ACT_SEARCH = 5,
+	ACT_SORT = 6,
+	ACT_APPLY = 7,
+	ACT_FILTER = 8,
+	ACT_LOGIN = 9,
+	ACT_LOGOUT = 10
+};
+enum class DOMAIN_TYPE : uint8_t {
+	ENTRY = 1,
+	GROUPS = 2,
+	CHARACTERS = 3,
+	FILTERS = 4,
+	USERS = 9,
+	AUTH = 10
+};
+
+enum class UpdateOp : uint8_t {
+	SET_FIELD,
+	CLEAR_FIELD,
+	ADD_VALUE,
+	REMOVE_VALUE
+};
+
+
+struct Update {
+	uint32_t id;
+	UpdateOp operation;
+	uint8_t fieldIndex;
+	dataType type;
+	std::variant<
+		std::monostate,
+		uint8_t,
+		uint16_t,
+		uint32_t,
+		std::string,
+		std::vector<int>
+	> value;
+};
+
+
 struct FieldInfo {
 	std::string name;
 	schemaField::dataType type;

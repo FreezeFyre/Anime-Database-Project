@@ -21,12 +21,12 @@
 
 
 // Temporary context stuff, move to app
-#include "../../databases/entry_data.hpp"
-#include "../../filtering/filterProcessor.hpp"
 #include "../../core.hpp"
+#include "../../databases/entry_data.hpp"
 #include "../../databases/users.hpp"
-#include "../protocol/data.hpp"
 #include "../../databases/auth/auth_service.hpp"
+#include "../../filtering/filterProcessor.hpp"
+#include "../protocol/data.hpp"
 #include "../transport/session.hpp"
 
 struct Context {
@@ -75,5 +75,8 @@ struct AppResponse {
 class Router {
     public:
 	    AppResponse route(AppRequest& request, Context& context, Session& session);
+
+	private:
+		AppResponse handle(const EntryRequest& request, uint32_t id, Context& context, Session& session);
 
 };

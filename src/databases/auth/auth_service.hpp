@@ -8,12 +8,10 @@
 #include "../users.hpp"
 #include "password.hpp"
 #include "../../net/protocol/data.hpp"
-#include "../../net/protocol/messenger.hpp"
 #include "../../net/transport/session.hpp"
 
 struct Context;
-struct Message;
-struct RouteResult;
+struct Session;
 
 struct AuthResult {
 	bool success;
