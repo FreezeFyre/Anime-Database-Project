@@ -1,7 +1,5 @@
 #include "webSocket.hpp"
 
-
-
 bool recvAll(SocketHandle client, void* data, size_t size) {
 	char* buffer = static_cast<char*>(data);
 	size_t total = 0;

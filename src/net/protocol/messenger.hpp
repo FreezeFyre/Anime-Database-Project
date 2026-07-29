@@ -7,6 +7,15 @@
 #include "data.hpp"
 #include "../../io/fileHandling.hpp"
 
+#include "../../databases/entry_data.hpp"
+#include "../../filtering/filterProcessor.hpp"
+#include "../../core.hpp"
+#include "../../databases/users.hpp"
+#include "../../databases/auth/auth_service.hpp"
+#include "../transport/session.hpp"
+#include "../routing/router.hpp"
+
+
 #pragma once
 
 #define ENCODE_VERSION 1001
@@ -87,6 +96,7 @@ REQUEST FORMAT
 
 */
 
+
 class MessageCodec {
 
 	/*
@@ -100,10 +110,18 @@ class MessageCodec {
 	public:
 		std::vector<uint8_t> encode(const Message& message);
 
-		Message decode(std::vector<uint8_t>& byteStream);
+		AppRequest decode(std::vector<uint8_t>& byteStream, Context& context, Session& session);
 
 		Message construct(COM_TYPE comType, DOMAIN_TYPE domain, ACTION_TYPE action, uint32_t id, uint32_t payloadSize, const std::vector<uint8_t>& payload);
 
 		Update decodeUpdate(ByteReader& reader);
 
+
+};
+
+class WebSocketCodec {
+	public:
+	    AppRequest decode(ByteVector& byteStream, Context& context, Session& session);
+
+		ByteVector encode(const AppRequest& request, const AppResponse& response);
 };

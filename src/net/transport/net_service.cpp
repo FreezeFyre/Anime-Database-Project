@@ -103,11 +103,9 @@ void NetService::clientHandler(SocketHandle ClientSocket) {
 		return;
 	}
 	Session session;
-	MessageCodec codec;
+	WebSocketCodec codec;
 	Router router;
 
-
-	Request reqbuf = { ClientSocket, Message() };
 
 	do {
 		WebSocketFrame frame = readWebSocketFrame(ClientSocket);
@@ -127,23 +125,16 @@ void NetService::clientHandler(SocketHandle ClientSocket) {
 			continue;
 		}
 
-		try {
-			reqbuf.message = codec.decode(frame.payload);
-		}
-		catch (const std::exception& e) {
-			printf("Failed to decode message: %s\n", e.what());
-			continue;
-		}
+		AppRequest req = codec.decode(frame.payload, context, session);
+		AppResponse resp = router.route(req, context, session);
+		ByteVector encResp = codec.encode(req, resp);
 
-		RouteResult res = router.route(reqbuf.message, context, session);
-		std::vector<uint8_t> encRes = codec.encode(res.message);
-
-		if (!sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_BINARY, encRes)) {
+		if (!sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_BINARY, encResp)) {
 			printf("send failed: %d\n", lastSocketError());
 			break;
 		}
 
-		if (res.closeConnection) {
+		if (resp.closeConnection) {
 			sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_CLOSE, {});
 			break;
 		}

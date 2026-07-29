@@ -895,21 +895,20 @@ std::unordered_map<std::string, size_t> buildFieldNames() {
 //====================================
 //		Web Socket Codec
 //====================================
-EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Session& session) {
+EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, uint32_t id, const ByteVector& payload, Context& context, Session& session) {
 	MessageCodec codec;
 
-	ByteReader reader{ message.payload };
+	ByteReader reader{ payload };
 	std::vector<uint8_t> buffer;
 
 	EntryRequest req;
-	req.id = message.id;
 
-	switch (message.action) {
+	switch (action) {
 		case ACTION_TYPE::ACT_GET:
 		{
 			EntryGetRequest getReq;
 			getReq.ids = reader.VECU32();
-			req.payload = getReq;
+			req = getReq;
 
 			return req;
 			break;
@@ -924,7 +923,7 @@ EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Ses
 				Update update = codec.decodeUpdate(reader);
 				updateReq.updates.push_back(translateUpdate(update));
 			}
-			req.payload = updateReq;
+			req = updateReq;
 
 			return req;
 			break;
@@ -944,7 +943,7 @@ EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Ses
 				createReq.entries.emplace_back(readEntry(reader, fieldIndices));
 			}
 
-			req.payload = createReq;
+			req = createReq;
 			return req;
 			break;
 		}
@@ -952,7 +951,7 @@ EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Ses
 			EntryDeleteRequest deleteReq;
 
 			deleteReq.ids = reader.VECU32();
-			req.payload = deleteReq;
+			req = deleteReq;
 
 			return req;
 			break;
@@ -961,7 +960,7 @@ EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Ses
 			EntrySearchRequest searchReq;
 
 			searchReq.searchTerm = reader.STR();
-			req.payload = searchReq;
+			req= searchReq;
 
 			return req;
 			break;
@@ -971,13 +970,13 @@ EntryRequest EntryWebSocketCodec::decode(Message& message, Context& context, Ses
 			EntryFilterRequest filterReq;
 
 			filterReq.filters = processor.decode(reader);
-			req.payload = filterReq;
+			req = filterReq;
 
 			return req;
 			break;
 		}
 		default:
-			std::cerr << "Unknown action type: " << static_cast<int>(message.action) << "\n";
+			std::cerr << "Unknown action type: " << static_cast<int>(action) << "\n";
 			break;
 	}
 }
@@ -1156,11 +1155,11 @@ ByteVector EntryWebSocketCodec::encodeResponse(const EntryErrorResponse& respons
 //====================================
 EntryResponse EntryRouter::route(const EntryRequest& request, Context& context, Session& session) {
 	return std::visit([&](const auto& payload) { 
-		return handle(payload, context, session, request.id); 
-	}, request.payload);
+		return handle(payload, context, session, id); 
+	}, request);
 }
 
-EntryResponse EntryRouter::handle(const EntryGetRequest& request, Context& context, Session& session, uint32_t id) {
+EntryResponse EntryRouter::handle(const EntryGetRequest& request, Context& context, Session& session) {
 	EntryWebSocketCodec domainCodec;
 	EntryGetResponse resp;
 	try {
@@ -1172,11 +1171,11 @@ EntryResponse EntryRouter::handle(const EntryGetRequest& request, Context& conte
 		}
 	} catch (const std::exception& e) {
 		std::cerr << "Error generating payload: " << e.what() << "\n";
-		return {id, EntryErrorResponse{e.what()}};
+		return {EntryErrorResponse{e.what()}, false};
 	}
-	return {id, resp};
+	return {resp, false};
 }
-EntryResponse EntryRouter::handle(const EntryUpdateRequest& request, Context& context, Session& session, uint32_t id) {	
+EntryResponse EntryRouter::handle(const EntryUpdateRequest& request, Context& context, Session& session) {	
 	try {
 		{
 			std::unique_lock lock(context.entriesMutex);
@@ -1184,12 +1183,12 @@ EntryResponse EntryRouter::handle(const EntryUpdateRequest& request, Context& co
 		}
 	} catch (const std::exception& e) {
 		std::cerr << "Error updating entries: " << e.what() << "\n";
-		return {id, EntryErrorResponse{e.what()}};
+		return {EntryErrorResponse{e.what()}, false};
 	}
 
-	return {id, EntrySuccessResponse()};
+	return {EntrySuccessResponse(), false};
 }
-EntryResponse EntryRouter::handle(const EntryCreateRequest& request, Context& context, Session& session, uint32_t id) {
+EntryResponse EntryRouter::handle(const EntryCreateRequest& request, Context& context, Session& session) {
 	try {
 		{
 			std::unique_lock lock(context.entriesMutex);
@@ -1199,12 +1198,12 @@ EntryResponse EntryRouter::handle(const EntryCreateRequest& request, Context& co
 		}
 	} catch (const std::exception& e) {
 		std::cerr << "Error adding entry: " << e.what() << "\n";
-		return {id, EntryErrorResponse{e.what()}};
+		return {EntryErrorResponse{e.what()}, false};
 	}
 
-	return {id, EntrySuccessResponse()};
+	return {EntrySuccessResponse(), false};
 }
-EntryResponse EntryRouter::handle(const EntryDeleteRequest& request, Context& context, Session& session, uint32_t id) {
+EntryResponse EntryRouter::handle(const EntryDeleteRequest& request, Context& context, Session& session) {
 	try {
 		// Temporarily lock deletion into a single id at a time
 		if (request.ids.size() > 1) {throw std::runtime_error(" Can only delete one entry at a time right now. ");}
@@ -1214,12 +1213,12 @@ EntryResponse EntryRouter::handle(const EntryDeleteRequest& request, Context& co
 		}
 	} catch (const std::exception& e) {
 		std::cerr << "Error deleting entry: " << e.what() << "\n";
-		return {id, EntryErrorResponse{e.what()}};
+		return {EntryErrorResponse{e.what()}, false};
 	}
 
-	return {id, EntrySuccessResponse()};
+	return {EntrySuccessResponse(), false};
 }
-EntryResponse EntryRouter::handle(const EntrySearchRequest& request, Context& context, Session& session, uint32_t id) {
+EntryResponse EntryRouter::handle(const EntrySearchRequest& request, Context& context, Session& session) {
 	EntryIdsResponse resp;
 	try {
 		{
@@ -1228,12 +1227,12 @@ EntryResponse EntryRouter::handle(const EntrySearchRequest& request, Context& co
 		}
 	} catch (const std::exception& e) {
 		std::cerr << "Error searching entry titles: " << e.what() << "\n";
-		return {id, EntryErrorResponse{e.what()}};
+		return {EntryErrorResponse{e.what()}, false};
 	}
 
-	return {id, resp};
+	return {resp, false};
 }
-EntryResponse EntryRouter::handle(const EntryFilterRequest& request, Context& context, Session& session, uint32_t id) {
+EntryResponse EntryRouter::handle(const EntryFilterRequest& request, Context& context, Session& session) {
 	EntryIdsResponse resp;
 
 	try {
@@ -1243,8 +1242,8 @@ EntryResponse EntryRouter::handle(const EntryFilterRequest& request, Context& co
 		}
 	} catch (const std::exception& e) {
 		std::cerr << "Error filtering entries: " << e.what() << "\n";
-		return {id, EntryErrorResponse{e.what()}};
+		return {EntryErrorResponse{e.what()}, false};
 	}
 
-	return {id, resp};
+	return {resp, false};
 }

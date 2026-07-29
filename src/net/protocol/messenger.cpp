@@ -29,27 +29,34 @@ std::vector<uint8_t> MessageCodec::encode(const Message& message) {
 }
 
 
-Message MessageCodec::decode(std::vector<uint8_t>& byteStream) {
-	Message message;
+AppRequest MessageCodec::decode(std::vector<uint8_t>& byteStream, Context& context, Session& session) {
+	ByteReader decoder(byteStream);
 
-	ByteReader r(byteStream);
-
-	message.encodeVersion = r.U32();
-	if (message.encodeVersion != ENCODE_VERSION) {
+	uint32_t encodeVersion = decoder.U32();
+	if (encodeVersion != ENCODE_VERSION) {
 		throw std::exception(" Unsupported encode version!");
 	}
-	message.comType = static_cast<COM_TYPE>(r.U8());
-	message.domain = static_cast<DOMAIN_TYPE>(r.U8());
-	message.action = static_cast<ACTION_TYPE>(r.U8());
-	message.id = r.U32();
-	message.payloadSize = r.U32();
+	COM_TYPE comType = static_cast<COM_TYPE>(decoder.U8());
+	DOMAIN_TYPE domain = static_cast<DOMAIN_TYPE>(decoder.U8());
+	ACTION_TYPE action = static_cast<ACTION_TYPE>(decoder.U8());
+	uint32_t id = decoder.U32();
+	uint32_t payloadSize = decoder.U32();
 
-	message.payload.clear();
-	for (size_t i = 0; i < message.payloadSize; i++) {
-		message.payload.push_back(r.U8());
+	ByteVector payload;
+	payload.reserve(payloadSize);
+	for (uint32_t i = 0; i < payloadSize; ++i) {
+		payload.push_back(decoder.U8());
 	}
 
-	return message;
+	switch (domain) {
+		case DOMAIN_TYPE::ENTRY: {
+			EntryWebSocketCodec entryCodec;
+			EntryRequest entryReq = entryCodec.decode(action, id, payload, context, session);
+			return AppRequest{comType, domain, action, id, EntryRequest{std::move(entryReq)}};
+		}
+		default:
+			throw std::runtime_error("Unknown WebSocket domain.");
+	}
 }
 
 Update MessageCodec::decodeUpdate(ByteReader& reader) {

@@ -17,7 +17,6 @@
 
 #include <shared_mutex>
 
-#include "../protocol/messenger.hpp"
 
 
 
@@ -40,7 +39,7 @@ struct Context {
 };
 
 using AppPayload = std::variant<
-	EntryPayload
+	EntryRequest
 >;
 
 using ResponsePayload = std::variant<
@@ -58,6 +57,7 @@ struct AppRequest {
 struct AppResponse {
 	uint32_t id;
 	ResponsePayload payload;
+	bool closeConnection = false;
 };
 
 /*
@@ -71,14 +71,9 @@ struct AppResponse {
 [PAYLOAD]
 
 */
-struct RouteResult {
-	Message message;
-	bool closeConnection = false;
-};
 
 class Router {
-	public:
-		RouteResult route(Message& message, Context& context, Session& session);
+    public:
+	    AppResponse route(AppRequest& request, Context& context, Session& session);
 
-	private:
 };

@@ -217,7 +217,7 @@ struct EntrySearchRequest { // This will change once searches arent title only
 struct EntryFilterRequest {
 	FilterRequest filters;
 };
-using EntryPayload = std::variant<
+using EntryRequest = std::variant<
 	EntryGetRequest,
 	EntryUpdateRequest,
 	EntryCreateRequest,
@@ -225,10 +225,6 @@ using EntryPayload = std::variant<
 	EntrySearchRequest,
 	EntryFilterRequest
 >;
-struct EntryRequest {
-	uint32_t id;
-	EntryPayload payload;
-};
 
 struct EntryGetResponse {
 	sectionHeader section;
@@ -252,13 +248,13 @@ using EntryResponsePayload = std::variant<
     EntryErrorResponse
 >;
 struct EntryResponse {
-	uint32_t id;
 	EntryResponsePayload payload;
+    bool closeConnection = false;
 };
 
 class EntryWebSocketCodec {
 	public:
-		EntryRequest decode(Message& message, Context& context, Session& session);
+		EntryRequest decode(ACTION_TYPE action, uint32_t id, const ByteVector& payload, Context& context, Session& session);
 		ByteVector encode(const EntryResponse& response);
 
 	private:
@@ -282,10 +278,10 @@ class EntryRouter {
 		EntryResponse route(const EntryRequest& request, Context& context, Session& session);
 
 	private:
-		EntryResponse handle(const EntryGetRequest& request, Context& context, Session& session, uint32_t id);
-		EntryResponse handle(const EntryUpdateRequest& request, Context& context, Session& session, uint32_t id);
-		EntryResponse handle(const EntryCreateRequest& request, Context& context, Session& session, uint32_t id);
-		EntryResponse handle(const EntryDeleteRequest& request, Context& context, Session& session, uint32_t id);
-		EntryResponse handle(const EntrySearchRequest& request, Context& context, Session& session, uint32_t id);
-		EntryResponse handle(const EntryFilterRequest& request, Context& context, Session& session, uint32_t id);
+		EntryResponse handle(const EntryGetRequest& request, Context& context, Session& session);
+		EntryResponse handle(const EntryUpdateRequest& request, Context& context, Session& session);
+		EntryResponse handle(const EntryCreateRequest& request, Context& context, Session& session);
+		EntryResponse handle(const EntryDeleteRequest& request, Context& context, Session& session);
+		EntryResponse handle(const EntrySearchRequest& request, Context& context, Session& session);
+		EntryResponse handle(const EntryFilterRequest& request, Context& context, Session& session);
 };

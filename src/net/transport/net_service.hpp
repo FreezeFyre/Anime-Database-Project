@@ -52,12 +52,12 @@ const uint16_t INTERNAL_WS_PORT = 8080;
 
 struct Request {
 	SocketHandle client;
-    Message message;
+	AppRequest request;
 };
 
 struct Response {
     SocketHandle client;
-    Message message;
+    AppResponse response;
 };
 
 struct WebSOCKFrame {
