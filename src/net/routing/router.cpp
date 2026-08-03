@@ -11,3 +11,9 @@ AppResponse Router::handle(const EntryRequest & request, uint32_t id, Context & 
 	EntryResponse resp = router.route(request, context, session);
 	return AppResponse{id, resp, resp.closeConnection};
 }
+
+AppResponse Router::handle(const AuthRequest& request, uint32_t id, Context& context, Session& session) {
+	AuthRouter router;
+	AuthResponse resp = router.route(request, context, session);
+	return AppResponse{id, resp, false}; // Bool is false as it is ignored for http
+}

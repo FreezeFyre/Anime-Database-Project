@@ -58,4 +58,7 @@ ByteVector WebSocketCodec::encodeHandler(const EntryResponse& response) {
 	EntryWebSocketCodec codec;
 	return codec.encode(response);
 }
+ByteVector WebSocketCodec::encodeHandler(const AuthResponse& response) {
+	throw std::runtime_error("[WebSocketCodec][ERROR] Auth not supported on web-socket.");
+}
 

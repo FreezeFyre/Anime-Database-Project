@@ -4,7 +4,7 @@
 
 Auth::Auth(Context& context) : context(context) {}
 
-AuthResult Auth::login(const LoginRequest& request, Session& session) {
+AuthResult Auth::login(const AuthLoginRequest& request, Session& session) {
 	switch (request.provider) {
 		case LoginProvider::PASSWORD: {
 			return password(passwordService, request, session);
@@ -20,15 +20,13 @@ AuthResult Auth::login(const LoginRequest& request, Session& session) {
 			return {false, std::nullopt, UserRole::VIEWER, "Unsupported login provider."};
 	}
 }
-
 AuthResult Auth::logout(Session& session) {
 	session.signedIn = false;
 	session.userId = std::nullopt;
 	session.role = UserRole::VIEWER;
     return {true, session.userId, session.role, ""};
 }
-
-AuthResult Auth::create(const CreateAccountRequest& request, Session& session) {
+AuthResult Auth::create(const AuthCreateAccountRequest& request, Session& session) {
 	switch (request.provider) {
 		case LoginProvider::PASSWORD: {
 			const std::string pw = passwordService.hash(request.secret);
@@ -44,9 +42,7 @@ AuthResult Auth::create(const CreateAccountRequest& request, Session& session) {
 			return {false, std::nullopt, UserRole::VIEWER, "Unsupported login provider."};
 	}
 }
-
-
-AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& request, Session& session) {
+AuthResult Auth::password(PasswordService& passwordService, const AuthLoginRequest& request, Session& session) {
 	AuthResult result;
 	result.success = false;
 	result.role = UserRole::VIEWER;
@@ -94,97 +90,91 @@ AuthResult Auth::password(PasswordService& passwordService, const LoginRequest& 
 }
 
 
+AuthResponse AuthRouter::route(const AuthRequest& request, Context& context, Session& session) {
+	return std::visit([&](const auto& payload) {
+		return handle(payload, context, session);
+	}, request);
+}
+
+AuthResponse AuthRouter::handle(const AuthLoginRequest& request, Context& context, Session& session) {
+	return Auth{context}.login(request, session);
+}
+AuthResponse AuthRouter::handle(const AuthOAuthStartRequest& request, Context& context, Session& session) {
+	return AuthResult{false, std::nullopt, UserRole::VIEWER, "OAuth start not implemented."};
+}
+AuthResponse AuthRouter::handle(const AuthOAuthCallbackRequest& request, Context& context, Session& session) {
+	return AuthResult{false, std::nullopt, UserRole::VIEWER, "OAuth callback not implemented."};
+}
+AuthResponse AuthRouter::handle(const AuthCreateAccountRequest& request, Context& context, Session& session) {
+	return Auth{context}.create(request, session);
+}
+AuthResponse AuthRouter::handle(const AuthLogoutRequest& request, Context& context, Session& session) {
+	return Auth{context}.logout(session);
+}
 
 
-RouteResult AuthRouter::route(Message& message, Context& context, Session& session) {
-	RouteResult res;
 
-	Auth auth{context};
-
-	MessageCodec codec;
-	ByteReader reader{ message.payload };
-	std::vector<uint8_t> buffer;
-
-	switch (message.action) {
+AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::string_view>& path, const std::unordered_map<std::string, std::string>& headers, const std::vector<uint8_t>& body) {
+	switch (action) {
 		case ACTION_TYPE::ACT_LOGIN: {
-			LoginRequest req = serializer.readLogin(message.payload);
-			AuthResult result;
+			ByteReader reader{body};
 
-			// Shared Mutex lock within function to not hold on password hashing
-			result = auth.login(req, session);
-			
-			std::vector<uint8_t> authResult = serializer.authResult(result);
+			LoginProvider provider = login_provider(std::string(path[2]));
 
-			res.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
-			return res;
+			std::string loginKey = reader.STR();
+			std::string secret = reader.STR();
+
+			return AuthLoginRequest{provider, loginKey, secret};
+		}
+		case ACTION_TYPE::ACT_OAUTH: {
+			// Oauth isnt implemented yet
+			std::clog << "Oauth action is not implemented yet.\n";
+			throw std::runtime_error("Oauth action is not implemented yet.");
+		}
+		case ACTION_TYPE::ACT_CREATE: {
+			ByteReader reader{body};
+
+			LoginProvider provider = login_provider(std::string(path[2]));
+
+			std::string loginKey = reader.STR();
+			std::string secret = reader.STR();
+			std::string email = reader.STR();
+			std::string displayName = reader.STR();
+
+			return AuthCreateAccountRequest{provider, loginKey, secret, email, displayName};
 			break;
 		}
-		case ACTION_TYPE::ACT_LOGOUT: { 
-
-			std::vector<uint8_t> authResult = serializer.authResult(auth.logout(session));
-			res.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
-			return res;
+		case ACTION_TYPE::ACT_LOGOUT: {
+			return AuthLogoutRequest{};
 			break;
 		}
-		case ACTION_TYPE::ACT_CREATE: { 
-			CreateAccountRequest req = serializer.readCreateAccount(message.payload);
-			AuthResult result;
-			
-			// Exclusive Mutex Lock within function to not hold on password hashing
-			result = auth.create(req, session);
-			std::vector<uint8_t> authResult = serializer.authResult(result);
-
-			res.message = codec.construct(COM_TYPE::RESP, DOMAIN_TYPE::AUTH, message.action, message.id, authResult.size(), authResult);
-			return res;
-			break;
-		}
-		default: {
-			break;
-		}
+		default:
+			std::cerr << "Unknown action type for auth: " << static_cast<int>(action) << "\n";
+			throw std::runtime_error("Unknown action type for auth.");
 	}
 
-
-	return res;
+	return AuthRequest();
+}
+HttpResponse AuthHttpCodec::encode(const AuthResponse& response) {
+	return encodeResponse(response);
 }
 
-
-LoginRequest AuthSerializer::readLogin(const std::vector<uint8_t>& bytes) {
-	LoginRequest result;
-	ByteReader r{bytes};
-
-	result.provider = static_cast<LoginProvider>(r.U8());
-	result.loginKey = r.STR();
-	result.secret = r.STR();
-	
-	return result;
-}
-
-CreateAccountRequest AuthSerializer::readCreateAccount(const std::vector<uint8_t>& bytes) {
-	CreateAccountRequest result;
-	ByteReader r{bytes};
-
-	result.provider = static_cast<LoginProvider>(r.U8());
-	result.loginKey = r.STR();
-	result.secret = r.STR();
-	result.email = r.STR();
-	result.displayName = r.STR();
-
-	return result;
-}
-
-
-std::vector<uint8_t> AuthSerializer::authResult(const AuthResult& result)  {
-	ByteWriter w;
-	
-	w.BOOL(result.success);
-	if (result.userId.has_value()) {
-		w.BOOL(true);
-		w.U32(static_cast<uint32_t>(result.userId.value()));
-	} else {
-		w.BOOL(false);
+HttpResponse AuthHttpCodec::encodeResponse(const AuthResponse& response) {
+	if (response.success) {
+		return HttpResponse{
+			"HTTP/1.1",
+			200,
+			"OK",
+			{{"Content-Type", "application/octet-stream"}},
+			{static_cast<uint8_t>(response.role)}
+		};
 	}
-	w.U8(static_cast<uint8_t>(result.role));
-	w.STR(result.error);
 
-	return w.buffer;
+	return HttpResponse {
+		"HTTP/1.1",
+		401,
+		"Unauthorized",
+		{{"Content-Type", "application / octet - stream "}},
+		ByteVector{response.error.begin(), response.error.end()}
+	};
 }

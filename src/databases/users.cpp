@@ -304,7 +304,7 @@ void userDB::addIdentity(const UserIdentity& identity) {
 	auto now = std::chrono::system_clock::now();
 	std::clog << now << "\t" << "[INFO] New user identity add, User id: " << identity.id << "\n ";
 }
-void userDB::createAccount(const CreateAccountRequest& request, const std::string& argon_password) {
+void userDB::createAccount(const AuthCreateAccountRequest& request, const std::string& argon_password) {
 	User user;
 	UserIdentity identity;
 	

@@ -17,15 +17,10 @@
 
 #include <shared_mutex>
 
-
-
-
 // Temporary context stuff, move to app
 #include "../../core.hpp"
 #include "../../databases/entry_data.hpp"
-#include "../../databases/users.hpp"
 #include "../../databases/auth/auth_service.hpp"
-#include "../../filtering/filterProcessor.hpp"
 #include "../protocol/data.hpp"
 #include "../transport/session.hpp"
 
@@ -39,11 +34,13 @@ struct Context {
 };
 
 using AppPayload = std::variant<
-	EntryRequest
+	EntryRequest,
+	AuthRequest
 >;
 
 using ResponsePayload = std::variant<
-	EntryResponse
+	EntryResponse,
+	AuthResponse
 >;
 
 struct AppRequest {
@@ -77,6 +74,7 @@ class Router {
 	    AppResponse route(AppRequest& request, Context& context, Session& session);
 
 	private:
-		AppResponse handle(const EntryRequest& request, uint32_t id, Context& context, Session& session);
+	    AppResponse handle(const EntryRequest& request, uint32_t id, Context& context, Session& session);
+		AppResponse handle(const AuthRequest& request, uint32_t id, Context& context, Session& session);
 
 };

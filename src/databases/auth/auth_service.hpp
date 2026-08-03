@@ -27,39 +27,72 @@ class Auth {
 
 		explicit Auth(Context& context);
 
-		AuthResult login(const LoginRequest& request, Session& session);
+		AuthResult login(const AuthLoginRequest& request, Session& session);
 
 		AuthResult logout(Session& session);
 
-		AuthResult create(const CreateAccountRequest& request, Session& session);
+		AuthResult create(const AuthCreateAccountRequest& request, Session& session);
 
 
 	private:
-		AuthResult password(PasswordService& passwordService, const LoginRequest& request, Session& session);
+		AuthResult password(PasswordService& passwordService, const AuthLoginRequest& request, Session& session);
 		AuthResult google(std::string_view token, Session& session);
 		AuthResult apple(std::string_view token, Session& session);
 		AuthResult github(std::string_view token, Session& session);
 
 };
 
+struct AuthLoginRequest {
+	LoginProvider provider;
+	std::string loginKey;
+	std::string secret;
+};
+struct AuthOAuthStartRequest {
+	LoginProvider provider;
+};
+struct AuthOAuthCallbackRequest {
+	LoginProvider provider;
+	std::string code;
+	std::string state;
+};
+struct AuthCreateAccountRequest {
+	LoginProvider provider;
+	std::string loginKey;
+	std::string secret;
+	std::string email; // Optional, only used for password provided login. Must be requested for providers.
+	std::string displayName;
+};
+struct AuthLogoutRequest {
+};
+using AuthRequest = std::variant<
+	AuthLoginRequest,
+	AuthOAuthStartRequest,
+	AuthOAuthCallbackRequest,
+	AuthCreateAccountRequest,
+	AuthLogoutRequest
+>;
 
-class AuthSerializer {
+using AuthResponse = AuthResult;
+
+
+class AuthHttpCodec {
 	public:
-	    LoginRequest readLogin(const std::vector<uint8_t>& bytes);
-		CreateAccountRequest readCreateAccount(const std::vector<uint8_t>& bytes);
+		AuthRequest decode(ACTION_TYPE action, const std::vector<std::string_view>& path, const std::unordered_map<std::string, std::string>& headers, const std::vector<uint8_t>& body);
+		HttpResponse encode(const AuthResponse& response);
 
-		std::vector<uint8_t> authResult(const AuthResult& result);
-
-
+	private:
+	    HttpResponse encodeResponse(const AuthResponse& response);
 };
 
 class AuthRouter {
-	AuthSerializer serializer;
-
 	public:
-		RouteResult route(Message& message, Context& context, Session& session);
+		AuthResponse route(const AuthRequest& request, Context& context, Session& session);
+
+	private:
+		AuthResponse handle(const AuthLoginRequest& request, Context& context, Session& session);
+		AuthResponse handle(const AuthOAuthStartRequest& request, Context& context, Session& session);
+		AuthResponse handle(const AuthOAuthCallbackRequest& request, Context& context, Session& session);
+		AuthResponse handle(const AuthCreateAccountRequest& request, Context& context, Session& session);
+		AuthResponse handle(const AuthLogoutRequest& request, Context& context, Session& session);
+
 };
-// Possible auth messages are Logging in, creating a account, and logging out,
-// a login request should be a Uint8_t for provider then a string that holds the login key and a string that holds the secret
-// a create account request should include a uin8_t for provider, a string for login key, a string for secret and a optional string for email
-// Log-out dosent require packet, can just do clear off action

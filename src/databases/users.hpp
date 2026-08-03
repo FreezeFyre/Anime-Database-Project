@@ -22,6 +22,18 @@ enum class LoginProvider : uint8_t {
 	APPLE = 2,
 	GITHUB = 3
 };
+inline LoginProvider login_provider(std::string_view provider) {
+	if (provider == "password") {
+		return LoginProvider::PASSWORD;
+	} else if (provider == "google") {
+		return LoginProvider::GOOGLE;
+	} else if (provider == "apple") {
+		return LoginProvider::APPLE;
+	} else if (provider == "github") {
+		return LoginProvider::GITHUB;
+	}
+	throw std::runtime_error("Unknown login provider: " + std::string(provider));
+}
 
 struct User {
 	UserId id = 0;
@@ -41,7 +53,13 @@ struct UserIdentity {
 	bool disabled = false;
 };
 
-struct CreateAccountRequest {
+
+struct AuthLoginRequest {
+	LoginProvider provider;
+	std::string loginKey;
+	std::string secret;
+};
+struct AuthCreateAccountRequest {
 	LoginProvider provider;
 	std::string loginKey;
 	std::string secret;
@@ -49,11 +67,10 @@ struct CreateAccountRequest {
 	std::string displayName;
 };
 
-struct LoginRequest {
-	LoginProvider provider;
-	std::string loginKey;
-	std::string secret;
-};
+using AuthRequests = std::variant<
+	AuthLoginRequest,
+	AuthCreateAccountRequest
+>;
 
 
 using UserMemPtr = std::variant<UserId User::*, std::string User::*, UserRole User::*, bool User::*>;
@@ -114,7 +131,7 @@ class userDB {
 		void addUser(const User& user);
 		void elevateUser(UserId id, UserRole newRole, const UserRole& role);
 		void addIdentity(const UserIdentity& identity);
-	    void createAccount(const CreateAccountRequest& request, const std::string& argon_password);
+	    void createAccount(const AuthCreateAccountRequest& request, const std::string& argon_password);
 
 		// Query Operations
 	    const User& getUser(UserId id) const;

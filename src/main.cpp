@@ -12,8 +12,8 @@
 #include "net/transport/net_service.hpp"
 
 
-
 int main(int inSize, char* input[]) {
+
 	// Release / Build code 
 	std::cout << "AnimeList.Backend. Build Date: " << __DATE__ << " Time: " << __TIME__ << "\n";
 

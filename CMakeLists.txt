@@ -26,16 +26,12 @@ set(PROJECT_CORE_SOURCES
 	"src/databases/groups.cpp"
 	"src/databases/auth/password.cpp"
 	"src/databases/auth/auth_service.cpp"
+	"src/net/https/httpCodec.cpp"
 )
 
-set(PROJECT_ENTRY_TEST_SOURCES
-	"src/io/fileHandling.cpp"
-	"src/databases/entry_data.cpp"
-	"src/filtering/filterProcessor.cpp"
-	"src/net/protocol/messenger.cpp"
+set(PROJECT_NET_DEBUG_SOURCES
 	"src/net/protocol/data.cpp"
-	"src/databases/users.cpp"
-	"src/databases/groups.cpp"
+	"src/net/https/httpCodec.cpp"
 )
 
 add_executable(anime_database_project
@@ -56,7 +52,14 @@ add_custom_command(TARGET anime_database_project POST_BUILD
 add_executable(parser_stress_test
 	"src/tests/parser_stress_test.cpp"
 	"src/io/fileHandling.cpp"
- "src/net/transport/session.cpp")
+ "src/net/transport/session.cpp" "src/net/https/httpCodec.cpp")
+
+ add_executable(net_debug
+	"src/netDebug.cpp"
+	${PROJECT_NET_DEBUG_SOURCES}
+ )
+target_link_libraries(net_debug PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)
+
 
 target_link_libraries(parser_stress_test PRIVATE ${PROJECT_COMMON_LIBS})
 
@@ -65,7 +68,7 @@ add_test(NAME parser_stress_test COMMAND parser_stress_test)
 add_executable(parser_fuzz_test
 	"src/tests/parser_fuzz_test.cpp"
 	"src/io/fileHandling.cpp"
- "src/net/transport/session.cpp")
+ "src/net/transport/session.cpp" "src/net/https/httpCodec.cpp")
 
 target_link_libraries(parser_fuzz_test PRIVATE ${PROJECT_COMMON_LIBS})
 

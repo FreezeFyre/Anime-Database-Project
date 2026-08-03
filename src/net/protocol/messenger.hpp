@@ -10,10 +10,10 @@
 #include "../../io/fileHandling.hpp"
 
 #include "../../databases/entry_data.hpp"
+#include "../../databases/users.hpp"
 #include "../../databases/auth/auth_service.hpp"
 #include "../../filtering/filterProcessor.hpp"
 #include "../../core.hpp"
-#include "../../databases/users.hpp"
 #include "../transport/session.hpp"
 #include "../routing/router.hpp"
 
@@ -45,4 +45,6 @@ class WebSocketCodec {
 
 	private:
 	    ByteVector encodeHandler(const EntryResponse& response);
+	    ByteVector encodeHandler(const AuthResponse& response);
+
 };
