@@ -42,11 +42,6 @@ class Auth {
 
 };
 
-struct AuthLoginRequest {
-	LoginProvider provider;
-	std::string loginKey;
-	std::string secret;
-};
 struct AuthOAuthStartRequest {
 	LoginProvider provider;
 };
@@ -54,13 +49,6 @@ struct AuthOAuthCallbackRequest {
 	LoginProvider provider;
 	std::string code;
 	std::string state;
-};
-struct AuthCreateAccountRequest {
-	LoginProvider provider;
-	std::string loginKey;
-	std::string secret;
-	std::string email; // Optional, only used for password provided login. Must be requested for providers.
-	std::string displayName;
 };
 struct AuthLogoutRequest {
 };

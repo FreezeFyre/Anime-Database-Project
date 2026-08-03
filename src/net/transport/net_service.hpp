@@ -20,6 +20,7 @@
 
 
 #include "../protocol/messenger.hpp"
+#include "../https/httpCodec.hpp"
 #include "../routing/router.hpp"
 #include "socket_compat.hpp"
 #include "../websocket/webSocket.hpp"
@@ -29,8 +30,7 @@
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
 	#pragma comment(lib, "Ws2_32.lib")
-	#include <http.h>
-	#include <winhttp.h>
+
 
 #else
 	#include <cerrno>
@@ -43,7 +43,7 @@
 #endif
 
 
-#define DEFAULT_BUFLEN 512
+const uint16_t DEFAULT_BUFLEN = 512;
 
 const uint16_t SERVER_PORT = 443;
 
@@ -75,9 +75,9 @@ class NetService {
 		void stop();
 	private:
 		Context& context;
+		Session session;
 	    std::atomic_bool running = false;
 
-		void clientHandler(SocketHandle ClientSocket);
 
 		void tcpServer(uint16_t socket, void (NetService::*handler)(SocketHandle));
 

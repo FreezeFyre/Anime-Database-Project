@@ -25,7 +25,7 @@ AppRequest WebSocketCodec::decode(ByteVector& byteStream, Context& context, Sess
 		case DOMAIN_TYPE::ENTRY: {
 			EntryWebSocketCodec entryCodec;
 			EntryRequest entryReq = entryCodec.decode(action, id, payload, context, session);
-			return AppRequest{comType, domain, action, id, EntryRequest{std::move(entryReq)}};
+			return AppRequest{comType, domain, action, id, std::move(entryReq)};
 		}
 		default:
 			throw std::runtime_error("Unknown WebSocket domain.");
@@ -61,4 +61,3 @@ ByteVector WebSocketCodec::encodeHandler(const EntryResponse& response) {
 ByteVector WebSocketCodec::encodeHandler(const AuthResponse& response) {
 	throw std::runtime_error("[WebSocketCodec][ERROR] Auth not supported on web-socket.");
 }
-

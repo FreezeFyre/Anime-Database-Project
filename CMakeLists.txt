@@ -15,6 +15,10 @@ endif()
 set(PROJECT_CORE_SOURCES
 	"src/io/fileHandling.cpp"
 	"src/databases/entry_data.cpp"
+	"src/databases/users.cpp"
+	"src/databases/groups.cpp"
+	"src/databases/auth/password.cpp"
+	"src/databases/auth/auth_service.cpp"
 	"src/filtering/filterProcessor.cpp"
 	"src/net/protocol/messenger.cpp"
 	"src/net/protocol/data.cpp"
@@ -22,10 +26,8 @@ set(PROJECT_CORE_SOURCES
 	"src/net/transport/session.cpp"
 	"src/net/routing/router.cpp"
 	"src/net/websocket/webSocket.cpp"
-	"src/databases/users.cpp"
-	"src/databases/groups.cpp"
-	"src/databases/auth/password.cpp"
-	"src/databases/auth/auth_service.cpp"
+	"src/net/websocket/sha1.cpp"
+	"src/net/websocket/base64.cpp"
 	"src/net/https/httpCodec.cpp"
 )
 

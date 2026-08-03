@@ -9,7 +9,7 @@
 #include "../../core.hpp"
 
 
-inline std::string HTTP_VERSION = "HTTP/1.1";
+inline constexpr std::string_view APP_HTTP_VERSION = "HTTP/1.1";
 
 enum class HTTP_METHOD : uint8_t {
 	GET, // No HTTP Body 

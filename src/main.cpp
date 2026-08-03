@@ -18,26 +18,12 @@ int main(int inSize, char* input[]) {
 	std::cout << "AnimeList.Backend. Build Date: " << __DATE__ << " Time: " << __TIME__ << "\n";
 
 	bool runServer = false;
-	uint16_t port = 8080;
 
 	for (int i = 1; i < inSize; i++) {
 		const std::string arg = input[i];
 
 		if (arg == "--server") {
 			runServer = true;
-		}
-		else if (arg == "--port") {
-			if (i + 1 >= inSize) {
-				std::cerr << "--port requires a value\n";
-				return 1;
-			}
-
-			int parsedPort = std::stoi(input[++i]);
-			if (parsedPort <= 0 || parsedPort > 65535) {
-				std::cerr << "Invalid port: " << parsedPort << "\n";
-				return 1;
-			}
-			port = static_cast<uint16_t>(parsedPort);
 		}
 		else {
 			std::cerr << "Unknown argument: " << arg << "\n";
@@ -53,6 +39,7 @@ int main(int inSize, char* input[]) {
 
 	NetService net(context);
 	net.start();
+	std::cin.get();
 
 	return 0;
 }

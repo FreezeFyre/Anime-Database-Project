@@ -18,12 +18,12 @@ HttpRequest HttpCodec::decode(ByteVector& bytes) {
 	request.target =  std::string(startLine.substr(0,pos));
 	startLine.remove_prefix(pos+1);
 	request.version = std::string(startLine);
-	if (request.version != HTTP_VERSION) {
+	if (request.version != APP_HTTP_VERSION) {
 		throw std::runtime_error("Bad Http Version: " + request.version + "\n");
 	}
 
 	size_t headerEnd = raw.find("\r\n\r\n");
-	raw.remove_suffix(raw.length() - headerEnd);
+	raw.remove_suffix(raw.length() - headerEnd+2);
 
 	// raw now == headers
 	size_t cursor = 0;
@@ -41,22 +41,39 @@ HttpRequest HttpCodec::decode(ByteVector& bytes) {
 	ByteVector body(bytes.begin() + headerEnd +  startLineEnd + 6, bytes.end());
 	request.body = body;
 
-	return HttpRequest();
+	return request;
 }
 ByteVector HttpCodec::encode(const HttpResponse& response) {
-	ByteVector result;
-	ByteWriter writer;
-
-	writer.STR(response.version + " " + std::to_string(response.statusCode) + " " + response.reason + "\r\n");
-	for (const auto& [key, value] : response.headers) {
-		writer.STR(key + ": " + value + "\r\n");
-	}
-	writer.STR("\r\n");
+	std::string header;
 	
-	result.reserve(writer.buffer.size() + response.body.size());
-	result.insert(result.end(), writer.buffer.begin(), writer.buffer.end());
+	header += response.version + " ";
+	header += std::to_string(response.statusCode) + " ";
+	header += response.reason + "\r\n";
+	
+	bool hasContentLength = false;
+	
+	for (const auto& [key, value] : response.headers) {
+		if (key == "Content-Length") {
+			hasContentLength = true;
+		}
+	
+		header += key + ": " + value + "\r\n";
+	}
+	
+	if (!hasContentLength) {
+		header += "Content-Length: ";
+		header += std::to_string(response.body.size());
+		header += "\r\n";
+	}
+	
+	header += "\r\n";
+	
+	ByteVector result;
+	result.reserve(header.size() + response.body.size());
+	
+	result.insert(result.end(), header.begin(), header.end());
 	result.insert(result.end(), response.body.begin(), response.body.end());
-
+	
 	return result;
 }
 
@@ -134,7 +151,7 @@ std::string_view HttpAppCodec::getTargetQuery(const std::string& target) const {
 HttpResponse HttpAppCodec::encodeHandler(const EntryResponse& response) {
 	std::string error = "[Http][ERROR] Entries not supported on http.";
 	return HttpResponse {
-		"HTTP/1.1",
+		std::string(APP_HTTP_VERSION),
 		405,
 		"Method Not Allowed",
 		{{"Content-Type", "application / octet - stream "}},

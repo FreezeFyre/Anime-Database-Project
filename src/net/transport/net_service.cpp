@@ -7,6 +7,12 @@ NetService::NetService(Context& context)
 
 
 
+void NetService::start() {
+	std::thread wsThread(&NetService::tcpServer, this, INTERNAL_WS_PORT, &NetService::websocketHandler);
+	wsThread.detach();
+	std::thread httpThread(&NetService::tcpServer, this, INTERNAL_HTTP_PORT, &NetService::httpHandler);
+	httpThread.detach();
+}
 
 void NetService::tcpServer(uint16_t port, void (NetService::* handler)(SocketHandle)) {
 	running = true;
@@ -89,20 +95,13 @@ void NetService::tcpServer(uint16_t port, void (NetService::* handler)(SocketHan
 }
 
 
-void NetService::start() {
-	std::thread wsThread(&NetService::tcpServer, this, INTERNAL_WS_PORT, &NetService::websocketHandler);
-	wsThread.detach();
-	std::thread httpThread(&NetService::tcpServer, this, INTERNAL_HTTP_PORT, &NetService::httpHandler);
-	httpThread.detach();
-}
 
 
-void NetService::clientHandler(SocketHandle ClientSocket) {
+void NetService::websocketHandler(SocketHandle ClientSocket) {
 	if (!webSocketHandshake(ClientSocket)) {
 		closeSocket(ClientSocket);
 		return;
 	}
-	Session session;
 	WebSocketCodec codec;
 	Router router;
 
@@ -143,3 +142,44 @@ void NetService::clientHandler(SocketHandle ClientSocket) {
 
 	closeSocket(ClientSocket);
 }
+
+void NetService::httpHandler(SocketHandle ClientSocket) {
+	
+	char recvbuf[DEFAULT_BUFLEN];
+	int iResult, iSendResult;
+	int recvbuflen = DEFAULT_BUFLEN;
+	
+	// Receive until the peer shuts down the connection
+	do {
+	
+		iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
+		if (iResult > 0) {
+			ByteVector bytes(reinterpret_cast<uint8_t*>(recvbuf), reinterpret_cast<uint8_t*>(recvbuf) + iResult);
+
+			Router router;
+			HttpCodec httpCodec;
+			HttpAppCodec appCodec;
+			AppRequest req = appCodec.decode(httpCodec.decode(bytes), context, session);
+			AppResponse resp = router.route(req, context, session);
+			ByteVector encResp = httpCodec.encode(appCodec.encode(resp));
+			iSendResult = send(ClientSocket, reinterpret_cast<const char*>(encResp.data()), static_cast<int>(encResp.size()), 0);
+			if (iSendResult == SOCKET_ERROR) {
+			    printf("send failed: %d\n", WSAGetLastError());
+			    closesocket(ClientSocket);
+			    WSACleanup();
+			    break;
+			}
+			printf("Bytes sent: %d\n", iSendResult);
+		} else if (iResult == 0)
+			printf("Connection closing...\n");
+		else {
+			printf("recv failed: %d\n", WSAGetLastError());
+			closesocket(ClientSocket);
+			WSACleanup();
+			break;
+		}
+	
+	} while (iResult > 0);
+}
+
+

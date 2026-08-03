@@ -174,7 +174,7 @@ HttpResponse AuthHttpCodec::encodeResponse(const AuthResponse& response) {
 		"HTTP/1.1",
 		401,
 		"Unauthorized",
-		{{"Content-Type", "application / octet - stream "}},
+		{{"Content-Type", "application/octet-stream"}},
 		ByteVector{response.error.begin(), response.error.end()}
 	};
 }

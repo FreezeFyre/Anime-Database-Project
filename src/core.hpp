@@ -6,8 +6,12 @@
 
 #include <optional>
 #include <string>
+#include <unordered_map>
+#include <variant>
+#include <vector>
 
 #include "io/fileHandling.hpp"
+#include "net/protocol/data.hpp"
 
 using UserId = uint32_t;
 using IdentityId = uint32_t;
