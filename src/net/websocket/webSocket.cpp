@@ -1,4 +1,6 @@
-#include "webSocket.hpp"
+#include "net/websocket/webSocket.hpp"
+
+namespace anime::net::websocket {
 
 bool recvAll(SocketHandle client, void* data, size_t size) {
 	char* buffer = static_cast<char*>(data);
@@ -204,3 +206,5 @@ bool sendWebSocketFrame(SocketHandle client, uint8_t opcode, const std::vector<u
 
 	return sendAll(client, frame.data(), frame.size());
 }
+
+} // namespace anime::net::websocket

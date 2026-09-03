@@ -1,10 +1,14 @@
 #pragma once
 
 #include <optional>
-#include "../../core.hpp"
+#include "core.hpp"
 
+namespace anime::net {
+using namespace anime::domain;
 struct Session {
 	bool signedIn = false;
 	std::optional<UserId> userId;
-	UserRole role = UserRole::VIEWER;
+	USER_ACCOUNT_ROLE role = USER_ACCOUNT_ROLE::VIEWER;
 };
+
+} // namespace anime::net

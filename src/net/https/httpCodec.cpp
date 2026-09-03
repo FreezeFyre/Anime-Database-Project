@@ -1,6 +1,8 @@
-#include "httpCodec.hpp"
+#include "net/https/httpCodec.hpp"
 
 // Need to rewrite logic cleaner just trying to get the basic idea down and also need to add normalization
+namespace anime::net::http {
+
 HttpRequest HttpCodec::decode(ByteVector& bytes) {
 	HttpRequest request;
 
@@ -147,6 +149,47 @@ std::string_view HttpAppCodec::getTargetQuery(const std::string& target) const {
 	raw.remove_prefix(pos);
 	return {raw};
 }
+HttpAppCodec::UrlForm HttpAppCodec::getTargetQueries(const std::string& target) const {
+	using std::string;
+
+	UrlForm queries;
+	std::string_view raw{target};
+
+	size_t pos = raw.find("?");
+	if (pos == std::string_view::npos) {
+		throw std::runtime_error("No Target Query Found \n");
+	}
+	raw.remove_prefix(pos);
+
+	std::vector<std::string_view> query_params;
+
+	size_t next_pos;
+	do {
+		next_pos = raw.find("&");
+		bool has_next = next_pos != std::string_view::npos;
+
+
+		size_t val_pos = raw.find("=");
+		bool has_val = val_pos != std::string_view::npos;
+		if (has_val) {
+			std::string key{raw.substr(0, val_pos)};
+			if (has_next) {
+				queries[key] = string{raw.substr(val_pos + 1, next_pos - val_pos - 1)};
+			} else {
+				queries[key] = string{raw.substr(val_pos + 1, raw.size() - val_pos - 1)};
+			}
+		}
+		if (has_next) {
+			queries[string{raw.substr(0, next_pos)}] = std::nullopt;
+		} else {
+			break;
+		}
+	} while (next_pos != std::string_view::npos);
+	// Here would handle not having a value for a query param, still have handling in the loop to handle a single key or key/value pair before it reaches the while statement
+
+
+}
+
 
 HttpResponse HttpAppCodec::encodeHandler(const EntryResponse& response) {
 	std::string error = "[Http][ERROR] Entries not supported on http.";
@@ -163,3 +206,4 @@ HttpResponse HttpAppCodec::encodeHandler(const AuthResponse& response) {
 	return codec.encode(response);
 }
 
+} // namespace anime::net::http

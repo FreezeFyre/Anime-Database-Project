@@ -1,5 +1,5 @@
-#include "../databases/users.hpp"
-#include "../users/auth.hpp"
+#include "databases/users.hpp"
+#include "databases/auth/password.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -8,36 +8,40 @@
 namespace {
 
 void hashesAndVerifiesPassword() {
-	std::string hash = auth::hashPassword("correct horse battery staple");
+	anime::auth::PasswordService passwords;
+	std::string hash = passwords.hash("correct horse battery staple");
 
 	assert(hash.rfind("$argon2id$", 0) == 0);
-	assert(auth::verifyPassword("correct horse battery staple", hash));
-	assert(!auth::verifyPassword("wrong password", hash));
+	assert(passwords.verifyPassword("correct horse battery staple", hash.c_str()));
+	assert(!passwords.verifyPassword("wrong password", hash.c_str()));
 }
 
 void saltsAreUnique() {
-	std::string first = auth::hashPassword("same password");
-	std::string second = auth::hashPassword("same password");
+	anime::auth::PasswordService passwords;
+	std::string first = passwords.hash("same password");
+	std::string second = passwords.hash("same password");
 
 	assert(first != second);
-	assert(auth::verifyPassword("same password", first));
-	assert(auth::verifyPassword("same password", second));
+	assert(passwords.verifyPassword("same password", first.c_str()));
+	assert(passwords.verifyPassword("same password", second.c_str()));
 }
 
 void userDatabaseStoresEncodedHash() {
-	userDB users;
-	UserId id = users.addUser("freez", "password123", UserRole::ADMIN);
-
-	const User* user = users.getUser(id);
-	assert(user != nullptr);
-	assert(user->displayName == "freez");
-
-	const UserIdentity* identity = users.getPasswordIdentity("freez");
-	assert(identity != nullptr);
-	assert(identity->passwordHash.rfind("$argon2id$", 0) == 0);
-	assert(users.verifyUserPassword("freez", "password123"));
-	assert(!users.verifyUserPassword("freez", "bad-password"));
-	assert(!users.verifyUserPassword("missing", "password123"));
+	anime::storage::userDB users;
+	anime::auth::PasswordService passwords;
+	const anime::domain::UserId id = 1;
+	users.addUser({id, "freez", anime::domain::USER_ACCOUNT_ROLE::ADMIN, false});
+	anime::domain::UserIdentity identity;
+	identity.id = 1;
+	identity.userId = id;
+	identity.loginKey = "freez";
+	identity.passwordHash = passwords.hash("password123");
+	users.addIdentity(identity);
+	assert(users.getUser(id).displayName == "freez");
+	const auto& stored = users.getIdentity(anime::domain::IdentityId{1});
+	assert(stored.passwordHash.rfind("$argon2id$", 0) == 0);
+	assert(passwords.verifyPassword("password123", stored.passwordHash.c_str()));
+	assert(!passwords.verifyPassword("bad-password", stored.passwordHash.c_str()));
 }
 
 }

@@ -17,14 +17,16 @@
 #include <cstdio>
 #include <thread>
 #include <chrono>
+#include <curl/curl.h>
 
 
-#include "../protocol/messenger.hpp"
-#include "../https/httpCodec.hpp"
-#include "../routing/router.hpp"
-#include "socket_compat.hpp"
-#include "../websocket/webSocket.hpp"
-#include "session.hpp"
+
+#include "net/protocol/messenger.hpp"
+#include "net/https/httpCodec.hpp"
+#include "net/routing/router.hpp"
+#include "net/transport/socket_compat.hpp"
+#include "net/websocket/webSocket.hpp"
+#include "net/transport/session.hpp"
 
 #ifdef _WIN32
 	#include <winsock2.h>
@@ -43,6 +45,11 @@
 #endif
 
 
+namespace anime::net {
+using namespace anime::protocol;
+using namespace anime::app;
+using namespace anime::net::http;
+using namespace anime::net::websocket;
 const uint16_t DEFAULT_BUFLEN = 512;
 
 const uint16_t SERVER_PORT = 443;
@@ -56,8 +63,8 @@ struct Request {
 };
 
 struct Response {
-    SocketHandle client;
-    AppResponse response;
+	SocketHandle client;
+	AppResponse response;
 };
 
 struct WebSOCKFrame {
@@ -72,11 +79,14 @@ class NetService {
 
 		void start();
 
+		void run();
+
 		void stop();
 	private:
 		Context& context;
-		Session session;
-	    std::atomic_bool running = false;
+		std::atomic_bool running = false;
+		std::vector<std::thread> listenerThreads;
+
 
 
 		void tcpServer(uint16_t socket, void (NetService::*handler)(SocketHandle));
@@ -85,3 +95,5 @@ class NetService {
 
 		void httpHandler(SocketHandle ClientSocket);
 };
+
+} // namespace anime::net

@@ -16,6 +16,8 @@
 #include <concepts>
 #include <cstdint>
 
+namespace anime::storage {
+
 inline bool isDigit(char c);
 
 static const std::string MAGIC_REFERENCE = "ADP0";
@@ -175,6 +177,8 @@ class fileProcessor {
 
 };
 
-#include "readFile.tpp"
+#include "io/readFile.tpp"
 
-#include "saveFile.tpp"
+#include "io/saveFile.tpp"
+
+} // namespace anime::storage

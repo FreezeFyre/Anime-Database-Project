@@ -1,4 +1,6 @@
-#include "filterProcessor.hpp"
+#include "filtering/filterProcessor.hpp"
+
+namespace anime::filtering {
 
 bool filterProcessor::checkRange(const Range& r, size_t value) {
 	FilterValue filterValue = static_cast<FilterValue>(value);
@@ -256,3 +258,5 @@ FilterRequest filterProcessor::decode(ByteReader& r) {
 
 	return result;
 }
+
+} // namespace anime::filtering

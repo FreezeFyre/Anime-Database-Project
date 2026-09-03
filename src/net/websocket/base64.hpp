@@ -6,6 +6,10 @@
 #include <string>
 #include <vector>
 
+namespace anime::net::websocket {
+
 std::string base64Encode(const std::vector<uint8_t>& bytes);
 std::string base64Encode(const uint8_t* bytes, size_t size);
 std::string base64Encode(const std::array<uint8_t, 20>& bytes);
+
+} // namespace anime::net::websocket

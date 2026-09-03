@@ -1,7 +1,7 @@
 #include "net/https/httpCodec.hpp"
 
 int main() {
-	HttpCodec codec;
+	anime::net::http::HttpCodec codec;
 
 	constexpr std::string_view HTTP_REQUEST_VIEW = 
     "GET /index.html HTTP/1.1\r\n"
@@ -11,7 +11,7 @@ int main() {
     "Connection: close\r\n"
     "\r\n";
 
-	ByteVector request(HTTP_REQUEST_VIEW.begin(), HTTP_REQUEST_VIEW.end());
+	anime::protocol::ByteVector request(HTTP_REQUEST_VIEW.begin(), HTTP_REQUEST_VIEW.end());
 
 	auto message = codec.decode(request);
 

@@ -7,29 +7,29 @@
 #include <string>
 #include <vector>
 
-#include "../io/fileHandling.hpp"
+#include "io/fileHandling.hpp"
 
 namespace {
 
 struct FuzzHandler {
-	sectionHeader lastSection{};
-	schemaData parsedSchema;
+	anime::storage::sectionHeader lastSection{};
+	anime::storage::schemaData parsedSchema;
 	int recordCount = 0;
 	std::vector<std::string> tables;
 
-	void section(const sectionHeader& section) {
+	void section(const anime::storage::sectionHeader& section) {
 		lastSection = section;
 	}
 
-	void schema(const sectionHeader&, const ::schemaData& incoming) {
+	void schema(const anime::storage::sectionHeader&, const ::anime::storage::schemaData& incoming) {
 		parsedSchema = incoming;
 	}
 
-	void record(const sectionHeader&, const recordData&, const ::schemaData&) {
+	void record(const anime::storage::sectionHeader&, const anime::storage::recordData&, const ::anime::storage::schemaData&) {
 		++recordCount;
 	}
 
-	void table(const sectionHeader&, const std::string& value) {
+	void table(const anime::storage::sectionHeader&, const std::string& value) {
 		tables.push_back(value);
 	}
 };
@@ -79,7 +79,7 @@ void writeRandomValidDatabase(const std::filesystem::path& path, int recordCount
 		throw std::runtime_error("Failed to create fuzz input: " + path.string());
 	}
 
-	out << "ADP0|" << FILE_PROCESS_VERSION << "|0|1|\n\n";
+	out << "ADP0|" << anime::storage::FILE_PROCESS_VERSION << "|0|1|\n\n";
 	out << "0|FUZZ_DATA|" << recordCount << "|5|1|\n\n";
 	out << "[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n\n";
 
@@ -102,8 +102,8 @@ void writeTextFile(const std::filesystem::path& path, const std::string& content
 	out << content;
 }
 
-void expectAnyThrow(const std::filesystem::path& path, fileType expectedType, const std::string& label) {
-	fileProcessor parser;
+void expectAnyThrow(const std::filesystem::path& path, anime::storage::fileType expectedType, const std::string& label) {
+	anime::storage::fileProcessor parser;
 	FuzzHandler handler;
 	bool threw = false;
 
@@ -117,7 +117,7 @@ void expectAnyThrow(const std::filesystem::path& path, fileType expectedType, co
 }
 
 void runValidRandomizedCases(const std::filesystem::path& dir) {
-	fileProcessor parser;
+	anime::storage::fileProcessor parser;
 
 	for (int round = 0; round < 8; ++round) {
 		const int recordCount = 50 + (round * 137);
@@ -125,7 +125,7 @@ void runValidRandomizedCases(const std::filesystem::path& dir) {
 		writeRandomValidDatabase(path, recordCount, 1337u + static_cast<uint32_t>(round));
 
 		FuzzHandler handler;
-		parser.readFile(path.string(), handler, fileType::HEADER_DATABASE);
+		parser.readFile(path.string(), handler, anime::storage::fileType::HEADER_DATABASE);
 
 		require(handler.recordCount == recordCount, "Randomized valid parse record count mismatch.");
 		require(handler.parsedSchema.size() == 5, "Randomized valid parse schema size mismatch.");
@@ -141,14 +141,14 @@ void runMalformedCases(const std::filesystem::path& dir) {
 		"0|BROKEN|1|5|1|\n"
 		"[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,2},4}\n");
-	expectAnyThrow(wrongMagic, fileType::HEADER_DATABASE, "Wrong magic");
+	expectAnyThrow(wrongMagic, anime::storage::fileType::HEADER_DATABASE, "Wrong magic");
 
 	const auto wrongType = dir / "wrong_type.dat";
 	writeTextFile(wrongType,
 		"ADP0|1002|1|1|\n"
 		"1|LOOKUP|1|1|0|\n"
 		"{\"value\"}\n");
-	expectAnyThrow(wrongType, fileType::HEADER_DATABASE, "Wrong file type");
+	expectAnyThrow(wrongType, anime::storage::fileType::HEADER_DATABASE, "Wrong file type");
 
 	const auto invalidSection = dir / "invalid_section.dat";
 	writeTextFile(invalidSection,
@@ -156,7 +156,7 @@ void runMalformedCases(const std::filesystem::path& dir) {
 		"9|BROKEN|1|5|1|\n"
 		"[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,2},4}\n");
-	expectAnyThrow(invalidSection, fileType::HEADER_DATABASE, "Invalid section type");
+	expectAnyThrow(invalidSection, anime::storage::fileType::HEADER_DATABASE, "Invalid section type");
 
 	const auto invalidSchema = dir / "invalid_schema.dat";
 	writeTextFile(invalidSchema,
@@ -164,7 +164,7 @@ void runMalformedCases(const std::filesystem::path& dir) {
 		"0|BROKEN|1|5|1|\n"
 		"[id:2;0,title:9;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,2},4}\n");
-	expectAnyThrow(invalidSchema, fileType::HEADER_DATABASE, "Invalid schema");
+	expectAnyThrow(invalidSchema, anime::storage::fileType::HEADER_DATABASE, "Invalid schema");
 
 	const auto invalidVector = dir / "invalid_vector.dat";
 	writeTextFile(invalidVector,
@@ -172,7 +172,7 @@ void runMalformedCases(const std::filesystem::path& dir) {
 		"0|BROKEN|1|5|1|\n"
 		"[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n"
 		"{0,\"A\",12,{1,x,2},4}\n");
-	expectAnyThrow(invalidVector, fileType::HEADER_DATABASE, "Invalid vector");
+	expectAnyThrow(invalidVector, anime::storage::fileType::HEADER_DATABASE, "Invalid vector");
 
 	const auto nonSequentialId = dir / "non_sequential_id.dat";
 	writeTextFile(nonSequentialId,
@@ -182,9 +182,9 @@ void runMalformedCases(const std::filesystem::path& dir) {
 		"{0,\"A\",12,{1,2},4}\n"
 		"{2,\"B\",20,{3,4},5}\n");
 
-	fileProcessor parser;
+	anime::storage::fileProcessor parser;
 	FuzzHandler handler;
-	parser.readFile(nonSequentialId.string(), handler, fileType::HEADER_DATABASE);
+	parser.readFile(nonSequentialId.string(), handler, anime::storage::fileType::HEADER_DATABASE);
 	require(handler.recordCount == 2,
 		"Non-sequential ids should only fail in higher-level handlers, not the low-level parser.");
 }

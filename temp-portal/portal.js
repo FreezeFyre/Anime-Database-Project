@@ -29,6 +29,8 @@ const ACTION_TYPE = {
 	LOGOUT: 10
 };
 
+const HTTP_AUTH_BASE_URL = "http://127.0.0.1:8081/auth";
+
 class ByteWriter {
 	constructor() {
 		this.bytes = [];
@@ -229,23 +231,9 @@ function handleServerMessage(bytes) {
 
 
 
-const socket = new WebSocket("ws://127.0.0.1:8080");
-socket.binaryType = "arraybuffer";
-
-socket.addEventListener("open", () => {
-	console.log("connected");
-});
-
-socket.addEventListener("message", (event) => {
-	const bytes = new Uint8Array(event.data);
-	console.log("response bytes", bytes);
-	handleServerMessage(bytes);
-});
-
 function makePasswordLoginPayload(loginKey, password) {
 	const w = new ByteWriter();
 
-	w.u8(0); // LoginProvider::PASSWORD
 	w.str(loginKey);
 	w.str(password);
 
@@ -255,7 +243,6 @@ function makePasswordLoginPayload(loginKey, password) {
 function makeCreateAccountPayload(loginKey, password, email, displayName) {
 	const w = new ByteWriter();
 
-	w.u8(0); // LoginProvider::PASSWORD
 	w.str(loginKey);
 	w.str(password);
 	w.str(email);
@@ -264,15 +251,27 @@ function makeCreateAccountPayload(loginKey, password, email, displayName) {
 	return w.finish();
 }
 
-function sendAuthMessage(action, payload) {
-	if (socket.readyState !== WebSocket.OPEN) {
-		console.error("WebSocket is not connected.");
-		return false;
+async function sendAuthRequest(action, payload) {
+	const path = action === ACTION_TYPE.CREATE ? "create" : "login";
+	const response = await fetch(`${HTTP_AUTH_BASE_URL}/${path}/password`, {
+		method: "POST",
+		body: payload
+	});
+
+	const bytes = new Uint8Array(await response.arrayBuffer());
+
+	if (response.ok) {
+		const role = bytes.length > 0 ? bytes[0] : 0;
+		const label = actionName(action);
+		setAuthStatus(`${label} succeeded. Role: ${roleName(role)}.`, "success");
+		console.log("HTTP auth response", { action: label, status: response.status, role, bytes });
+		return true;
 	}
 
-	const message = makeMessage(DOMAIN_TYPE.AUTH, action, payload);
-	socket.send(message);
-	return true;
+	const message = new TextDecoder().decode(bytes) || `${response.status} ${response.statusText}`;
+	setAuthStatus(message, "error");
+	console.error("HTTP auth request failed", { status: response.status, statusText: response.statusText, message, bytes });
+	return false;
 }
 
 
@@ -340,7 +339,10 @@ if (loginForm) {
 		const payload = makePasswordLoginPayload(loginKey, password);
 
 		console.log("Sending login request", { loginKey });
-		sendAuthMessage(ACTION_TYPE.LOGIN, payload);
+		sendAuthRequest(ACTION_TYPE.LOGIN, payload).catch((error) => {
+			console.error(error);
+			setAuthStatus(error.message, "error");
+		});
 	});
 
 	accountInput?.addEventListener("keydown", (event) => {
@@ -376,7 +378,10 @@ if (loginForm) {
 		}
 
 		const payload = makePasswordLoginPayload(loginKey, password);
-		sendAuthMessage(ACTION_TYPE.LOGIN, payload);
+		sendAuthRequest(ACTION_TYPE.LOGIN, payload).catch((error) => {
+			console.error(error);
+			setAuthStatus(error.message, "error");
+		});
 	});
 
 	footerButton?.addEventListener("click", () => {
@@ -408,6 +413,9 @@ if (loginForm) {
 		const payload = makeCreateAccountPayload(loginKey, password, email, displayName);
 
 		console.log("Sending create account request", { loginKey, email, displayName });
-		sendAuthMessage(ACTION_TYPE.CREATE, payload);
+		sendAuthRequest(ACTION_TYPE.CREATE, payload).catch((error) => {
+			console.error(error);
+			setAuthStatus(error.message, "error");
+		});
 	});
 }

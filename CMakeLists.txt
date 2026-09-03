@@ -8,8 +8,14 @@ enable_testing()
 
 find_package(unofficial-argon2 CONFIG REQUIRED)
 
+find_package(CURL CONFIG REQUIRED)
+
 if(WIN32)
 	list(APPEND PROJECT_COMMON_LIBS Ws2_32 Bcrypt)
+endif()
+
+if(MSVC)
+	add_compile_options(/EHsc)
 endif()
 
 set(PROJECT_CORE_SOURCES
@@ -41,8 +47,8 @@ add_executable(anime_database_project
 	${PROJECT_CORE_SOURCES}
 )
 
-target_include_directories(anime_database_project PRIVATE include)
-target_link_libraries(anime_database_project PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)
+target_include_directories(anime_database_project PRIVATE include src)
+target_link_libraries(anime_database_project PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2 CURL::libcurl)
 
 add_custom_command(TARGET anime_database_project POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -53,37 +59,39 @@ add_custom_command(TARGET anime_database_project POST_BUILD
 
 add_executable(parser_stress_test
 	"src/tests/parser_stress_test.cpp"
-	"src/io/fileHandling.cpp"
- "src/net/transport/session.cpp" "src/net/https/httpCodec.cpp")
+	"src/io/fileHandling.cpp")
 
  add_executable(net_debug
 	"src/netDebug.cpp"
-	${PROJECT_NET_DEBUG_SOURCES}
+	${PROJECT_CORE_SOURCES}
  )
-target_link_libraries(net_debug PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)
+target_link_libraries(net_debug PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2 CURL::libcurl)
+target_include_directories(net_debug PRIVATE src)
 
 
 target_link_libraries(parser_stress_test PRIVATE ${PROJECT_COMMON_LIBS})
+target_include_directories(parser_stress_test PRIVATE src)
 
 add_test(NAME parser_stress_test COMMAND parser_stress_test)
 
 add_executable(parser_fuzz_test
 	"src/tests/parser_fuzz_test.cpp"
-	"src/io/fileHandling.cpp"
- "src/net/transport/session.cpp" "src/net/https/httpCodec.cpp")
+	"src/io/fileHandling.cpp")
 
 target_link_libraries(parser_fuzz_test PRIVATE ${PROJECT_COMMON_LIBS})
+target_include_directories(parser_fuzz_test PRIVATE src)
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/users/auth.cpp" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/users/auth.hpp")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/databases/auth/password.cpp")
 	add_executable(auth_test
 		"src/tests/auth_test.cpp"
 		"src/io/fileHandling.cpp"
 		"src/databases/users.cpp"
-		"src/users/auth.cpp"
+		"src/databases/auth/password.cpp"
 		"src/databases/groups.cpp"
 	)
 
-	target_link_libraries(auth_test PRIVATE ${PROJECT_COMMON_LIBS})
+	target_link_libraries(auth_test PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)
+	target_include_directories(auth_test PRIVATE src)
 	add_test(NAME auth_test COMMAND auth_test)
 else()
 	message(STATUS "Skipping auth_test: src/users/auth.cpp or src/users/auth.hpp is missing.")
@@ -91,3 +99,6 @@ endif()
 
 add_test(NAME parser_fuzz_test COMMAND parser_fuzz_test)
 
+add_executable(metadata_compile_test "src/tests/metadata_compile_test.cpp")
+target_include_directories(metadata_compile_test PRIVATE src)
+add_test(NAME metadata_compile_test COMMAND metadata_compile_test)

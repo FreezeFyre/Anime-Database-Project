@@ -13,9 +13,12 @@
 #include <mutex>
 #include <chrono>
 
-#include "../io/fileHandling.hpp"
-#include "../core.hpp"
+#include "io/fileHandling.hpp"
+#include "core.hpp"
 
+namespace anime::domain {
+using namespace anime::schema;
+using namespace anime::storage;
 enum class LoginProvider : uint8_t {
 	PASSWORD = 0,
 	GOOGLE = 1,
@@ -38,7 +41,7 @@ inline LoginProvider login_provider(std::string_view provider) {
 struct User {
 	UserId id = 0;
 	std::string displayName;
-	UserRole role = UserRole::VIEWER;
+	USER_ACCOUNT_ROLE role = USER_ACCOUNT_ROLE::VIEWER;
 	bool disabled = false;
 };
 
@@ -73,7 +76,7 @@ using AuthRequests = std::variant<
 >;
 
 
-using UserMemPtr = std::variant<UserId User::*, std::string User::*, UserRole User::*, bool User::*>;
+using UserMemPtr = std::variant<UserId User::*, std::string User::*, USER_ACCOUNT_ROLE User::*, bool User::*>;
 
 struct UserField {
 	FieldInfo info;
@@ -81,10 +84,10 @@ struct UserField {
 };
 
 inline const std::array<UserField, 4> UserMeta = { {
-	{{"id",            schemaField::dataType::U32, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""}, &User::id          },
-	{{"display_name",  schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL, ValueRef::NONE, std::nullopt, ""}, &User::displayName },
-	{{"role",          schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""}, &User::role        },
-	{{"disabled",      schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""}, &User::disabled    }
+	{{"id",            schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::id          },
+	{{"display_name",  schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::displayName },
+	{{"role",          schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::role        },
+	{{"disabled",      schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::disabled    }
 } };
 
 std::unordered_map<std::string, size_t> buildUserFieldNames(); 
@@ -96,17 +99,23 @@ struct IdentityField {
 	UserIdentityMemPtr ptr;
 };
 inline const std::array<IdentityField, 8> UserIdentityMeta = {
-	{{{"id",               schemaField::dataType::U32, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::id             },
-	 {{"user_id",          schemaField::dataType::U32, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::userId         },
-	 {{"provider",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::provider       },
-	 {{"login_key",        schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::loginKey       },
-	 {{"email",            schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL, ValueRef::NONE, std::nullopt, ""},&UserIdentity::email          },
-	 {{"provider_user_id", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL, ValueRef::NONE, std::nullopt, ""},&UserIdentity::providerUserId },
-	 {{"password_hash",    schemaField::dataType::STR, schemaField::filterMode::FM_NONE, fieldPresence::FIELD_OPTIONAL, ValueRef::NONE, std::nullopt, ""},&UserIdentity::passwordHash   },
-	 {{"disabled",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, fieldPresence::REQUIRED,       ValueRef::NONE, std::nullopt, ""},&UserIdentity::disabled       }
+	{{{"id",               schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::id             },
+	 {{"user_id",          schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::userId         },
+	 {{"provider",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::provider       },
+	 {{"login_key",        schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::loginKey       },
+	 {{"email",            schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::email          },
+	 {{"provider_user_id", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::providerUserId },
+	 {{"password_hash",    schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::passwordHash   },
+	 {{"disabled",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::disabled       }
 	}};
 std::unordered_map<std::string, size_t> buildIdentityFieldNames(); 
 inline const std::unordered_map<std::string, size_t> identityNameMap = buildIdentityFieldNames();
+
+} // namespace anime::domain
+
+namespace anime::storage {
+using namespace anime::domain;
+using namespace anime::schema;
 
 class userDB {
 	public:
@@ -129,7 +138,7 @@ class userDB {
 
 		// Mutate Operations
 		void addUser(const User& user);
-		void elevateUser(UserId id, UserRole newRole, const UserRole& role);
+		void elevateUser(UserId id, USER_ACCOUNT_ROLE newRole, const USER_ACCOUNT_ROLE& role);
 		void addIdentity(const UserIdentity& identity);
 	    void createAccount(const AuthCreateAccountRequest& request, const std::string& argon_password);
 
@@ -177,3 +186,5 @@ class userDB {
 		std::vector<size_t> identityFieldMap;
 
 };
+
+} // namespace anime::storage

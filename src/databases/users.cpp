@@ -1,4 +1,4 @@
-#include "users.hpp"
+#include "databases/users.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -10,6 +10,9 @@
 //====================================
 //				I/O
 //====================================
+namespace anime::storage {
+using namespace anime::domain;
+using namespace anime::schema;
 void userDB::load(const std::string& filename) {
 	fileProcessor f;
 	try {
@@ -90,9 +93,9 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 					throw std::runtime_error("Invalid data type in user record field " + std::to_string(i));
 				}
 			}
-			else if (auto ptr = std::get_if<UserRole User::*>(&UserMeta[userFieldMap[i]].ptr)) {
+			else if (auto ptr = std::get_if<USER_ACCOUNT_ROLE User::*>(&UserMeta[userFieldMap[i]].ptr)) {
 				if (auto val = std::get_if<int>(&record[i])) {
-					user.*(*ptr) = static_cast<UserRole>(*val);
+					user.*(*ptr) = static_cast<USER_ACCOUNT_ROLE>(*val);
 				} else {
 					throw std::runtime_error("Invalid data type in user record field " + std::to_string(i));
 				}
@@ -283,8 +286,8 @@ void userDB::addUser(const User& user) {
 	auto now = std::chrono::system_clock::now();
 	std::clog << now << "\t" << "[INFO] New user add, User id: " << user.id << "\n ";
 }
-void userDB::elevateUser(UserId id, UserRole newRole, const UserRole& role) {
-	if (role != UserRole::ADMIN) {
+void userDB::elevateUser(UserId id, USER_ACCOUNT_ROLE newRole, const USER_ACCOUNT_ROLE& role) {
+	if (role != USER_ACCOUNT_ROLE::ADMIN) {
 		return;
 	}
 	auto it = userIdMap.find(id);
@@ -417,7 +420,7 @@ std::unordered_map<std::string, IdentityId> userDB::constructKeyMap(LoginProvide
 //			Validation
 //====================================
 bool userDB::validatePresence(const recordField& field, const FieldInfo& info) const {
-	if (std::holds_alternative<std::monostate>(field) && info.presence == fieldPresence::REQUIRED) {
+	if (std::holds_alternative<std::monostate>(field) && info.presence == FIELD_PRESENCE::REQUIRED) {
 		throw std::runtime_error("Missing required data for field \"" + info.name + "\"");
 	}
 	return true;
@@ -460,12 +463,12 @@ std::vector<size_t> userDB::validateUserSchema(const schemaData& schema) const{
 		const FieldInfo& meta = UserMeta[i].info;
 
 		if (!seen.contains(meta.name)) {
-			if (meta.presence == fieldPresence::REQUIRED) {
+			if (meta.presence == FIELD_PRESENCE::REQUIRED) {
 				std::cerr << "Required field \"" << meta.name
 					<< "\" is missing from schema.\n";
 				throw std::runtime_error("Required field is missing from schema: " + meta.name);
 			}
-			else if (meta.presence == fieldPresence::RECOMMENDED) {
+			else if (meta.presence == FIELD_PRESENCE::RECOMMENDED) {
 				std::clog << "Recommended field \"" << meta.name
 					<< "\" is missing from schema.\n";
 			}
@@ -516,12 +519,12 @@ std::vector<size_t> userDB::validateIdentitySchema(const schemaData& schema) con
 		const FieldInfo& meta = UserIdentityMeta[i].info;
 
 		if (!seen.contains(meta.name)) {
-			if (meta.presence == fieldPresence::REQUIRED) {
+			if (meta.presence == FIELD_PRESENCE::REQUIRED) {
 				std::cerr << "Required field \"" << meta.name
 					<< "\" is missing from schema.\n";
 				throw std::runtime_error("Required field is missing from schema: " + meta.name);
 			}
-			else if (meta.presence == fieldPresence::RECOMMENDED) {
+			else if (meta.presence == FIELD_PRESENCE::RECOMMENDED) {
 				std::clog << "Recommended field \"" << meta.name
 					<< "\" is missing from schema.\n";
 			}
@@ -582,7 +585,7 @@ recordField userDB::getFromUser(const User& user, const size_t fieldIndex) const
 		if constexpr (std::is_same_v<Member, UserId>) {
 			result = static_cast<int>(user.*memberPtr);
 		}
-		else if constexpr (std::is_same_v<Member, UserRole>) {
+		else if constexpr (std::is_same_v<Member, USER_ACCOUNT_ROLE>) {
 			result = static_cast<int>(user.*memberPtr);
 		}
 		else if constexpr (std::is_same_v<Member, bool>) {
@@ -620,6 +623,10 @@ recordField userDB::getFromIdentity(const UserIdentity& identity, const size_t f
 	return result;
 }
 // End of ai code
+} // namespace anime::storage
+
+namespace anime::domain {
+
 std::unordered_map<std::string, size_t> buildIdentityFieldNames() {
 	std::unordered_map<std::string, size_t> result;
 
@@ -638,3 +645,5 @@ std::unordered_map<std::string, size_t> buildUserFieldNames() {
 
 	return result;
 }
+
+} // namespace anime::domain

@@ -1,4 +1,6 @@
-#include "data.hpp"
+#include "net/protocol/data.hpp"
+
+namespace anime::protocol {
 
 
 
@@ -131,3 +133,5 @@ std::vector<uint32_t> ByteReader::VECU32() {
 	}
 	return vec;
 }
+
+} // namespace anime::protocol

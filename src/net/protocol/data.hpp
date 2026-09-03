@@ -1,9 +1,11 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include <optional>
 #include <cstdint>
 
-#pragma once
+namespace anime::protocol {
 
 #ifdef OPTIONAL
 #undef OPTIONAL
@@ -53,3 +55,5 @@ public:
 	template<typename T>
 	std::optional<T> OPTIONAL();
 };
+
+} // namespace anime::protocol

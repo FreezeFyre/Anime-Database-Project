@@ -1,6 +1,8 @@
-#include "messenger.hpp"
+#include "net/protocol/messenger.hpp"
 
 
+
+namespace anime::protocol {
 
 AppRequest WebSocketCodec::decode(ByteVector& byteStream, Context& context, Session& session) {
 	ByteReader decoder(byteStream);
@@ -61,3 +63,5 @@ ByteVector WebSocketCodec::encodeHandler(const EntryResponse& response) {
 ByteVector WebSocketCodec::encodeHandler(const AuthResponse& response) {
 	throw std::runtime_error("[WebSocketCodec][ERROR] Auth not supported on web-socket.");
 }
+
+} // namespace anime::protocol

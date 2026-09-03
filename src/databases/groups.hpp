@@ -16,12 +16,16 @@
 #include <typeinfo>
 #include <optional>
 
-#include "../io/fileHandling.hpp"
-#include "../core.hpp"
-#include "../filtering/filterProcessor.hpp"
-#include "../net/protocol/data.hpp"
-#include "../net/protocol/messenger.hpp"
+#include "io/fileHandling.hpp"
+#include "core.hpp"
+#include "filtering/filterProcessor.hpp"
+#include "net/protocol/data.hpp"
 
+
+
+namespace anime::domain {
+using namespace anime::schema;
+using namespace anime::storage;
 
 using GroupId = uint32_t;
 
@@ -37,22 +41,32 @@ struct GroupField {
 	std::variant<GroupId Group::*, std::string Group::*, std::vector<UserId> Group::*> ptr;
 };
 
-inline const std::array<GroupField, 4> GroupMeta = { {
+inline const std::array<GroupField, 4> groupMetadata = { {
 	{{}, },
 	{{}, },
 	{{}, },
 	{{}, }
 } };
 
-std::unordered_map<std::string, size_t> buildFieldNames();
-inline const std::unordered_map<std::string, size_t> nameMap = buildFieldNames();
+inline const std::unordered_map<std::string, size_t> groupFieldNames = [] {
+	std::unordered_map<std::string, size_t> result;
+	for (size_t i = 0; i < groupMetadata.size(); ++i) result.emplace(groupMetadata[i].info.name, i);
+	return result;
+}();
 
 struct GroupUpdate {
 	GroupId id;
-	UpdateOp op;
+	UPDATE_OPERATION op;
 	size_t fieldIndex;
 	recordField value;
 };
+
+} // namespace anime::domain
+
+namespace anime::storage {
+using namespace anime::domain;
+using namespace anime::schema;
+using namespace anime::filtering;
 
 class groupDB {
 	public:
@@ -101,3 +115,5 @@ class groupDB {
 		std::vector<Group> groups;
 	    std::vector<size_t> fieldMap;
 };
+
+} // namespace anime::storage

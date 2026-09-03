@@ -6,16 +6,16 @@
 #include <vector>
 #include <variant>
 
-#include "data.hpp"
-#include "../../io/fileHandling.hpp"
+#include "net/protocol/data.hpp"
+#include "io/fileHandling.hpp"
 
-#include "../../databases/entry_data.hpp"
-#include "../../databases/users.hpp"
-#include "../../databases/auth/auth_service.hpp"
-#include "../../filtering/filterProcessor.hpp"
-#include "../../core.hpp"
-#include "../transport/session.hpp"
-#include "../routing/router.hpp"
+#include "databases/entry_data.hpp"
+#include "databases/users.hpp"
+#include "databases/auth/auth_service.hpp"
+#include "filtering/filterProcessor.hpp"
+#include "core.hpp"
+#include "net/transport/session.hpp"
+#include "net/routing/router.hpp"
 
 
 /*
@@ -37,6 +37,10 @@ REQUEST FORMAT
 
 
 
+namespace anime::protocol {
+using namespace anime::app;
+using namespace anime::auth;
+using anime::net::Session;
 class WebSocketCodec {
 	public:
 	    AppRequest decode(ByteVector& byteStream, Context& context, Session& session);
@@ -48,3 +52,5 @@ class WebSocketCodec {
 	    ByteVector encodeHandler(const AuthResponse& response);
 
 };
+
+} // namespace anime::protocol

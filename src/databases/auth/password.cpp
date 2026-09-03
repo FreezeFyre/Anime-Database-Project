@@ -1,4 +1,4 @@
-#include "password.hpp"
+#include "databases/auth/password.hpp"
 
 #include <argon2.h>
 
@@ -10,6 +10,8 @@
 #define NOMINMAX
 #include <windows.h>
 #include <bcrypt.h>
+
+namespace anime::auth {
 
 std::string PasswordService::hash(const std::string& password) {
 	std::array<uint8_t, SALT_LENGTH> salt;
@@ -39,4 +41,4 @@ bool PasswordService::verifyPassword(const std::string& inPassword, const char* 
 	return false;
 }
 
-
+} // namespace anime::auth

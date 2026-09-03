@@ -1,4 +1,6 @@
-#include "fileHandling.hpp"
+#include "io/fileHandling.hpp"
+
+namespace anime::storage {
 
 inline bool isDigit(char c) {
 	return std::isdigit(static_cast<unsigned char>(c));
@@ -376,3 +378,5 @@ std::string fileProcessor::printSchema(const schemaData& schema) {
 	result.push_back(']');
 	return result;
 };
+
+} // namespace anime::storage

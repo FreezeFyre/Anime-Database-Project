@@ -4,19 +4,28 @@
 #include <shared_mutex>
 #include <mutex>
 
-#include "../../core.hpp"
-#include "../users.hpp"
-#include "password.hpp"
-#include "../../net/protocol/data.hpp"
-#include "../../net/transport/session.hpp"
+#include "core.hpp"
+#include "databases/users.hpp"
+#include "databases/auth/password.hpp"
+#include "net/protocol/data.hpp"
+#include "net/transport/session.hpp"
 
-struct Context;
-struct Session;
+namespace anime::app { struct Context; }
+
+namespace anime::auth {
+using namespace anime::domain;
+using namespace anime::schema;
+using namespace anime::storage;
+using namespace anime::protocol;
+using anime::net::Session;
+using anime::app::Context;
+using anime::net::http::HttpResponse;
+
 
 struct AuthResult {
 	bool success;
 	std::optional<UserId> userId;
-	UserRole role;
+	USER_ACCOUNT_ROLE role;
 	std::string error;
 };
 
@@ -36,9 +45,7 @@ class Auth {
 
 	private:
 		AuthResult password(PasswordService& passwordService, const AuthLoginRequest& request, Session& session);
-		AuthResult google(std::string_view token, Session& session);
-		AuthResult apple(std::string_view token, Session& session);
-		AuthResult github(std::string_view token, Session& session);
+
 
 };
 
@@ -60,8 +67,27 @@ using AuthRequest = std::variant<
 	AuthLogoutRequest
 >;
 
-using AuthResponse = AuthResult;
 
+struct OAuthRedirect {
+	std::string url;
+};
+using AuthResponse = std::variant<AuthResult, OAuthRedirect>;
+
+class OAuthService {
+	public:
+		OAuthService(Context& context);
+		OAuthRedirect start(const AuthOAuthStartRequest& request, Session& session);
+		AuthResponse callback(const AuthOAuthCallbackRequest& request, Session& session);
+	
+	private:
+		Context& context;
+
+		OAuthRedirect google(const AuthOAuthStartRequest& request, Session& session);
+		OAuthRedirect apple(const AuthOAuthStartRequest& request, Session& session);
+		OAuthRedirect github(const AuthOAuthStartRequest& request, Session& session);
+
+
+};
 
 class AuthHttpCodec {
 	public:
@@ -69,7 +95,9 @@ class AuthHttpCodec {
 		HttpResponse encode(const AuthResponse& response);
 
 	private:
-	    HttpResponse encodeResponse(const AuthResponse& response);
+	    HttpResponse encodeResponse(const AuthResult& response);
+		HttpResponse encodeResponse(const OAuthRedirect& response);
+
 };
 
 class AuthRouter {
@@ -84,3 +112,5 @@ class AuthRouter {
 		AuthResponse handle(const AuthLogoutRequest& request, Context& context, Session& session);
 
 };
+
+} // namespace anime::auth

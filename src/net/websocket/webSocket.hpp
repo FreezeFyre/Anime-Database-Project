@@ -16,9 +16,11 @@
 #include <typeinfo>
 #include <cstdio>
 
-#include "../transport/socket_compat.hpp"
-#include "sha1.hpp"
-#include "base64.hpp"
+#include "net/transport/socket_compat.hpp"
+#include "net/websocket/sha1.hpp"
+#include "net/websocket/base64.hpp"
+
+namespace anime::net::websocket {
 
 inline constexpr uint8_t WEB_SOCKET_OPCODE_CONTINUATION = 0x0;
 inline constexpr uint8_t WEB_SOCKET_OPCODE_TEXT = 0x1;
@@ -46,3 +48,5 @@ std::string httpHeader(SocketHandle client);
 std::string getHttpValue(const std::string& header, const std::string& key);
 
 std::string webSockAcceptKey(const std::string& key);
+
+} // namespace anime::net::websocket

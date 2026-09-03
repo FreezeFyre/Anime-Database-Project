@@ -17,10 +17,15 @@
 #include <concepts>
 #include <string_view>
 
-#include "../io/fileHandling.hpp"
-#include "../core.hpp"
-#include "../net/protocol/data.hpp"
+#include "io/fileHandling.hpp"
+#include "core.hpp"
+#include "net/protocol/data.hpp"
 
+namespace anime::filtering {
+using namespace anime::domain;
+using namespace anime::schema;
+using namespace anime::storage;
+using namespace anime::protocol;
 using FilterValue = uint32_t;
 
 struct Range {
@@ -88,4 +93,6 @@ class filterProcessor {
 };
 
 
-#include "filterProcessor.tpp"
+#include "filtering/filterProcessor.tpp"
+
+} // namespace anime::filtering

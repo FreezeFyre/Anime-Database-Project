@@ -1,7 +1,9 @@
-#include "auth_service.hpp"
+#include "databases/auth/auth_service.hpp"
 
-#include "../../net/routing/router.hpp"
+#include "net/routing/router.hpp"
 
+namespace anime::auth {
+using namespace anime::app;
 Auth::Auth(Context& context) : context(context) {}
 
 AuthResult Auth::login(const AuthLoginRequest& request, Session& session) {
@@ -17,13 +19,13 @@ AuthResult Auth::login(const AuthLoginRequest& request, Session& session) {
 		//case LoginProvider::GITHUB:
 		//	return github(request.secret);
 		default:
-			return {false, std::nullopt, UserRole::VIEWER, "Unsupported login provider."};
+			return {false, std::nullopt, USER_ACCOUNT_ROLE::VIEWER, "Unsupported login provider."};
 	}
 }
 AuthResult Auth::logout(Session& session) {
 	session.signedIn = false;
 	session.userId = std::nullopt;
-	session.role = UserRole::VIEWER;
+	session.role = USER_ACCOUNT_ROLE::VIEWER;
     return {true, session.userId, session.role, ""};
 }
 AuthResult Auth::create(const AuthCreateAccountRequest& request, Session& session) {
@@ -36,16 +38,16 @@ AuthResult Auth::create(const AuthCreateAccountRequest& request, Session& sessio
 				std::unique_lock lock(context.usersMutex);
 				context.users.createAccount(request, pw);
 			}
-			return {true, std::nullopt, UserRole::VIEWER, ""};
+			return {true, std::nullopt, USER_ACCOUNT_ROLE::VIEWER, ""};
 		}
 		default:
-			return {false, std::nullopt, UserRole::VIEWER, "Unsupported login provider."};
+			return {false, std::nullopt, USER_ACCOUNT_ROLE::VIEWER, "Unsupported login provider."};
 	}
 }
 AuthResult Auth::password(PasswordService& passwordService, const AuthLoginRequest& request, Session& session) {
 	AuthResult result;
 	result.success = false;
-	result.role = UserRole::VIEWER;
+	result.role = USER_ACCOUNT_ROLE::VIEWER;
 
 	try {
 		IdentityId identityId;
@@ -100,10 +102,10 @@ AuthResponse AuthRouter::handle(const AuthLoginRequest& request, Context& contex
 	return Auth{context}.login(request, session);
 }
 AuthResponse AuthRouter::handle(const AuthOAuthStartRequest& request, Context& context, Session& session) {
-	return AuthResult{false, std::nullopt, UserRole::VIEWER, "OAuth start not implemented."};
+	return OAuthService{context}.start(request, session);
 }
 AuthResponse AuthRouter::handle(const AuthOAuthCallbackRequest& request, Context& context, Session& session) {
-	return AuthResult{false, std::nullopt, UserRole::VIEWER, "OAuth callback not implemented."};
+	return OAuthService{context}.callback(request, session);
 }
 AuthResponse AuthRouter::handle(const AuthCreateAccountRequest& request, Context& context, Session& session) {
 	return Auth{context}.create(request, session);
@@ -156,10 +158,10 @@ AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::str
 	return AuthRequest();
 }
 HttpResponse AuthHttpCodec::encode(const AuthResponse& response) {
-	return encodeResponse(response);
+	return std::visit([&](const auto& resp) { return encodeResponse(resp); }, response);
 }
 
-HttpResponse AuthHttpCodec::encodeResponse(const AuthResponse& response) {
+HttpResponse AuthHttpCodec::encodeResponse(const AuthResult& response) {
 	if (response.success) {
 		return HttpResponse{
 			"HTTP/1.1",
@@ -178,3 +180,55 @@ HttpResponse AuthHttpCodec::encodeResponse(const AuthResponse& response) {
 		ByteVector{response.error.begin(), response.error.end()}
 	};
 }
+HttpResponse AuthHttpCodec::encodeResponse(const OAuthRedirect& response) {
+	return HttpResponse{
+		"HTTP/1.1",
+		302,
+		"Found",
+		{{"Location", response.url}},
+		{}
+	};
+}
+
+
+
+OAuthService::OAuthService(Context& context) : context(context) {}
+
+OAuthRedirect OAuthService::start(const AuthOAuthStartRequest& request, Session& session) {
+	switch (request.provider) {
+		case LoginProvider::GOOGLE: {
+			return OAuthRedirect{google(request, session)};
+		}
+		case LoginProvider::APPLE: {
+			return OAuthRedirect{apple(request, session)};
+		}
+		case LoginProvider::GITHUB: {
+			return OAuthRedirect{github(request, session)};
+		}
+		default:
+			std::clog << "Unsupported OAuth provider: " << static_cast<int>(request.provider) << "\n";
+			throw std::runtime_error("Unsupported OAuth provider: " + std::to_string(static_cast<int>(request.provider)));
+			break;
+	}
+}
+AuthResponse OAuthService::callback(const AuthOAuthCallbackRequest& request, Session& session) {
+	// Handle callback
+
+	// Based on the provider we need to contact the correct OAuth service to exchange the code for an access token and
+	// user info.
+
+
+	return AuthResponse();
+}
+
+OAuthRedirect OAuthService::google(const AuthOAuthStartRequest& request, Session& session) {
+	return OAuthRedirect();
+}
+OAuthRedirect OAuthService::apple(const AuthOAuthStartRequest& request, Session& session) {
+	return OAuthRedirect();
+}
+OAuthRedirect OAuthService::github(const AuthOAuthStartRequest& request, Session& session) {
+	return OAuthRedirect();
+}
+
+} // namespace anime::auth

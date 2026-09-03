@@ -31,15 +31,14 @@ int main(int inSize, char* input[]) {
 		}
 	}
 	// End of arguments
-	Context context;
+	anime::app::Context context;
 	context.entries.loadEntries("E:/Projects/Git/Anime-Database-Project/src/io/animeDatabase.1.dat");
 	context.entries.loadLookupTables("E:/Projects/Git/Anime-Database-Project/src/io/animeLookupTables.1.dat");
 
 	context.users.load("E:/Projects/Git/Anime-Database-Project/src/io/userDatabase.1.dat");
 
-	NetService net(context);
-	net.start();
-	std::cin.get();
+	anime::net::NetService net(context);
+	net.run();
 
 	return 0;
 }

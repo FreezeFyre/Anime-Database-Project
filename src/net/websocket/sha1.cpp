@@ -1,6 +1,8 @@
-#include "sha1.hpp"
+#include "net/websocket/sha1.hpp"
 
 #include <cstddef>
+
+namespace anime::net::websocket {
 
 namespace {
 uint32_t rotateLeft(uint32_t value, uint32_t bits) {
@@ -107,3 +109,5 @@ std::array<uint8_t, 20> sha1Bytes(const std::vector<uint8_t>& bytes) {
 std::array<uint8_t, 20> sha1Bytes(const std::string& text) {
 	return sha1Bytes(std::vector<uint8_t>(text.begin(), text.end()));
 }
+
+} // namespace anime::net::websocket

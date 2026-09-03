@@ -23,15 +23,20 @@
 #include <shared_mutex>
 #include <mutex>
 
-#include "../io/fileHandling.hpp"
-#include "../core.hpp"
-#include "users.hpp"
-#include "../filtering/filterProcessor.hpp"
-#include "../net/protocol/data.hpp"
-#include "../net/transport/session.hpp"
+#include "io/fileHandling.hpp"
+#include "domain/types.hpp"
+#include "schema/field.hpp"
+#include "protocol/message_types.hpp"
+#include "filtering/filterProcessor.hpp"
+#include "net/protocol/data.hpp"
+#include "net/transport/session.hpp"
 
-struct Context;
-struct RouteResult;
+namespace anime::app { struct Context; }
+
+namespace anime::domain {
+
+using namespace anime::schema;
+using anime::storage::schemaField;
 
 struct Entry {
 	int id = 0; // Safety default only; missing input must still be validated.
@@ -66,30 +71,31 @@ struct EntryField {
 	memPTR ptr;
 };
 
-Update decodeUpdate(ByteReader& reader);
-
 // This Provides the Meta Data for each field in the Entry for use in other processes
-inline const std::array<EntryField, 15> EntryMeta = { {
-	{{"id",             schemaField::dataType::U32,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED,       ValueRef::NONE,         std::nullopt, ""          }, &Entry::id,           },
-	{{"rank",           schemaField::dataType::U32,     schemaField::filterMode::FM_RMV,          fieldPresence::REQUIRED,       ValueRef::NONE,         std::nullopt, ""          }, &Entry::rank,         },
-	{{"title",          schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::REQUIRED,       ValueRef::NONE,         std::nullopt, ""          }, &Entry::title,        },
-	{{"alt_title",      schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &Entry::alt_title,    },
-	{{"format",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "format"    }, &Entry::format,       },
-	{{"status",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "status"    }, &Entry::status,       },
-	{{"genres",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "genres"    }, &Entry::genres,       },
-	{{"channels",       schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "channels"  }, &Entry::channels,     },
-	{{"audios",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "audios"    }, &Entry::audios,       },
-	{{"subtitles",      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::LOOKUP_TABLE, std::nullopt, "subtitles" }, &Entry::subtitles,    },
-	{{"fan_service",    schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::BOUNDS,       Bound{0, 10}, ""          }, &Entry::fan_service,  },
-	{{"episode_count",  schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &Entry::episode_count,},
-	{{"min_runtime",    schemaField::dataType::U16,     schemaField::filterMode::FM_RANGE,        fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &Entry::min_runtime,  },
-	{{"characters",     schemaField::dataType::VECU16,  schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &Entry::characters,   },
-	{{"ip_group",       schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  fieldPresence::FIELD_OPTIONAL, ValueRef::NONE,         std::nullopt, ""          }, &Entry::ip_group,     }
+inline const std::array<EntryField, 15> entryMetadata = { {
+	{{"id",             schemaField::dataType::U32,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::id,           },
+	{{"rank",           schemaField::dataType::U32,     schemaField::filterMode::FM_RMV,          FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::rank,         },
+	{{"title",          schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::title,        },
+	{{"alt_title",      schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::alt_title,    },
+	{{"format",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "format"    }, &Entry::format,       },
+	{{"status",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "status"    }, &Entry::status,       },
+	{{"genres",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "genres"    }, &Entry::genres,       },
+	{{"channels",       schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "channels"  }, &Entry::channels,     },
+	{{"audios",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "audios"    }, &Entry::audios,       },
+	{{"subtitles",      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "subtitles" }, &Entry::subtitles,    },
+	{{"fan_service",    schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::BOUNDS,       Bound{0, 10}, ""          }, &Entry::fan_service,  },
+	{{"episode_count",  schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::episode_count,},
+	{{"min_runtime",    schemaField::dataType::U16,     schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::min_runtime,  },
+	{{"characters",     schemaField::dataType::VECU16,  schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::characters,   },
+	{{"ip_group",       schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::ip_group,     }
 } };
 
 
-std::unordered_map<std::string, size_t> buildFieldNames(); 
-inline const std::unordered_map<std::string, size_t> nameMap = buildFieldNames();
+inline const std::unordered_map<std::string, size_t> entryFieldNames = [] {
+	std::unordered_map<std::string, size_t> result;
+	for (size_t i = 0; i < entryMetadata.size(); ++i) result.emplace(entryMetadata[i].info.name, i);
+	return result;
+}();
 
 /*
 This provides us with the index of EntryMeta that corresponds to the current index field in schemaData,
@@ -100,11 +106,18 @@ prevents errors caused by schema and EntryMeta field order differences
 
 struct EntryUpdate {
 	size_t id;
-	UpdateOp op;
+	UPDATE_OPERATION op;
 	size_t fieldIndex;
-	recordField value;
+	anime::storage::recordField value;
 };
 
+} // namespace anime::domain
+
+namespace anime::storage {
+
+using namespace anime::domain;
+using namespace anime::schema;
+using namespace anime::filtering;
 
 class entryDB {
 	public:
@@ -134,18 +147,18 @@ class entryDB {
 			return static_cast<EntryId>(database[index].id);
 		}
 	    size_t getFieldIndex(const std::string& fieldName) const {
-		    auto it = nameMap.find(fieldName);
-		    if (it != nameMap.end()) {
+		    auto it = entryFieldNames.find(fieldName);
+		    if (it != entryFieldNames.end()) {
 			    return it->second;
 		    }
 		    throw std::runtime_error("Field name not found: " + fieldName);
 	    }
 
 		// Entry operations
-		void addEntry(const Entry& entry, const UserRole& role);
-		void updateEntry(const std::vector<EntryUpdate>& updates, const UserRole& role);
+		void addEntry(const Entry& entry, const USER_ACCOUNT_ROLE& role);
+		void updateEntry(const std::vector<EntryUpdate>& updates, const USER_ACCOUNT_ROLE& role);
 		std::vector<Entry> getEntries(std::vector<EntryId> ids);
-		void deleteEntry(const EntryId id, const UserRole& role);
+		void deleteEntry(const EntryId id, const USER_ACCOUNT_ROLE& role);
 		std::vector<EntryId> searchEntryTitles(const std::string& term);
 
 		// Operation Utilities
@@ -174,12 +187,12 @@ class entryDB {
 
 		// Utility accessors
 		const FieldInfo& getFieldInfo(size_t fieldIndex) const {
-			return EntryMeta[fieldIndex].info;
+			return entryMetadata[fieldIndex].info;
 		}
 		size_t getSize() const { return database.size(); }
 		recordField getField(size_t id, size_t fieldIndex) const;
 		recordField getFromEntry(const Entry& entry, const size_t fieldIndex) const;
-		size_t getFieldCount() const { return EntryMeta.size(); }
+		size_t getFieldCount() const { return entryMetadata.size(); }
 		size_t getTableSize(const std::string& title);
 
 	private:
@@ -197,6 +210,23 @@ class entryDB {
 
 };
 
+} // namespace anime::storage
+
+namespace anime::protocol {
+
+using namespace anime::domain;
+using anime::storage::schemaData;
+using anime::storage::sectionHeader;
+using anime::filtering::FilterRequest;
+
+struct Update {
+	std::uint32_t id;
+	anime::schema::UPDATE_OPERATION operation;
+	std::uint8_t fieldIndex;
+	anime::storage::dataType type;
+	std::variant<std::monostate, std::uint8_t, std::uint16_t, std::uint32_t,
+		std::string, std::vector<int>> value;
+};
 
 struct EntryGetRequest {
 	std::vector<EntryId> ids;
@@ -253,7 +283,7 @@ struct EntryResponse {
 
 class EntryWebSocketCodec {
 	public:
-		EntryRequest decode(ACTION_TYPE action, uint32_t id, const ByteVector& payload, Context& context, Session& session);
+		EntryRequest decode(ACTION_TYPE action, uint32_t id, const ByteVector& payload, anime::app::Context& context, anime::net::Session& session);
 		ByteVector encode(const EntryResponse& response);
 
 	private:
@@ -272,15 +302,22 @@ class EntryWebSocketCodec {
 		ByteVector encodeResponse(const EntryErrorResponse& response);
 };
 
+} // namespace anime::protocol
+
+namespace anime::app {
+
+using namespace anime::protocol;
 class EntryRouter {
 	public:
-		EntryResponse route(const EntryRequest& request, Context& context, Session& session);
+		EntryResponse route(const EntryRequest& request, Context& context, anime::net::Session& session);
 
 	private:
-		EntryResponse handle(const EntryGetRequest& request, Context& context, Session& session);
-		EntryResponse handle(const EntryUpdateRequest& request, Context& context, Session& session);
-		EntryResponse handle(const EntryCreateRequest& request, Context& context, Session& session);
-		EntryResponse handle(const EntryDeleteRequest& request, Context& context, Session& session);
-		EntryResponse handle(const EntrySearchRequest& request, Context& context, Session& session);
-		EntryResponse handle(const EntryFilterRequest& request, Context& context, Session& session);
+		EntryResponse handle(const EntryGetRequest& request, Context& context, anime::net::Session& session);
+		EntryResponse handle(const EntryUpdateRequest& request, Context& context, anime::net::Session& session);
+		EntryResponse handle(const EntryCreateRequest& request, Context& context, anime::net::Session& session);
+		EntryResponse handle(const EntryDeleteRequest& request, Context& context, anime::net::Session& session);
+		EntryResponse handle(const EntrySearchRequest& request, Context& context, anime::net::Session& session);
+		EntryResponse handle(const EntryFilterRequest& request, Context& context, anime::net::Session& session);
 };
+
+} // namespace anime::app

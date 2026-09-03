@@ -18,12 +18,20 @@
 #include <shared_mutex>
 
 // Temporary context stuff, move to app
-#include "../../core.hpp"
-#include "../../databases/entry_data.hpp"
-#include "../../databases/auth/auth_service.hpp"
-#include "../protocol/data.hpp"
-#include "../transport/session.hpp"
+#include "core.hpp"
+#include "databases/entry_data.hpp"
+#include "databases/auth/auth_service.hpp"
+#include "net/protocol/data.hpp"
+#include "net/transport/session.hpp"
 
+namespace anime::app {
+using namespace anime::domain;
+using namespace anime::schema;
+using namespace anime::storage;
+using namespace anime::protocol;
+using namespace anime::auth;
+using namespace anime::filtering;
+using anime::net::Session;
 struct Context {
 	entryDB entries;
 	filterProcessor filterService;
@@ -78,3 +86,5 @@ class Router {
 		AppResponse handle(const AuthRequest& request, uint32_t id, Context& context, Session& session);
 
 };
+
+} // namespace anime::app

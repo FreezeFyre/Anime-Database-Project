@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "../io/fileHandling.hpp"
+#include "io/fileHandling.hpp"
 
 namespace {
 
@@ -20,20 +20,20 @@ struct ParsedRecord {
 };
 
 struct StressHandler {
-	sectionHeader lastSection{};
-	schemaData lastSchema;
+	anime::storage::sectionHeader lastSection{};
+	anime::storage::schemaData lastSchema;
 	std::vector<ParsedRecord> records;
 	std::vector<std::string> tables;
 
-	void section(const sectionHeader& section) {
+	void section(const anime::storage::sectionHeader& section) {
 		lastSection = section;
 	}
 
-	void schema(const sectionHeader&, const schemaData& schema) {
+	void schema(const anime::storage::sectionHeader&, const anime::storage::schemaData& schema) {
 		lastSchema = schema;
 	}
 
-	void record(const sectionHeader&, const recordData& record, const schemaData&) {
+	void record(const anime::storage::sectionHeader&, const anime::storage::recordData& record, const anime::storage::schemaData&) {
 		ParsedRecord parsed;
 		parsed.id = std::get<int>(record.at(0));
 		parsed.title = std::get<std::string>(record.at(1));
@@ -43,7 +43,7 @@ struct StressHandler {
 		records.push_back(std::move(parsed));
 	}
 
-	void table(const sectionHeader&, const std::string& value) {
+	void table(const anime::storage::sectionHeader&, const std::string& value) {
 		tables.push_back(value);
 	}
 };
@@ -79,7 +79,7 @@ void writeDatabaseFile(const std::filesystem::path& path, int recordCount) {
 		throw std::runtime_error("Failed to create database stress file: " + path.string());
 	}
 
-	out << "ADP0|" << FILE_PROCESS_VERSION << "|0|1|\n\n";
+	out << "ADP0|" << anime::storage::FILE_PROCESS_VERSION << "|0|1|\n\n";
 	out << "0|STRESS_DATA|" << recordCount << "|5|1|\n\n";
 	out << "[id:2;0,title:3;0,score:1;1,tags:4;2,group:0;2]\n\n";
 
@@ -94,7 +94,7 @@ void writeLookupFile(const std::filesystem::path& path, int sectionCount, int re
 		throw std::runtime_error("Failed to create lookup stress file: " + path.string());
 	}
 
-	out << "ADP0|" << FILE_PROCESS_VERSION << "|1|" << sectionCount << "|\n\n";
+	out << "ADP0|" << anime::storage::FILE_PROCESS_VERSION << "|1|" << sectionCount << "|\n\n";
 
 	for (int section = 0; section < sectionCount; ++section) {
 		out << "1|LOOKUP_" << section << '|' << recordsPerSection << "|1|0|\n";
@@ -138,7 +138,7 @@ void validateDatabaseParse(const StressHandler& handler, int expectedRecords) {
 void validateLookupParse(const StressHandler& handler, int expectedEntries) {
 	require(static_cast<int>(handler.tables.size()) == expectedEntries,
 		"Lookup parse table count mismatch.");
-	require(handler.lastSection.type == sectionType::SECTION_TAG_LOOKUP,
+	require(handler.lastSection.type == anime::storage::sectionType::SECTION_TAG_LOOKUP,
 		"Lookup section type mismatch.");
 	require(handler.tables.front() == "value_0_0", "First lookup entry mismatch.");
 	require(handler.tables.back() == "value_3_511", "Last lookup entry mismatch.");
@@ -163,12 +163,12 @@ int main() {
 		writeDatabaseFile(databasePath, databaseRecordCount);
 		writeLookupFile(lookupPath, lookupSectionCount, lookupRecordsPerSection);
 
-		fileProcessor parser;
+		anime::storage::fileProcessor parser;
 
 		auto databaseStart = std::chrono::steady_clock::now();
 		for (int round = 0; round < parseRounds; ++round) {
 			StressHandler handler;
-			parser.readFile(databasePath.string(), handler, fileType::HEADER_DATABASE);
+			parser.readFile(databasePath.string(), handler, anime::storage::fileType::HEADER_DATABASE);
 			validateDatabaseParse(handler, databaseRecordCount);
 		}
 		const auto databaseElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -177,7 +177,7 @@ int main() {
 		auto lookupStart = std::chrono::steady_clock::now();
 		for (int round = 0; round < parseRounds; ++round) {
 			StressHandler handler;
-			parser.readFile(lookupPath.string(), handler, fileType::HEADER_TABLE);
+			parser.readFile(lookupPath.string(), handler, anime::storage::fileType::HEADER_TABLE);
 			validateLookupParse(handler, lookupSectionCount * lookupRecordsPerSection);
 		}
 		const auto lookupElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(

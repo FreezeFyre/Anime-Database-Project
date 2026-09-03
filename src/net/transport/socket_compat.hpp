@@ -9,6 +9,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
+namespace anime::net {
 using SocketHandle = SOCKET;
 
 constexpr SocketHandle InvalidSocket = INVALID_SOCKET;
@@ -32,6 +33,8 @@ inline int lastSocketError() {
 	return WSAGetLastError();
 }
 
+} // namespace anime::net
+
 #else
 
 #include <cerrno>
@@ -39,6 +42,7 @@ inline int lastSocketError() {
 #include <sys/socket.h>
 #include <unistd.h>
 
+namespace anime::net {
 using SocketHandle = int;
 
 constexpr SocketHandle InvalidSocket = -1;
@@ -59,5 +63,7 @@ inline int closeSocket(SocketHandle socket) {
 inline int lastSocketError() {
 	return errno;
 }
+
+} // namespace anime::net
 
 #endif

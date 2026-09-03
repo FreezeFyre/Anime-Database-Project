@@ -1,4 +1,6 @@
-#include "base64.hpp"
+#include "net/websocket/base64.hpp"
+
+namespace anime::net::websocket {
 
 std::string base64Encode(const uint8_t* bytes, size_t size) {
 	static constexpr char alphabet[] =
@@ -31,3 +33,5 @@ std::string base64Encode(const std::vector<uint8_t>& bytes) {
 std::string base64Encode(const std::array<uint8_t, 20>& bytes) {
 	return base64Encode(bytes.data(), bytes.size());
 }
+
+} // namespace anime::net::websocket
