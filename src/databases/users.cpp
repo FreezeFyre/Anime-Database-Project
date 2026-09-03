@@ -625,25 +625,3 @@ recordField userDB::getFromIdentity(const UserIdentity& identity, const size_t f
 // End of ai code
 } // namespace anime::storage
 
-namespace anime::domain {
-
-std::unordered_map<std::string, size_t> buildIdentityFieldNames() {
-	std::unordered_map<std::string, size_t> result;
-
-	for (size_t i = 0; i < UserIdentityMeta.size(); i++) {
-		result.emplace(UserIdentityMeta[i].info.name, i);
-	}
-
-	return result;
-}
-std::unordered_map<std::string, size_t> buildUserFieldNames() {
-	std::unordered_map<std::string, size_t> result;
-
-	for (size_t i = 0; i < UserMeta.size(); i++) {
-		result.emplace(UserMeta[i].info.name, i);
-	}
-
-	return result;
-}
-
-} // namespace anime::domain

@@ -6,14 +6,14 @@
 #include "databases/auth/auth_service.hpp"
 #include "net/routing/router.hpp"
 #include "net/protocol/data.hpp"
-#include "core.hpp"
+#include "net/http/http_types.hpp"
 
 
 namespace anime::net::http {
 using namespace anime::protocol;
 using namespace anime::app;
 using namespace anime::auth;
-inline std::string_view APP_HTTP_VERSION = "HTTP/1.1";
+inline constexpr std::string_view APP_HTTP_VERSION = "HTTP/1.1";
 
 struct HttpRequest {
 	std::string method;

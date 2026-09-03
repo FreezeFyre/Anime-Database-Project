@@ -17,51 +17,14 @@
 #include <optional>
 
 #include "io/fileHandling.hpp"
-#include "core.hpp"
+#include "domain/types.hpp"
+#include "schema/field.hpp"
 #include "filtering/filterProcessor.hpp"
 #include "net/protocol/data.hpp"
 
 
 
-namespace anime::domain {
-using namespace anime::schema;
-using namespace anime::storage;
-
-using GroupId = uint32_t;
-
-struct Group {
-	GroupId id = 0;
-	std::string name;
-	std::string description;
-	std::vector<UserId> members;
-};
-
-struct GroupField {
-	FieldInfo info;
-	std::variant<GroupId Group::*, std::string Group::*, std::vector<UserId> Group::*> ptr;
-};
-
-inline const std::array<GroupField, 4> groupMetadata = { {
-	{{}, },
-	{{}, },
-	{{}, },
-	{{}, }
-} };
-
-inline const std::unordered_map<std::string, size_t> groupFieldNames = [] {
-	std::unordered_map<std::string, size_t> result;
-	for (size_t i = 0; i < groupMetadata.size(); ++i) result.emplace(groupMetadata[i].info.name, i);
-	return result;
-}();
-
-struct GroupUpdate {
-	GroupId id;
-	UPDATE_OPERATION op;
-	size_t fieldIndex;
-	recordField value;
-};
-
-} // namespace anime::domain
+#include "domain/group.hpp"
 
 namespace anime::storage {
 using namespace anime::domain;

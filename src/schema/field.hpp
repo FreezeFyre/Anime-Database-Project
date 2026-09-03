@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-#include "io/fileHandling.hpp"
+#include "io/file_types.hpp"
 
 namespace anime::schema {
 

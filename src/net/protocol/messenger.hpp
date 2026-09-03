@@ -13,7 +13,7 @@
 #include "databases/users.hpp"
 #include "databases/auth/auth_service.hpp"
 #include "filtering/filterProcessor.hpp"
-#include "core.hpp"
+#include "protocol/message_types.hpp"
 #include "net/transport/session.hpp"
 #include "net/routing/router.hpp"
 

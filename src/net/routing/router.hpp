@@ -18,7 +18,7 @@
 #include <shared_mutex>
 
 // Temporary context stuff, move to app
-#include "core.hpp"
+#include "protocol/message_types.hpp"
 #include "databases/entry_data.hpp"
 #include "databases/auth/auth_service.hpp"
 #include "net/protocol/data.hpp"

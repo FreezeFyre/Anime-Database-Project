@@ -18,7 +18,8 @@
 #include <string_view>
 
 #include "io/fileHandling.hpp"
-#include "core.hpp"
+#include "domain/types.hpp"
+#include "schema/field.hpp"
 #include "net/protocol/data.hpp"
 
 namespace anime::filtering {

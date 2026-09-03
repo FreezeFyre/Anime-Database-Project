@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include "core.hpp"
+#include "domain/types.hpp"
 
 namespace anime::net {
 using namespace anime::domain;

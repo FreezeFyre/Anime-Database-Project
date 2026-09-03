@@ -4,7 +4,11 @@
 #include <shared_mutex>
 #include <mutex>
 
-#include "core.hpp"
+#include "domain/types.hpp"
+#include "schema/field.hpp"
+#include "protocol/message_types.hpp"
+#include "protocol/auth_requests.hpp"
+#include "net/http/http_types.hpp"
 #include "databases/users.hpp"
 #include "databases/auth/password.hpp"
 #include "net/protocol/data.hpp"

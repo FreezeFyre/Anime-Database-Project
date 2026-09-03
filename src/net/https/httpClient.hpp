@@ -5,7 +5,7 @@
 
 #include "net/routing/router.hpp"
 #include "net/protocol/data.hpp"
-#include "core.hpp"
+#include "net/http/http_types.hpp"
 #include <curl/curl.h>
 
 #ifdef _WIN32
