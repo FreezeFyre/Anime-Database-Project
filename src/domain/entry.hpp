@@ -15,7 +15,11 @@
 
 namespace anime::domain {
 
-using namespace anime::schema;
+using anime::schema::FIELD_PRESENCE;
+using anime::schema::VALUE_REFERENCE_TYPE;
+using anime::schema::UPDATE_OPERATION;
+using anime::schema::Bound;
+using anime::schema::FieldInfo;
 using anime::storage::schemaField;
 
 struct Entry {

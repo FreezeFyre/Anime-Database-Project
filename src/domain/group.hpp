@@ -14,8 +14,9 @@
 #include "schema/field.hpp"
 
 namespace anime::domain {
-using namespace anime::schema;
-using namespace anime::storage;
+using anime::schema::UPDATE_OPERATION;
+using anime::schema::FieldInfo;
+using anime::storage::recordField;
 
 using GroupId = uint32_t;
 

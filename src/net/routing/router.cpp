@@ -1,6 +1,9 @@
 #include "net/routing/router.hpp"
+#include "app/entry_handler.hpp"
+#include "databases/auth/auth_service.hpp"
 
 namespace anime::app {
+using namespace anime::protocol;
 
 AppResponse Router::route(AppRequest& request, Context& context, Session& session) {
 	return std::visit([&](const auto& payload) {

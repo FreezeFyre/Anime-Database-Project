@@ -3,6 +3,10 @@
 #include <cstring>
 
 namespace anime::net {
+using namespace anime::protocol;
+using namespace anime::app;
+using namespace anime::net::http;
+using namespace anime::net::websocket;
 
 NetService::NetService(Context& context)
 	: context(context) {}
@@ -146,7 +150,7 @@ void NetService::websocketHandler(SocketHandle ClientSocket) {
 			continue;
 		}
 
-		AppRequest req = codec.decode(frame.payload, context, session);
+		AppRequest req = codec.decode(frame.payload);
 		AppResponse resp = router.route(req, context, session);
 		ByteVector encResp = codec.encode(req, resp);
 
@@ -180,7 +184,7 @@ void NetService::httpHandler(SocketHandle ClientSocket) {
 	if (iResult > 0) {
 		ByteVector bytes(reinterpret_cast<uint8_t*>(recvbuf), reinterpret_cast<uint8_t*>(recvbuf) + iResult);
 
-		AppRequest req = appCodec.decode(httpCodec.decode(bytes), context, session);
+		AppRequest req = appCodec.decode(httpCodec.decode(bytes));
 		AppResponse resp = router.route(req, context, session);
 		ByteVector encResp = httpCodec.encode(appCodec.encode(resp));
 		iSendResult = send(ClientSocket, reinterpret_cast<const char*>(encResp.data()), static_cast<int>(encResp.size()), 0);

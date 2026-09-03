@@ -2,6 +2,8 @@
 
 namespace anime::storage {
 
+namespace {
+
 inline bool isDigit(char c) {
 	return std::isdigit(static_cast<unsigned char>(c));
 }
@@ -17,6 +19,8 @@ inline static bool isNumber(std::string& str) {
 
 
 /*-----	The Following Functions Have Partial Error Handling and Validation Checks	-----*/
+} // namespace
+
 fileHeader fileProcessor::readHeader(std::string& line) {
 	fileHeader header;
 

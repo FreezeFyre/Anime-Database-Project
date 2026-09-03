@@ -2,6 +2,8 @@
 
 namespace anime::net::websocket {
 
+namespace {
+
 bool recvAll(SocketHandle client, void* data, size_t size) {
 	char* buffer = static_cast<char*>(data);
 	size_t total = 0;
@@ -47,6 +49,8 @@ bool sendAll(SocketHandle client, const void* data, size_t size) {
 	return true;
 }
 
+
+} // namespace
 
 bool webSocketHandshake(SocketHandle client) {
 	// Placeholder for handshake implementation

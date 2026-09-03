@@ -27,9 +27,12 @@
 #include "domain/group.hpp"
 
 namespace anime::storage {
-using namespace anime::domain;
-using namespace anime::schema;
-using namespace anime::filtering;
+using anime::domain::Group;
+using anime::domain::GroupId;
+using anime::domain::GroupUpdate;
+
+using anime::filtering::FilterRequest;
+using anime::filtering::filterProcessor;
 
 class groupDB {
 	public:

@@ -1,38 +1,30 @@
 #pragma once
 
-#include <optional>
-#include <shared_mutex>
-#include <mutex>
-
-#include "domain/types.hpp"
-#include "schema/field.hpp"
+#include <string_view>
+#include <unordered_map>
+#include <vector>
+#include "protocol/auth_messages.hpp"
 #include "protocol/message_types.hpp"
-#include "protocol/auth_requests.hpp"
-#include "net/http/http_types.hpp"
-#include "databases/users.hpp"
 #include "databases/auth/password.hpp"
-#include "net/protocol/data.hpp"
+#include "net/http/http_types.hpp"
 #include "net/transport/session.hpp"
 
 namespace anime::app { struct Context; }
 
 namespace anime::auth {
-using namespace anime::domain;
-using namespace anime::schema;
-using namespace anime::storage;
-using namespace anime::protocol;
+
+using anime::protocol::ACTION_TYPE;
+using anime::protocol::AuthLoginRequest;
+using anime::protocol::AuthCreateAccountRequest;
+using anime::protocol::AuthResult;
+using anime::protocol::AuthOAuthStartRequest;
+using anime::protocol::AuthOAuthCallbackRequest;
+using anime::protocol::AuthLogoutRequest;
+using anime::protocol::AuthRequest;
+using anime::protocol::OAuthRedirect;
+using anime::protocol::AuthResponse;
 using anime::net::Session;
 using anime::app::Context;
-using anime::net::http::HttpResponse;
-
-
-struct AuthResult {
-	bool success;
-	std::optional<UserId> userId;
-	USER_ACCOUNT_ROLE role;
-	std::string error;
-};
-
 class Auth {
 	public:
 		Context& context;
@@ -53,30 +45,6 @@ class Auth {
 
 };
 
-struct AuthOAuthStartRequest {
-	LoginProvider provider;
-};
-struct AuthOAuthCallbackRequest {
-	LoginProvider provider;
-	std::string code;
-	std::string state;
-};
-struct AuthLogoutRequest {
-};
-using AuthRequest = std::variant<
-	AuthLoginRequest,
-	AuthOAuthStartRequest,
-	AuthOAuthCallbackRequest,
-	AuthCreateAccountRequest,
-	AuthLogoutRequest
->;
-
-
-struct OAuthRedirect {
-	std::string url;
-};
-using AuthResponse = std::variant<AuthResult, OAuthRedirect>;
-
 class OAuthService {
 	public:
 		OAuthService(Context& context);
@@ -93,6 +61,10 @@ class OAuthService {
 
 };
 
+} // namespace anime::auth
+
+namespace anime::protocol {
+using anime::net::http::HttpResponse;
 class AuthHttpCodec {
 	public:
 		AuthRequest decode(ACTION_TYPE action, const std::vector<std::string_view>& path, const std::unordered_map<std::string, std::string>& headers, const std::vector<uint8_t>& body);
@@ -104,6 +76,20 @@ class AuthHttpCodec {
 
 };
 
+} // namespace anime::protocol
+
+namespace anime::app {
+using anime::protocol::ACTION_TYPE;
+using anime::protocol::AuthLoginRequest;
+using anime::protocol::AuthCreateAccountRequest;
+using anime::protocol::AuthResult;
+using anime::protocol::AuthOAuthStartRequest;
+using anime::protocol::AuthOAuthCallbackRequest;
+using anime::protocol::AuthLogoutRequest;
+using anime::protocol::AuthRequest;
+using anime::protocol::OAuthRedirect;
+using anime::protocol::AuthResponse;
+using anime::net::Session;
 class AuthRouter {
 	public:
 		AuthResponse route(const AuthRequest& request, Context& context, Session& session);
@@ -117,4 +103,4 @@ class AuthRouter {
 
 };
 
-} // namespace anime::auth
+} // namespace anime::app

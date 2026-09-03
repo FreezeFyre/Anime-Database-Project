@@ -1,49 +1,13 @@
 #pragma once
 
-#include <string>
-#include <unordered_map>
-#include <cstdint>
-#include <vector>
-#include <variant>
-
 #include "net/protocol/data.hpp"
-#include "io/fileHandling.hpp"
-
-#include "databases/entry_data.hpp"
-#include "databases/users.hpp"
-#include "databases/auth/auth_service.hpp"
-#include "filtering/filterProcessor.hpp"
-#include "protocol/message_types.hpp"
-#include "net/transport/session.hpp"
-#include "net/routing/router.hpp"
-
-
-/*
-
-REQUEST FORMAT
-
-
-[ENCODE_VERSION]
-[COM_TYPE]
-[DOMAIN]
-[ACTION]
-[ID]
-[PAYLOAD_SIZE]
-[PAYLOAD]
-
-
-*/
-
-
-
+#include "protocol/app_messages.hpp"
 
 namespace anime::protocol {
-using namespace anime::app;
-using namespace anime::auth;
-using anime::net::Session;
+
 class WebSocketCodec {
 	public:
-	    AppRequest decode(ByteVector& byteStream, Context& context, Session& session);
+	    AppRequest decode(const ByteVector& byteStream);
 
 		ByteVector encode(const AppRequest& request, const AppResponse& response);
 

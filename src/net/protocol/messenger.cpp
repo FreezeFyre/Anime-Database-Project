@@ -1,10 +1,11 @@
 #include "net/protocol/messenger.hpp"
+#include "protocol/entry_codec.hpp"
 
 
 
 namespace anime::protocol {
 
-AppRequest WebSocketCodec::decode(ByteVector& byteStream, Context& context, Session& session) {
+AppRequest WebSocketCodec::decode(const ByteVector& byteStream) {
 	ByteReader decoder(byteStream);
 
 	uint32_t encodeVersion = decoder.U32();
@@ -26,7 +27,7 @@ AppRequest WebSocketCodec::decode(ByteVector& byteStream, Context& context, Sess
 	switch (domain) {
 		case DOMAIN_TYPE::ENTRY: {
 			EntryWebSocketCodec entryCodec;
-			EntryRequest entryReq = entryCodec.decode(action, id, payload, context, session);
+			EntryRequest entryReq = entryCodec.decode(action, payload);
 			return AppRequest{comType, domain, action, id, std::move(entryReq)};
 		}
 		default:

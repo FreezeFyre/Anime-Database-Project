@@ -1,45 +1,23 @@
 #pragma once
-//
-//  AnimeData.hpp
-//  Anime List
-//
-//  Created by Luke Raykovitz on 10/24/25.
-//
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <cctype>
-#include <algorithm>
-#include <limits>
-#include <variant>
+
 #include <unordered_map>
-#include <unordered_set>
-#include <array>
-#include <typeinfo>
-#include <optional>
-#include <shared_mutex>
-#include <mutex>
-
-#include "io/fileHandling.hpp"
-#include "domain/types.hpp"
-#include "schema/field.hpp"
-#include "protocol/message_types.hpp"
-#include "filtering/filterProcessor.hpp"
-#include "net/protocol/data.hpp"
-#include "net/transport/session.hpp"
-
-namespace anime::app { struct Context; }
-
+#include <vector>
 #include "domain/entry.hpp"
+#include "io/fileHandling.hpp"
+#include "filtering/filterProcessor.hpp"
 
 namespace anime::storage {
 
-using namespace anime::domain;
-using namespace anime::schema;
-using namespace anime::filtering;
+using anime::domain::USER_ACCOUNT_ROLE;
+using anime::domain::Entry;
+using anime::domain::EntryId;
+using anime::domain::IndexStructure;
+using anime::domain::entryMetadata;
+using anime::domain::entryFieldNames;
+using anime::domain::EntryUpdate;
+using anime::schema::FieldInfo;
+using anime::filtering::FilterRequest;
+using anime::filtering::filterProcessor;
 
 class entryDB {
 	public:
@@ -133,113 +111,3 @@ class entryDB {
 };
 
 } // namespace anime::storage
-
-namespace anime::protocol {
-
-using namespace anime::domain;
-using anime::storage::schemaData;
-using anime::storage::sectionHeader;
-using anime::filtering::FilterRequest;
-
-struct Update {
-	std::uint32_t id;
-	anime::schema::UPDATE_OPERATION operation;
-	std::uint8_t fieldIndex;
-	anime::storage::dataType type;
-	std::variant<std::monostate, std::uint8_t, std::uint16_t, std::uint32_t,
-		std::string, std::vector<int>> value;
-};
-
-struct EntryGetRequest {
-	std::vector<EntryId> ids;
-};
-struct EntryUpdateRequest {
-	std::vector<EntryUpdate> updates;
-};
-struct EntryCreateRequest { // No schema as its used only for translation
-	std::vector<Entry> entries;
-};
-struct EntryDeleteRequest {
-	std::vector<EntryId> ids;
-};
-struct EntrySearchRequest { // This will change once searches arent title only
-	std::string searchTerm;
-};
-struct EntryFilterRequest {
-	FilterRequest filters;
-};
-using EntryRequest = std::variant<
-	EntryGetRequest,
-	EntryUpdateRequest,
-	EntryCreateRequest,
-	EntryDeleteRequest,
-	EntrySearchRequest,
-	EntryFilterRequest
->;
-
-struct EntryGetResponse {
-	sectionHeader section;
-	schemaData schema;
-	std::vector<Entry> entries;
-};
-struct EntryIdsResponse {
-    std::vector<EntryId> ids;
-};
-struct EntrySuccessResponse {
-    std::string message = "SUCCESS";
-};
-
-struct EntryErrorResponse {
-    std::string message;
-};
-using EntryResponsePayload = std::variant<
-    EntryGetResponse,
-    EntryIdsResponse,
-    EntrySuccessResponse,
-    EntryErrorResponse
->;
-struct EntryResponse {
-	EntryResponsePayload payload;
-    bool closeConnection = false;
-};
-
-class EntryWebSocketCodec {
-	public:
-		EntryRequest decode(ACTION_TYPE action, uint32_t id, const ByteVector& payload, anime::app::Context& context, anime::net::Session& session);
-		ByteVector encode(const EntryResponse& response);
-
-	private:
-		Entry readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices);
-		schemaData readSchema(ByteReader& reader);
-		sectionHeader readSection(ByteReader& reader);
-		EntryUpdate translateUpdate(const Update& update);
-
-		void encodeSection(ByteWriter& encoder, const sectionHeader& section);
-		void encodeSchema(ByteWriter& encoder, const schemaData& schema);
-		void encodeEntry(ByteWriter& encoder, const Entry& entry);
-
-		ByteVector encodeResponse(const EntryGetResponse& response);
-		ByteVector encodeResponse(const EntryIdsResponse& response);
-		ByteVector encodeResponse(const EntrySuccessResponse& response);
-		ByteVector encodeResponse(const EntryErrorResponse& response);
-};
-
-} // namespace anime::protocol
-
-namespace anime::app {
-
-using namespace anime::protocol;
-class EntryRouter {
-	public:
-		EntryResponse route(const EntryRequest& request, Context& context, anime::net::Session& session);
-
-	private:
-		EntryResponse handle(const EntryGetRequest& request, Context& context, anime::net::Session& session);
-		EntryResponse handle(const EntryUpdateRequest& request, Context& context, anime::net::Session& session);
-		EntryResponse handle(const EntryCreateRequest& request, Context& context, anime::net::Session& session);
-		EntryResponse handle(const EntryDeleteRequest& request, Context& context, anime::net::Session& session);
-		EntryResponse handle(const EntrySearchRequest& request, Context& context, anime::net::Session& session);
-		EntryResponse handle(const EntryFilterRequest& request, Context& context, anime::net::Session& session);
-};
-
-} // namespace anime::app

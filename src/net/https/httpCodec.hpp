@@ -3,16 +3,18 @@
 #include <unordered_map>
 #include <string_view>
 
-#include "databases/auth/auth_service.hpp"
-#include "net/routing/router.hpp"
+#include "protocol/app_messages.hpp"
 #include "net/protocol/data.hpp"
 #include "net/http/http_types.hpp"
 
 
 namespace anime::net::http {
-using namespace anime::protocol;
-using namespace anime::app;
-using namespace anime::auth;
+using anime::protocol::ByteVector;
+using anime::protocol::AuthResponse;
+using anime::protocol::EntryResponse;
+using anime::protocol::AppRequest;
+using anime::protocol::AppResponse;
+
 inline constexpr std::string_view APP_HTTP_VERSION = "HTTP/1.1";
 
 struct HttpRequest {
@@ -35,7 +37,7 @@ class HttpAppCodec {
 	public:
 	    using UrlForm = std::unordered_map<std::string, std::optional<std::string>>;
 
-		AppRequest decode(const HttpRequest& request, Context& context, Session& session);
+		AppRequest decode(const HttpRequest& request);
 		HttpResponse encode(AppResponse& response);
 	private:
 

@@ -217,11 +217,13 @@ bool filterProcessor::check(const FieldFilter& filter, const recordField& field,
 	return true;
 }
 
+namespace {
 constexpr uint8_t HAS_INCLUDE_ALL = 1 << 0;
 constexpr uint8_t HAS_INCLUDE_ANY = 1 << 1;
 constexpr uint8_t HAS_EXCLUDE     = 1 << 2;
 constexpr uint8_t HAS_RANGE_MIN   = 1 << 3;
 constexpr uint8_t HAS_RANGE_MAX   = 1 << 4;
+} // namespace
 
 FilterRequest filterProcessor::decode(ByteReader& r) {
 	FilterRequest result;

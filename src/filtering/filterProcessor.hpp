@@ -23,10 +23,11 @@
 #include "net/protocol/data.hpp"
 
 namespace anime::filtering {
-using namespace anime::domain;
-using namespace anime::schema;
-using namespace anime::storage;
-using namespace anime::protocol;
+
+using anime::schema::FieldInfo;
+using anime::storage::schemaField;
+using anime::storage::recordField;
+using anime::protocol::ByteReader;
 using FilterValue = uint32_t;
 
 struct Range {

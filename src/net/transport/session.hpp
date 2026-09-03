@@ -4,7 +4,8 @@
 #include "domain/types.hpp"
 
 namespace anime::net {
-using namespace anime::domain;
+using anime::domain::UserId;
+using anime::domain::USER_ACCOUNT_ROLE;
 struct Session {
 	bool signedIn = false;
 	std::optional<UserId> userId;

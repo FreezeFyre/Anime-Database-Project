@@ -21,6 +21,9 @@ endif()
 set(PROJECT_CORE_SOURCES
 	"src/io/fileHandling.cpp"
 	"src/databases/entry_data.cpp"
+	"src/domain/entry_schema.cpp"
+	"src/protocol/entry_codec.cpp"
+	"src/app/entry_handler.cpp"
 	"src/databases/users.cpp"
 	"src/databases/groups.cpp"
 	"src/databases/auth/password.cpp"
@@ -34,11 +37,6 @@ set(PROJECT_CORE_SOURCES
 	"src/net/websocket/webSocket.cpp"
 	"src/net/websocket/sha1.cpp"
 	"src/net/websocket/base64.cpp"
-	"src/net/https/httpCodec.cpp"
-)
-
-set(PROJECT_NET_DEBUG_SOURCES
-	"src/net/protocol/data.cpp"
 	"src/net/https/httpCodec.cpp"
 )
 
@@ -94,7 +92,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/databases/auth/password.cpp")
 	target_include_directories(auth_test PRIVATE src)
 	add_test(NAME auth_test COMMAND auth_test)
 else()
-	message(STATUS "Skipping auth_test: src/users/auth.cpp or src/users/auth.hpp is missing.")
+	message(STATUS "Skipping auth_test: src/databases/auth/password.cpp is missing.")
 endif()
 
 add_test(NAME parser_fuzz_test COMMAND parser_fuzz_test)
@@ -102,3 +100,19 @@ add_test(NAME parser_fuzz_test COMMAND parser_fuzz_test)
 add_executable(metadata_compile_test "src/tests/metadata_compile_test.cpp")
 target_include_directories(metadata_compile_test PRIVATE src)
 add_test(NAME metadata_compile_test COMMAND metadata_compile_test)
+
+add_executable(entry_codec_test
+	"src/tests/entry_codec_test.cpp"
+	"src/protocol/entry_codec.cpp"
+	"src/domain/entry_schema.cpp"
+	"src/filtering/filterProcessor.cpp"
+	"src/net/protocol/data.cpp"
+)
+target_include_directories(entry_codec_test PRIVATE src)
+add_test(NAME entry_codec_test COMMAND entry_codec_test)
+
+add_executable(entry_integration_test "src/tests/entry_integration_test.cpp" ${PROJECT_CORE_SOURCES})
+target_include_directories(entry_integration_test PRIVATE src)
+target_compile_definitions(entry_integration_test PRIVATE ANIME_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/io")
+target_link_libraries(entry_integration_test PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2 CURL::libcurl)
+add_test(NAME entry_integration_test COMMAND entry_integration_test)

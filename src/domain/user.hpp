@@ -14,8 +14,11 @@
 #include "schema/field.hpp"
 
 namespace anime::domain {
-using namespace anime::schema;
-using namespace anime::storage;
+using anime::schema::FIELD_PRESENCE;
+using anime::schema::VALUE_REFERENCE_TYPE;
+using anime::schema::FieldInfo;
+using anime::storage::dataType;
+using anime::storage::schemaField;
 enum class LoginProvider : uint8_t {
 	PASSWORD = 0,
 	GOOGLE = 1,

@@ -46,16 +46,17 @@
 
 
 namespace anime::net {
-using namespace anime::protocol;
-using namespace anime::app;
-using namespace anime::net::http;
-using namespace anime::net::websocket;
-const uint16_t DEFAULT_BUFLEN = 512;
+using anime::protocol::AppRequest;
+using anime::protocol::AppResponse;
+using anime::app::Context;
 
-const uint16_t SERVER_PORT = 443;
 
-const uint16_t INTERNAL_HTTP_PORT = 8081;
-const uint16_t INTERNAL_WS_PORT = 8080;
+inline constexpr uint16_t DEFAULT_BUFLEN = 512;
+
+inline constexpr uint16_t SERVER_PORT = 443;
+
+inline constexpr uint16_t INTERNAL_HTTP_PORT = 8081;
+inline constexpr uint16_t INTERNAL_WS_PORT = 8080;
 
 struct Request {
 	SocketHandle client;

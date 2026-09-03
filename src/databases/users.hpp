@@ -19,9 +19,14 @@
 #include "domain/user.hpp"
 
 namespace anime::storage {
-using namespace anime::domain;
+using anime::domain::UserId;
+using anime::domain::IdentityId;
+using anime::domain::USER_ACCOUNT_ROLE;
+using anime::domain::User;
+using anime::domain::UserIdentity;
+using anime::domain::LoginProvider;
 using anime::protocol::AuthCreateAccountRequest;
-using namespace anime::schema;
+using anime::schema::FieldInfo;
 
 class userDB {
 	public:

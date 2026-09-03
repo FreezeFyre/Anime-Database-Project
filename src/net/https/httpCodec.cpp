@@ -1,7 +1,9 @@
 #include "net/https/httpCodec.hpp"
+#include "databases/auth/auth_service.hpp"
 
 // Need to rewrite logic cleaner just trying to get the basic idea down and also need to add normalization
 namespace anime::net::http {
+using namespace anime::protocol;
 
 HttpRequest HttpCodec::decode(ByteVector& bytes) {
 	HttpRequest request;
@@ -81,7 +83,7 @@ ByteVector HttpCodec::encode(const HttpResponse& response) {
 
 
 
-AppRequest HttpAppCodec::decode(const HttpRequest& request, Context& context, Session& session) {
+AppRequest HttpAppCodec::decode(const HttpRequest& request) {
 	std::vector<std::string_view> path = getTargetPath(request.target);
 	
 	std::string_view query;

@@ -15,7 +15,5 @@ int main() {
 
 	auto message = codec.decode(request);
 
-	_DEBUG;
-
 	return 0;
 }

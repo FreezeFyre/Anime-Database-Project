@@ -1,9 +1,14 @@
 #include "databases/auth/auth_service.hpp"
-
-#include "net/routing/router.hpp"
+#include "app/context.hpp"
+#include "net/protocol/data.hpp"
+#include <iostream>
+#include <mutex>
+#include <shared_mutex>
+#include <chrono>
 
 namespace anime::auth {
-using namespace anime::app;
+using namespace anime::domain;
+using namespace anime::protocol;
 Auth::Auth(Context& context) : context(context) {}
 
 AuthResult Auth::login(const AuthLoginRequest& request, Session& session) {
@@ -92,6 +97,49 @@ AuthResult Auth::password(PasswordService& passwordService, const AuthLoginReque
 }
 
 
+OAuthService::OAuthService(Context& context) : context(context) {}
+
+OAuthRedirect OAuthService::start(const AuthOAuthStartRequest& request, Session& session) {
+	switch (request.provider) {
+		case LoginProvider::GOOGLE: {
+			return OAuthRedirect{google(request, session)};
+		}
+		case LoginProvider::APPLE: {
+			return OAuthRedirect{apple(request, session)};
+		}
+		case LoginProvider::GITHUB: {
+			return OAuthRedirect{github(request, session)};
+		}
+		default:
+			std::clog << "Unsupported OAuth provider: " << static_cast<int>(request.provider) << "\n";
+			throw std::runtime_error("Unsupported OAuth provider: " + std::to_string(static_cast<int>(request.provider)));
+			break;
+	}
+}
+AuthResponse OAuthService::callback(const AuthOAuthCallbackRequest& request, Session& session) {
+	// Handle callback
+
+	// Based on the provider we need to contact the correct OAuth service to exchange the code for an access token and
+	// user info.
+
+
+	return AuthResponse();
+}
+
+OAuthRedirect OAuthService::google(const AuthOAuthStartRequest& request, Session& session) {
+	return OAuthRedirect();
+}
+OAuthRedirect OAuthService::apple(const AuthOAuthStartRequest& request, Session& session) {
+	return OAuthRedirect();
+}
+OAuthRedirect OAuthService::github(const AuthOAuthStartRequest& request, Session& session) {
+	return OAuthRedirect();
+}
+
+} // namespace anime::auth
+
+namespace anime::app {
+using namespace anime::auth;
 AuthResponse AuthRouter::route(const AuthRequest& request, Context& context, Session& session) {
 	return std::visit([&](const auto& payload) {
 		return handle(payload, context, session);
@@ -116,12 +164,15 @@ AuthResponse AuthRouter::handle(const AuthLogoutRequest& request, Context& conte
 
 
 
+} // namespace anime::app
+
+namespace anime::protocol {
 AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::string_view>& path, const std::unordered_map<std::string, std::string>& headers, const std::vector<uint8_t>& body) {
 	switch (action) {
 		case ACTION_TYPE::ACT_LOGIN: {
 			ByteReader reader{body};
 
-			LoginProvider provider = login_provider(std::string(path[2]));
+			LoginProvider provider = anime::domain::login_provider(std::string(path[2]));
 
 			std::string loginKey = reader.STR();
 			std::string secret = reader.STR();
@@ -136,7 +187,7 @@ AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::str
 		case ACTION_TYPE::ACT_CREATE: {
 			ByteReader reader{body};
 
-			LoginProvider provider = login_provider(std::string(path[2]));
+			LoginProvider provider = anime::domain::login_provider(std::string(path[2]));
 
 			std::string loginKey = reader.STR();
 			std::string secret = reader.STR();
@@ -192,43 +243,4 @@ HttpResponse AuthHttpCodec::encodeResponse(const OAuthRedirect& response) {
 
 
 
-OAuthService::OAuthService(Context& context) : context(context) {}
-
-OAuthRedirect OAuthService::start(const AuthOAuthStartRequest& request, Session& session) {
-	switch (request.provider) {
-		case LoginProvider::GOOGLE: {
-			return OAuthRedirect{google(request, session)};
-		}
-		case LoginProvider::APPLE: {
-			return OAuthRedirect{apple(request, session)};
-		}
-		case LoginProvider::GITHUB: {
-			return OAuthRedirect{github(request, session)};
-		}
-		default:
-			std::clog << "Unsupported OAuth provider: " << static_cast<int>(request.provider) << "\n";
-			throw std::runtime_error("Unsupported OAuth provider: " + std::to_string(static_cast<int>(request.provider)));
-			break;
-	}
-}
-AuthResponse OAuthService::callback(const AuthOAuthCallbackRequest& request, Session& session) {
-	// Handle callback
-
-	// Based on the provider we need to contact the correct OAuth service to exchange the code for an access token and
-	// user info.
-
-
-	return AuthResponse();
-}
-
-OAuthRedirect OAuthService::google(const AuthOAuthStartRequest& request, Session& session) {
-	return OAuthRedirect();
-}
-OAuthRedirect OAuthService::apple(const AuthOAuthStartRequest& request, Session& session) {
-	return OAuthRedirect();
-}
-OAuthRedirect OAuthService::github(const AuthOAuthStartRequest& request, Session& session) {
-	return OAuthRedirect();
-}
-
-} // namespace anime::auth
+} // namespace anime::protocol
