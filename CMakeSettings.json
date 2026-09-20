@@ -1,4 +1,4 @@
-﻿{
+{
   "configurations": [
     {
       "name": "x64-Debug",
@@ -8,7 +8,7 @@
       "buildRoot": "${env.LOCALAPPDATA}\\Build\\anime-database-project\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "-DCMAKE_TOOLCHAIN_FILE=${projectDir}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_INSTALLED_DIR=${projectDir}\\vcpkg_installed",
-      "buildCommandArgs": "",
+      "buildCommandArgs": ""
       "ctestCommandArgs": ""
     }
   ]

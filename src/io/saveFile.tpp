@@ -32,7 +32,8 @@ void fileProcessor::saveFile(std::string file, Source& source, fileType type) {
 			case sectionType::SECTION_DATABASE_RECORDS:
 				for (size_t j = 0; j < section.recordCount; j++) {
 					recordData record = source.getRecord(type, i, j);
-					output << printRecord(record, source.getSchema(type, i)) << "\n";
+					schemaData schema = source.getSchema(type, i);
+					output << printRecord(record, schema) << "\n";
 				}
 				break;
 			case sectionType::SECTION_TAG_LOOKUP:

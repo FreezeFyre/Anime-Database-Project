@@ -19,6 +19,10 @@ using anime::schema::FieldInfo;
 using anime::filtering::FilterRequest;
 using anime::filtering::filterProcessor;
 
+template <typename T> struct is_vector : std::false_type {};
+template <typename T, typename Allocator> struct is_vector<std::vector<T, Allocator>> : std::true_type {};
+
+
 class entryDB {
 	public:
 		using IdType = EntryId;
@@ -82,7 +86,7 @@ class entryDB {
 		// Validation
 		std::vector<size_t> validateSchema(const schemaData& schema);
 		void validateTable(const std::string& title);
-		void validateField(const recordField& value,const size_t fieldIndex);
+		//void validateField(const recordField& value,const size_t fieldIndex);
 		void validateScalar(const int value, const FieldInfo& meta);
 
 		// Utility accessors

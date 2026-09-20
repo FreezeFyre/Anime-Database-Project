@@ -21,34 +21,38 @@ using anime::schema::UPDATE_OPERATION;
 using anime::schema::Bound;
 using anime::schema::FieldInfo;
 using anime::storage::schemaField;
+using anime::domain::GroupId;
 
 struct Entry {
-	int id = 0; // Safety default only; missing input must still be validated.
-	int rank = 0;
+	EntryId id = 0;
+	std::uint32_t rank = 0;
 	std::string title = "";
 	std::string alt_title = "";
-	int format = 0; // Safety default only; 0 is also a valid lookup-table index.
-	int status = 0; // Safety default only; 0 is also a valid lookup-table index.
-	std::vector<int> genres = {};
-	std::vector<int> channels = {};
-	std::vector<int> audios = {};
-	std::vector<int> subtitles = {};
-	int fan_service = 0;
-	int episode_count = 0;
-	int min_runtime = 0;
-	std::vector<int> characters = {};
-	int ip_group = 0;  // Safety default only; 0 may be a real group id later.
+	std::uint8_t format = 0;
+	std::uint8_t status = 0;
+	std::vector<std::uint8_t> genres = {};
+	std::vector<std::uint8_t> channels = {};
+	std::vector<std::uint8_t> audios = {};
+	std::vector<std::uint8_t> subtitles = {};
+	std::uint8_t fan_service = 0;
+	std::uint16_t episode_count = 0;
+	std::uint32_t min_runtime = 0;
+	std::vector<std::uint32_t> characters = {};
+	GroupId ip_group = 0;
 };
-
-using EntryId = uint32_t;
-using LookupId = uint32_t;
 
 using IndexStructure = std::unordered_map<std::string, std::unordered_map<LookupId, std::vector<EntryId>>>;
 
-using intPTR = int Entry::*;
-using strPTR = std::string Entry::*;
-using vecPTR = std::vector<int> Entry::*;
-using memPTR = std::variant< intPTR, vecPTR, strPTR>;
+using memPTR = std::variant<
+	std::uint8_t Entry::*,
+	std::uint16_t Entry::*,
+	std::uint32_t Entry::*,
+	std::uint64_t Entry::*,
+	std::string Entry::*,
+	bool Entry::*,
+	std::vector<std::uint8_t> Entry::*,
+	std::vector<std::uint32_t> Entry::*
+>;
 
 struct EntryField {
 	FieldInfo info;
@@ -68,10 +72,10 @@ inline const std::array<EntryField, 15> entryMetadata = { {
 	{{"audios",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "audios"    }, &Entry::audios,       },
 	{{"subtitles",      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "subtitles" }, &Entry::subtitles,    },
 	{{"fan_service",    schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::BOUNDS,       Bound{0, 10}, ""          }, &Entry::fan_service,  },
-	{{"episode_count",  schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::episode_count,},
-	{{"min_runtime",    schemaField::dataType::U16,     schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::min_runtime,  },
-	{{"characters",     schemaField::dataType::VECU16,  schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::characters,   },
-	{{"ip_group",       schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::ip_group,     }
+	{{"episode_count",  schemaField::dataType::U16,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::episode_count,},
+	{{"min_runtime",    schemaField::dataType::U32,     schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::min_runtime,  },
+	{{"characters",     schemaField::dataType::VECU32,  schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::characters,   },
+	{{"ip_group",       schemaField::dataType::U32,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::ip_group,     }
 } };
 
 

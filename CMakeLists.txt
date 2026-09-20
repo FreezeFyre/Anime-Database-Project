@@ -20,12 +20,14 @@ endif()
 
 set(PROJECT_CORE_SOURCES
 	"src/io/fileHandling.cpp"
-	"src/databases/entry_data.cpp"
+	"src/databases/entry_database.cpp"
 	"src/domain/entry_schema.cpp"
 	"src/protocol/entry_codec.cpp"
 	"src/app/entry_handler.cpp"
-	"src/databases/users.cpp"
-	"src/databases/groups.cpp"
+	"src/databases/user_database.cpp"
+	"src/databases/group_database.cpp"
+	"src/databases/database_ops.cpp"
+	"src/domain/group_compiler.cpp"
 	"src/databases/auth/password.cpp"
 	"src/databases/auth/auth_service.cpp"
 	"src/filtering/filterProcessor.cpp"
@@ -83,9 +85,9 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/databases/auth/password.cpp")
 	add_executable(auth_test
 		"src/tests/auth_test.cpp"
 		"src/io/fileHandling.cpp"
-		"src/databases/users.cpp"
+		"src/databases/user_database.cpp"
 		"src/databases/auth/password.cpp"
-		"src/databases/groups.cpp"
+		"src/databases/group_database.cpp"
 	)
 
 	target_link_libraries(auth_test PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)

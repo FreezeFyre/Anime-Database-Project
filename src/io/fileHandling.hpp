@@ -1,25 +1,23 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <cctype>
 #include <algorithm>
-#include <limits>
-#include <variant>
-#include <unordered_map>
-#include <array>
-#include <functional>
+#include <cctype>
 #include <concepts>
-#include <cstdint>
+#include <optional>
+#include <string>
 
+#include <charconv>
+#include <cstdint>
+#include <ostream>
+#include <fstream>
+#include <stdexcept>
+#include <string_view>
+#include <system_error>
+#include <variant>
+#include <vector>
 #include "io/file_types.hpp"
 
 namespace anime::storage {
-
 
 // Ensures Handler Class Functions
 template<typename f>
@@ -66,44 +64,107 @@ class fileProcessor {
 			if (line == MAGIC_REFERENCE) { return true; }
 			else { return false; }
 		}
-
 		inline bool checkVersion(std::string& line) {
 			if (line == std::to_string(FILE_PROCESS_VERSION)) { return true; }
 			else { return false; }
 		}
 
 		fileHeader readHeader(std::string& line);
-
 		sectionHeader readSection(const std::string& line);
-
 		schemaField::dataType readDataType(std::string& dataField);
-
 		schemaField::filterMode readFilterMode(std::string& filterField);
-
 		schemaData readSchema(std::string& line, const int& fieldCount);
+	
+		template <typename T> [[nodiscard]] T parseUnsigned(std::string_view string) {
+			bool invalid_digit = std::any_of(string.begin(), string.end(), [&](char c) { return c < '0' || c > '9';});
+			if (invalid_digit) [[unlikely]]{
+				throw std::runtime_error(" Unsigned parsing expects only real integers and digits.");
+			}
 
-		std::vector<int> recordVector(std::string& line);
+			T value;
+
+			const char* first = string.data();
+			const char* last = first + string.size();
+
+			auto [ptr, error] = std::from_chars(first, last, value);
+
+			if (error != std::errc{}) {
+				throw std::runtime_error(" From chars error: " + std::make_error_code(error).message());
+			}
+
+			return value;
+		}
+		template <typename T> [[nodiscard]] T parseVector(std::string_view string) {
+			using ElementType = typename T::value_type;
+			std::string buffer;
+			T vector;
+
+			if (string.size() > 1 && string.starts_with('{') && string.ends_with('}')) {
+				string.remove_prefix(1);
+				string.remove_suffix(1);
+
+				if (string.ends_with(',')) {
+					throw std::runtime_error("Trailing comma in vector");
+				}
+			} else {
+				throw std::runtime_error(" Vector parsing expects a string wrapped with {} but got: " + std::string(string));
+			}
+
+
+			std::for_each(string.begin(), string.end(),[&](char c) {
+				if (std::isdigit(static_cast<unsigned char>(c))) {
+					buffer.push_back(c);
+				} else if (c == ',' && !buffer.empty()) {
+					vector.push_back(parseUnsigned<ElementType>(buffer));
+					buffer.clear();
+				} else {
+					throw std::runtime_error(" Unexpected character in unsigned vector parsing, expects only digits, commas, and {}. Got: " + std::string(1,c));
+				}
+			});
+			if (!buffer.empty()) {
+				vector.push_back(parseUnsigned<ElementType>(buffer));
+			}
+
+			return vector;
+		}
+		recordField parseField(schemaField::dataType type, std::optional<std::string_view> string);
 
 		recordData readRecord(schemaData& schema, std::string& line);
 
 		std::string printHeader(const fileHeader& header);
-
 		std::string printSection(const sectionHeader& section);
-
 		std::string printSchema(const schemaData& schema);
 
+		template <std::unsigned_integral T> requires (!std::same_as<T, bool>)
+		void printField(std::ostream& out, T value) {
+			out << static_cast<std::uint64_t>(value);
+		}
+		template <std::unsigned_integral T> requires (!std::same_as<T, bool>)
+		void printField(std::ostream& out, const std::vector<T>& value) {
+			out << '{';
+			if (!value.empty()) {
+				out << std::to_string(value[0]);
+				for (size_t i = 1; i < value.size(); i++) {
+					out << ',';
+					printField(out, value[i]);
+				}
+			}
+			out << '}';
+		}
+		void printField(std::ostream& out, bool value);
+		void printField(std::ostream& out, const std::string& value);
+		void printField(std::ostream& out, std::monostate value);
+		void printField(std::ostream& out, int value);
+		void printField(std::ostream& out, std::vector<int> value);
+
+
 		std::string printRecord(const recordData& record, const schemaData& schema);
-
 		std::string printTableRow(const std::string& row);
-
 		std::string schemaDataType(const schemaField::dataType& type);
-
 		std::string schemaFilterMode(const schemaField::filterMode& mode);
 
 };
 
-#include "io/readFile.tpp"
 
-#include "io/saveFile.tpp"
 
 } // namespace anime::storage

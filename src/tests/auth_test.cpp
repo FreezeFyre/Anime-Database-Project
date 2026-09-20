@@ -1,4 +1,4 @@
-#include "databases/users.hpp"
+#include "databases/user_database.hpp"
 #include "databases/auth/password.hpp"
 
 #include <cassert>

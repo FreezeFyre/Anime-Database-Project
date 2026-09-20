@@ -47,24 +47,32 @@ struct sectionHeader {
 };
 
 enum class dataType : uint8_t {
+	BOOL,
 	U8,
 	U16,
 	U32,
+	U64,
 	STR,
 	VECU8,
 	VECU16,
+	VECU32,
+	VECU64,
 	UNKNOWN
 };
 
 struct schemaField {
 	enum class dataType : uint8_t {
+		BOOL,
 		U8,
 		U16,
 		U32,
+		U64,
 		STR,
 		VECU8,
 		VECU16,
-		UNKNOWN
+		VECU32,
+		VECU64,
+ 		UNKNOWN
 	};
 	enum class filterMode : uint8_t {
 		FM_NONE,
@@ -80,7 +88,21 @@ struct schemaField {
 
 using schemaData = std::vector<schemaField>;
 
-using recordField = std::variant<std::monostate, std::string, int, std::vector<int>>;
+using recordField = std::variant<
+	std::monostate,
+	bool,
+	std::string,
+	int,
+	std::vector<int>,
+	std::uint8_t,
+	std::uint16_t,
+	std::uint32_t,
+	std::uint64_t,
+	std::vector<std::uint8_t>,
+	std::vector<std::uint16_t>,
+	std::vector<std::uint32_t>,
+	std::vector<std::uint64_t>
+>;
 
 using recordData = std::vector<recordField>;
 

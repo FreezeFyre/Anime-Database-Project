@@ -23,7 +23,6 @@
 #include "net/protocol/data.hpp"
 
 
-
 #include "domain/group.hpp"
 
 namespace anime::storage {
@@ -47,11 +46,15 @@ class groupDB {
 		void record(const sectionHeader& section, const recordData& record, const schemaData& schema);
 		void table(const sectionHeader& section, const std::string& table);
 
+
 		// Write Handlers
 	    fileHeader getHeader(fileType type) const;
 	    sectionHeader getSection(fileType type, size_t index) const;
+		sectionHeader getSection() const;
 	    schemaData getSchema(fileType type, size_t index) const;
+		schemaData getSchema() const;
 	    recordData getRecord(fileType type, size_t schemaIndex, size_t recordIndex) const;
+		recordData getTableRecord(fileType type, size_t sectionIndex, size_t rowIndex);
 	    GroupId getId(size_t index) const;
 	    size_t getFieldIndex(const std::string& fieldName) const;
 
@@ -62,6 +65,8 @@ class groupDB {
 	    void deleteGroup(const GroupId id);
 	    std::vector<GroupId> searchGroupTitles(const std::string& term) const;
 
+		// Operation Utilities
+
 		// Query Operations
 	    std::vector<GroupId> getFilteredIds(const FilterRequest& request) const;
 	    std::vector<GroupId> getSortedIds() const;
@@ -70,9 +75,11 @@ class groupDB {
 
 
 		// Validation
-
+		std::vector<size_t> validateSchema(const schemaData& schema);
 
 		// Utilities
+		recordField getField(size_t id, size_t fieldIndex) const;
+		recordField getFromGroup(const Group& group, const size_t fieldIndex) const;
 
 	private:
 	    std::unordered_map<GroupId, size_t> idMap;

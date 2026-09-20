@@ -4,6 +4,10 @@
 
 namespace anime::domain {
 
+using EntryId = uint32_t;
+using GroupId = uint32_t;
+using LookupId = uint32_t;
+
 using UserId = std::uint32_t;
 using IdentityId = std::uint32_t;
 using SessionId = std::uint32_t;

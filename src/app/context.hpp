@@ -1,8 +1,8 @@
 #pragma once
 
 #include <shared_mutex>
-#include "databases/entry_data.hpp"
-#include "databases/users.hpp"
+#include "databases/entry_database.hpp"
+#include "databases/user_database.hpp"
 #include "filtering/filterProcessor.hpp"
 
 namespace anime::app {

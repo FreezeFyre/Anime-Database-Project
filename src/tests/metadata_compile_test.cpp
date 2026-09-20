@@ -1,5 +1,5 @@
-#include "databases/entry_data.hpp"
-#include "databases/groups.hpp"
+#include "databases/entry_database.hpp"
+#include "databases/group_database.hpp"
 
 #include <cassert>
 #include <type_traits>

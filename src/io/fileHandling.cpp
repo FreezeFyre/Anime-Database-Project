@@ -1,3 +1,16 @@
+#include <cctype>
+#include <cstdint>
+#include <exception>
+#include <locale>
+#include <optional>
+#include <ostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <variant>
+#include <vector>
+#include "file_types.hpp"
 #include "io/fileHandling.hpp"
 
 namespace anime::storage {
@@ -16,9 +29,6 @@ inline static bool isNumber(std::string& str) {
 
 	return true;
 }
-
-
-/*-----	The Following Functions Have Partial Error Handling and Validation Checks	-----*/
 } // namespace
 
 fileHeader fileProcessor::readHeader(std::string& line) {
@@ -53,7 +63,6 @@ fileHeader fileProcessor::readHeader(std::string& line) {
 
 	return header;
 }
-
 sectionHeader fileProcessor::readSection(const std::string& line) {
 	sectionHeader section;
 
@@ -87,20 +96,13 @@ sectionHeader fileProcessor::readSection(const std::string& line) {
 	return section;
 }
 
-
-
-
 // Need to add in bounds/type verification
 schemaField::dataType fileProcessor::readDataType(std::string& dataField) {
 	return static_cast<schemaField::dataType>(std::stoi(dataField));
 }
-
 schemaField::filterMode fileProcessor::readFilterMode(std::string& filterField) {
 	return static_cast<schemaField::filterMode>(std::stoi(filterField));
 }
-
-
-
 schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 
 	schemaData schema;
@@ -152,33 +154,59 @@ schemaData fileProcessor::readSchema(std::string& line, const int& fieldCount) {
 
 	return schema;
 }
+recordField fileProcessor::parseField(schemaField::dataType type, std::optional<std::string_view> string) {
+	if (string == std::nullopt) {
+		return std::monostate{};
+	} else if (string.value().empty()) {
+		return std::string{};
+	}
 
-// Takes a input string of integers seperated by commas and enclosed in {} and updates the passed vector
-std::vector<int> fileProcessor::recordVector(std::string& str) {
-	std::string buffer;
-	std::vector<int> vec;
-
-	for (char c : str) {
-		if (isdigit(c) or c == '-') {
-			buffer.push_back(c);
-		}
-		if (c == ',' or c == '}') {
-			if (!buffer.empty()) {
-				vec.push_back(stoi(buffer));
-				buffer.clear();
+	switch (type) {
+		case schemaField::dataType::BOOL: {
+			if (string.value() == "1") {
+				return true;
+			} else if (string.value() == "0") {
+				return false;
+			} else {
+				throw std::runtime_error("Parseing a bool requires a value of 0 or 1 got: " + std::string(string.value()));
 			}
 		}
-		if (!isdigit(c) and c != '-' and c != '{' and c != '}' and c != ',') {
-			throw std::runtime_error("Invalid Character in Vector Field! Expected only digits, commas, and curly braces: " + str);
+		case schemaField::dataType::STR: {
+			return std::string(string.value());
 		}
+		case schemaField::dataType::U8: {
+			return recordField{parseUnsigned<std::uint8_t>(string.value())};
+		}
+		case schemaField::dataType::U16: {
+			return recordField{parseUnsigned<std::uint16_t>(string.value())};
+		}
+		case schemaField::dataType::U32: {
+			return recordField{parseUnsigned<std::uint32_t>(string.value())};
+		}
+		case schemaField::dataType::U64: {
+			return recordField{parseUnsigned<std::uint64_t>(string.value())};
+		}
+		case schemaField::dataType::VECU8: {
+			return recordField{parseVector<std::vector<std::uint8_t>>(string.value())};
+		}
+		case schemaField::dataType::VECU16: {
+			return recordField{parseVector<std::vector<std::uint16_t>>(string.value())};
+		}
+		case schemaField::dataType::VECU32: {
+			return recordField{parseVector<std::vector<std::uint32_t>>(string.value())};
+		}
+		case schemaField::dataType::VECU64: {
+			return recordField{parseVector<std::vector<std::uint64_t>>(string.value())};
+		}
+		default:
+			throw std::runtime_error("Unexpected or unsupported data type: " + std::to_string(static_cast<uint8_t>(type)));
 	}
-	return vec;
-}
 
+}
 recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 	recordData record;
-	record.resize(schema.size());
-	recordField fieldBuffer;
+	size_t fieldCount = schema.size();
+	record.resize(fieldCount);
 
 	int nestLevel = 0;
 	int phase = 0;
@@ -186,7 +214,7 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 	std::string buffer;
 
 	for (char c : line) {
-		if (c == '{') { nestLevel++; }
+		if (c == '{' && !inString) { nestLevel++; }
 
 		if (nestLevel == 1 and inString and c != '"') {
 			buffer.push_back(c);
@@ -200,79 +228,20 @@ recordData fileProcessor::readRecord(schemaData& schema, std::string& line) {
 		}
 
 		if (nestLevel == 1 and !inString and (c == ',' or c == '}')) {
-			if (buffer.empty()) { fieldBuffer = std::monostate{}; }
-			else {
-				switch (schema[phase].type) {
-
-					// Integer Handling
-				case schemaField::dataType::U8: {
-					fieldBuffer = stoi(buffer);
-					record[phase] = fieldBuffer;
-					fieldBuffer = std::monostate{};
-					buffer.clear();
-					break;
-				}
-				case schemaField::dataType::U16: {
-					fieldBuffer = stoi(buffer);
-					record[phase] = fieldBuffer;
-					fieldBuffer = std::monostate{};
-					buffer.clear();
-					break;
-				}
-				case schemaField::dataType::U32: {
-					fieldBuffer = stoi(buffer);
-					record[phase] = fieldBuffer;
-					fieldBuffer = std::monostate{};
-					buffer.clear();
-					break;
-				}
-
-
-											   // String Handling
-				case schemaField::dataType::STR: {
-					fieldBuffer = buffer;
-					record[phase] = fieldBuffer;
-					fieldBuffer = std::monostate{};
-					buffer.clear();
-					break;
-				}
-
-
-											   // Vector Handling
-				case schemaField::dataType::VECU8: {
-					fieldBuffer = recordVector(buffer);
-
-					record[phase] = fieldBuffer;
-					fieldBuffer = std::monostate{};
-					buffer.clear();
-					break;
-				}
-				case schemaField::dataType::VECU16: {
-					fieldBuffer = recordVector(buffer);
-
-					record[phase] = fieldBuffer;
-					fieldBuffer = std::monostate{};
-					buffer.clear();
-					break;
-				}
-
-				default:
-					throw std::runtime_error("Unknown Data Type in Schema! \n");
-				}
+			if (fieldCount <= phase) {
+				throw std::runtime_error(" Input record string has more fields than expected. Expected: " + std::to_string(fieldCount) + ", Got: " + std::to_string(phase));
 			}
+			record[phase] = parseField(schema[phase].type, buffer);
+			buffer.clear();
 		}
 
 		if (c == ',' and nestLevel == 1 and !inString) { phase++; }
 		if (c == '"') { inString = !inString; }
-		if (c == '}') { nestLevel--; }
+		if (c == '}' && !inString) { nestLevel--; }
 	}
 
 	return record;
 }
-/*-----	End of Functions With Partial Error Handling and Validation Checks	-----*/
-
-
-
 
 // All of the following needs error handling
 std::string fileProcessor::printHeader(const fileHeader& header) {
@@ -280,16 +249,15 @@ std::string fileProcessor::printHeader(const fileHeader& header) {
 
 	out << header.magic << '|'
 		<< header.version << '|'
-		<< static_cast<int>(header.type) << '|'
+		<< static_cast<uint64_t>(header.type) << '|'
 		<< header.sectionCount << '|';
 
 	return out.str();
 }
-
 std::string fileProcessor::printSection(const sectionHeader& section) {
 	std::ostringstream out;
 
-	out << static_cast<int>(section.type) << '|'
+	out << static_cast<uint64_t>(section.type) << '|'
 		<< section.title << '|'
 		<< section.recordCount << '|'
 		<< section.fieldCount << '|'
@@ -298,44 +266,45 @@ std::string fileProcessor::printSection(const sectionHeader& section) {
 	return out.str();
 }
 
+void fileProcessor::printField(std::ostream& out, bool value) {
+	out << (value ? 1 : 0);
+}
+void fileProcessor::printField(std::ostream& out, const std::string& value) {
+	out << '"' << value << '"';
+}
+void fileProcessor::printField(std::ostream& out, std::monostate value) {
+	return;
+}
+void fileProcessor::printField(std::ostream& out, int value) {
+	out << std::to_string(value);
+}
+void fileProcessor::printField(std::ostream& out, std::vector<int> value) {
+	out << '{';
+
+	if (!value.empty()) {
+		out << std::to_string(value[0]);
+		for (size_t i = 1; i < value.size(); i++) {
+			out << ',';
+			printField(out, value[i]);
+		}
+	}
+
+	out << '}';
+}
+
 std::string fileProcessor::printRecord(const recordData& record, const schemaData& schema) {
+	// Should add schema to variant type validation
 	std::ostringstream out;
+	out.imbue(std::locale::classic());
 
 	out << '{';
 	for (size_t i = 0; i < record.size(); i++) {
 		if (i > 0) {
 			out << ',';
 		}
-
-		if (std::holds_alternative<std::monostate>(record[i])) {
-			continue;
-		}
-
-		switch (schema[i].type) {
-		case schemaField::dataType::U8:
-		case schemaField::dataType::U16:
-		case schemaField::dataType::U32:
-			out << std::get<int>(record[i]);
-			break;
-		case schemaField::dataType::STR:
-			out << '"' << std::get<std::string>(record[i]) << '"';
-			break;
-		case schemaField::dataType::VECU8:
-		case schemaField::dataType::VECU16: {
-			const std::vector<int>& vec = std::get<std::vector<int>>(record[i]);
-			out << '{';
-			for (size_t j = 0; j < vec.size(); j++) {
-				if (j > 0) {
-					out << ',';
-				}
-				out << vec[j];
-			}
-			out << '}';
-			break;
-		}
-		default:
-			throw std::runtime_error("Unknown Data Type in Record Field " + std::to_string(i));
-		}
+		std::visit([&](const auto& fieldData){
+			printField(out, fieldData);
+		},record[i]);
 	}
 	out << '}';
 
@@ -345,16 +314,12 @@ std::string fileProcessor::printRecord(const recordData& record, const schemaDat
 std::string fileProcessor::printTableRow(const std::string& row) {
 	return "{\"" + row + "\"}";
 }
-
 std::string fileProcessor::schemaDataType(const schemaField::dataType& type) {
-	return std::to_string(static_cast<int>(type));
+	return std::to_string(static_cast<uint8_t>(type));
 }
-
 std::string fileProcessor::schemaFilterMode(const schemaField::filterMode& mode) {
-	return std::to_string(static_cast<int>(mode));
+	return std::to_string(static_cast<uint8_t>(mode));
 }
-
-
 std::string fileProcessor::printSchema(const schemaData& schema) {
 	std::string result;
 	result.push_back('[');
