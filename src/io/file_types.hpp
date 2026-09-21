@@ -92,8 +92,6 @@ using recordField = std::variant<
 	std::monostate,
 	bool,
 	std::string,
-	int,
-	std::vector<int>,
 	std::uint8_t,
 	std::uint16_t,
 	std::uint32_t,
