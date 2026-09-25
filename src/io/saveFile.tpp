@@ -2,11 +2,15 @@
 
 template <typename Source>
 	requires FileWriteSource<Source>
-void fileProcessor::saveFile(std::string file, Source& source, fileType type) {
-	std::ofstream output(file);
+void fileProcessor::saveFile(const std::filesystem::path& file, Source& source, fileType type) {
+	namespace fs = std::filesystem;
+
+	fs::path temp = file;
+	temp += ".tmp";
+
+	std::ofstream output(temp);
 	if (!output.is_open()) {
-		throw std::runtime_error("Failed to Open File: " + file);
-		return;
+		throw std::runtime_error("Failed to Open File: " + temp.string());
 	}
 
 	fileHeader header = source.getHeader(type);
@@ -48,8 +52,47 @@ void fileProcessor::saveFile(std::string file, Source& source, fileType type) {
 			default:
 				throw std::runtime_error("Unknown Section Type: " + std::to_string(static_cast<int>(section.type)));
 		}
-
 	}
 
+	output.flush();
+	if (!output) {
+		throw std::runtime_error("Failed to write temporary file.");
+	}
 	output.close();
+	if (!output) {
+		throw std::runtime_error("Failed to close temporary file.");
+	}
+
+	HANDLE hTemp = CreateFileW(temp.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hTemp != INVALID_HANDLE_VALUE) {
+		FlushFileBuffers(hTemp);
+		CloseHandle(hTemp);
+	} else {
+		fs::remove(temp);
+	}
+
+	if (fs::exists(file)) {
+		if (!ReplaceFileW(
+			file.c_str(),
+			temp.c_str(),
+			nullptr,
+			REPLACEFILE_IGNORE_ACL_ERRORS,
+			nullptr,
+			nullptr
+		)) {
+			DWORD err = GetLastError();
+			std::cerr << "ReplaceFileW failed with error code: " << err << "\n";
+			fs::remove(temp);
+		}
+	} else {
+		if (!MoveFileExW(
+			temp.c_str(),
+			file.c_str(),
+			MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH
+			)) {
+			DWORD err = GetLastError();
+			std::cerr << "MoveFileExW failed with error code: " << err << "\n";
+			fs::remove(temp);
+		}
+	}
 }

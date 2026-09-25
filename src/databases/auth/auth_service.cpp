@@ -174,8 +174,8 @@ AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::str
 
 			LoginProvider provider = anime::domain::login_provider(std::string(path[2]));
 
-			std::string loginKey = reader.STR();
-			std::string secret = reader.STR();
+			std::string loginKey = reader.read<std::string>();
+			std::string secret = reader.read<std::string>();
 
 			return AuthLoginRequest{provider, loginKey, secret};
 		}
@@ -189,10 +189,10 @@ AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::str
 
 			LoginProvider provider = anime::domain::login_provider(std::string(path[2]));
 
-			std::string loginKey = reader.STR();
-			std::string secret = reader.STR();
-			std::string email = reader.STR();
-			std::string displayName = reader.STR();
+			std::string loginKey = reader.read<std::string>();
+			std::string secret = reader.read<std::string>();
+			std::string email = reader.read<std::string>();
+			std::string displayName = reader.read<std::string>();
 
 			return AuthCreateAccountRequest{provider, loginKey, secret, email, displayName};
 			break;

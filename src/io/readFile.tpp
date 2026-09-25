@@ -9,7 +9,7 @@ The schema provides the name and data type for each field in a record
 */
 template<typename f>
 	requires FileReadHandler<f>
-void fileProcessor::readFile(std::string file, f& handler, const fileType& expected_type) {
+void fileProcessor::readFile(const std::filesystem::path& file, f& handler, const fileType& expected_type) {
 	std::ifstream source(file);
 	if (!source.is_open()) {
 		throw std::runtime_error("Failed to Open File: " + file);

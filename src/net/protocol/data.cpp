@@ -5,133 +5,45 @@ namespace anime::protocol {
 
 
 
-void ByteWriter::BOOL(bool value) {
-	U8(value ? 1 : 0);
+void ByteWriter::write(bool value) {
+	write(static_cast<std::uint8_t>(value ? 1 : 0));
 }
-
-void ByteWriter::U8(uint8_t value) {
+void ByteWriter::write(std::uint8_t value) {
 	buffer.push_back(value);
 }
-
-void ByteWriter::U16(uint16_t value) {
+void ByteWriter::write(std::uint16_t value) {
 	buffer.push_back((value >> 8) & 0xFF);
 	buffer.push_back(value & 0xFF);
 }
-
-void ByteWriter::U32(uint32_t value){
+void ByteWriter::write(std::uint32_t value){
 	buffer.push_back((value >> 24) & 0xFF);
 	buffer.push_back((value >> 16) & 0xFF);
 	buffer.push_back((value >> 8) & 0xFF);
 	buffer.push_back(value & 0xFF);
 }
-
-
-void ByteWriter::CHAR(char c) {
+void ByteWriter::write(std::uint64_t value){
+	buffer.push_back((value >> 56) & 0xFF);
+	buffer.push_back((value >> 48) & 0xFF);
+	buffer.push_back((value >> 40) & 0xFF);
+	buffer.push_back((value >> 32) & 0xFF);
+	buffer.push_back((value >> 24) & 0xFF);
+	buffer.push_back((value >> 16) & 0xFF);
+	buffer.push_back((value >> 8) & 0xFF);
+	buffer.push_back(value & 0xFF);
+}
+void ByteWriter::write(char c) {
 	buffer.push_back(static_cast<unsigned char>(c));
 }
-
-void ByteWriter::STR(const std::string& str) {
-	U32(str.size());
+void ByteWriter::write(const std::string& str) {
+	if (std::in_range<std::uint32_t>(str.size())) {
+		write(static_cast<std::uint32_t>(str.size()));
+	} else {
+		throw std::runtime_error(" String is to large, cant have lenght over a 32bit uint. ");
+	}
 	for (char c : str) {
-		CHAR(c);
+		write(c);
 	}
 }
 
-void ByteWriter::VECU32(const std::vector<uint32_t>& vec) {
-	U32(vec.size());
-	for (uint32_t value : vec) {
-		U32(value);
-	}
-}
-
-void ByteWriter::VECU16(const std::vector<int>& vec) {
-	U32(vec.size());
-	for (uint32_t value : vec) {
-		U16(value);
-	}
-}
-
-void ByteWriter::VECU8(const std::vector<int>& vec) {
-	U32(vec.size());
-	for (uint32_t value : vec) {
-		U8(value);
-	}
-}
-
-
-bool ByteReader::BOOL() {
-    return U8() != 0;
-}
-
-
-uint8_t ByteReader::U8() {
-	uint8_t value = input[offset];
-	offset += 1;
-	return value;
-}
-
-uint16_t ByteReader::U16() {
-	uint16_t value = 0;
-	value |= static_cast<uint16_t>(input[offset]) << 8;
-	value |= static_cast<uint16_t>(input[offset + 1]);
-	offset += 2;
-	return value;
-}
-
-uint32_t ByteReader::U32() {
-	uint32_t value = 0;
-	value |= static_cast<uint32_t>(input[offset]) << 24;
-	value |= static_cast<uint32_t>(input[offset + 1]) << 16;
-	value |= static_cast<uint32_t>(input[offset + 2]) << 8;
-	value |= static_cast<uint32_t>(input[offset + 3]);
-	offset += 4;
-	return value;
-}
-
-std::string ByteReader::STR() {
-	uint32_t length = U32();
-	std::string str;
-	str.reserve(length);
-	for (uint32_t i = 0; i < length; i++) {
-		str.push_back(CHAR());
-	}
-	return str;
-}
-
-char ByteReader::CHAR() {
-	char c = static_cast<char>(input[offset]);
-	offset += 1;
-	return c;
-}
-
-std::vector<int> ByteReader::VECU8() {
-	uint32_t length = U32();
-	std::vector<int> vec;
-	vec.reserve(length);
-	for (uint32_t i = 0; i < length; i++) {
-		vec.push_back(U8());
-	}
-	return vec;
-}
-
-std::vector<int> ByteReader::VECU16() {
-	uint32_t length = U32();
-	std::vector<int> vec;
-	vec.reserve(length);
-	for (uint32_t i = 0; i < length; i++) {
-		vec.push_back(U16());
-	}
-	return vec;
-}
-
-std::vector<uint32_t> ByteReader::VECU32() {
-	uint32_t length = U32();
-	std::vector<uint32_t> vec;
-	vec.reserve(length);
-	for (uint32_t i = 0; i < length; i++) {
-		vec.push_back(U32());
-	}
-	return vec;
-}
 
 } // namespace anime::protocol

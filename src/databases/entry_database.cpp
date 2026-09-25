@@ -38,7 +38,7 @@ using anime::storage::helpers::UnsignedInteger;
 //====================================
 //				I/O
 //====================================
-void entryDB::loadEntries(std::string file) {
+void entryDB::loadEntries(const std::filesystem::path& file) {
 	fileProcessor parser;
 
 	try {
@@ -51,7 +51,7 @@ void entryDB::loadEntries(std::string file) {
 	}
 
 }
-void entryDB::loadLookupTables(std::string file) {
+void entryDB::loadLookupTables(const std::filesystem::path& file) {
 	fileProcessor parser;
 
 	try {
@@ -63,7 +63,7 @@ void entryDB::loadLookupTables(std::string file) {
 	}
 
 }
-void entryDB::saveEntries(std::string file) {
+void entryDB::saveEntries(const std::filesystem::path& file) {
 	fileProcessor saver;
 	try {
 		saver.saveFile(file, *this, fileType::HEADER_DATABASE);
@@ -674,15 +674,9 @@ recordField entryDB::getField(size_t id, size_t fieldIndex) const {
 	return getFromEntry(database[index], fieldIndex);
 }
 recordField entryDB::getFromEntry(const Entry& entry, const size_t fieldIndex) const {
-	recordField result;
-
-	const memPTR& ptr = entryMetadata[fieldIndex].ptr;
-
-	std::visit([&](auto memberPtr) {
-		result = entry.*memberPtr;
-		}, ptr);
-
-	return result;
+	return std::visit([&](auto memberPtr) {
+		return entry.*memberPtr;
+	}, entryMetadata[fieldIndex].ptr);
 }
 size_t entryDB::getTableSize(const std::string& title) {
 	return lookupTables.at(title).size();

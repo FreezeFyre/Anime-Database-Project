@@ -11,7 +11,7 @@ using namespace anime::domain;
 using namespace anime::filtering;
 using namespace anime::schema;
 
-void groupDB::load(const std::string& filename) {
+void groupDB::load(const std::filesystem::path& filename) {
 	fileProcessor parser;
 
 	try {
@@ -20,7 +20,7 @@ void groupDB::load(const std::string& filename) {
 		std::cerr << "Error loading group database: " << e.what() << "\n";
 	}
 }
-void groupDB::save(const std::string & filename) {
+void groupDB::save(const std::filesystem::path& filename) {
 	fileProcessor parser;
 	try {
 		parser.saveFile(filename, *this, fileType::HEADER_DATABASE);

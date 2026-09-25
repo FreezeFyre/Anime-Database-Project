@@ -76,15 +76,11 @@ class filterProcessor {
 		bool checkRange(const Range& r, size_t value);
 
 		bool includesAny(const std::vector<size_t>& vec, size_t value);
-
 		bool includesAny(const std::vector<FilterValue>& vec, FilterValue value);
-
 		bool includesAny(const std::vector<size_t>& vec, const std::vector<size_t>& value);
-
 		bool includesAny(const std::vector<FilterValue>& vec, const std::vector<int>& value);
 
 		bool includesAll(const std::vector<size_t>& reference, const std::vector<size_t>& values);
-
 		bool includesAll(const std::vector<FilterValue>& reference, const std::vector<int>& values);
 
 		bool hasFilter(const FieldFilter& filter);

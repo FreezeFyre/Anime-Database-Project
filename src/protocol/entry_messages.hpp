@@ -18,8 +18,7 @@ struct Update {
 	anime::schema::UPDATE_OPERATION operation;
 	std::uint8_t fieldIndex;
 	anime::storage::dataType type;
-	std::variant<std::monostate, std::uint8_t, std::uint16_t, std::uint32_t,
-		std::string, std::vector<int>> value;
+	anime::storage::recordField value;
 };
 
 struct EntryGetRequest {

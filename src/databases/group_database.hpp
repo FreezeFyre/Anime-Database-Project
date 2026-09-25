@@ -37,8 +37,8 @@ class groupDB {
 	public:
 	    using IdType = GroupId;
 
-		void load(const std::string& filename);
-		void save(const std::string& filename);
+		void load(const std::filesystem::path& filename);
+		void save(const std::filesystem::path& filename);
 
 		// Read Handlers
 		void section(const sectionHeader& header);

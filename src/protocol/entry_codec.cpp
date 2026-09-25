@@ -1,6 +1,9 @@
 #include "protocol/entry_codec.hpp"
 #include "domain/entry_schema.hpp"
 
+#include <type_traits>
+
+
 namespace anime::protocol {
 using namespace anime::domain;
 using namespace anime::schema;
@@ -11,33 +14,33 @@ namespace {
 Update decodeUpdate(ByteReader& reader) {
 	Update r;
 
-	r.id = reader.U32();
-	r.operation = static_cast<UPDATE_OPERATION>(reader.U8());
-	r.fieldIndex = reader.U8();
-	r.type = static_cast<dataType>(reader.U8());
+	r.id = reader.read<std::uint32_t>();
+	r.operation = static_cast<UPDATE_OPERATION>(reader.read<std::uint8_t>());
+	r.fieldIndex = reader.read<std::uint8_t>();
+	r.type = static_cast<dataType>(reader.read<std::uint8_t>());
 	switch (r.type) {
 		case dataType::U8: {
-			r.value = reader.U8();
+			r.value = reader.read<std::uint8_t>();
 			break;
 		}
 		case dataType::U16: {
-			r.value = reader.U16();
+			r.value = reader.read<std::uint16_t>();
 			break;
 		}
 		case dataType::U32: {
-			r.value = reader.U32();
+			r.value = reader.read<std::uint32_t>();
 			break;
 		}
 		case dataType::STR: {
-			r.value = reader.STR();
+			r.value = reader.read<std::string>();
 			break;
 		}
 		case dataType::VECU8: {
-			r.value = reader.VECU8();
+			r.value = reader.read<std::vector<std::uint8_t>>();
 			break;
 		}
 		case dataType::VECU16: {
-			r.value = reader.VECU16();
+			r.value = reader.read<std::vector<std::uint16_t>>();
 			break;
 		}
 		default:
@@ -59,7 +62,7 @@ EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, const ByteVector& p
 		case ACTION_TYPE::ACT_GET:
 		{
 			EntryGetRequest getReq;
-			getReq.ids = reader.VECU32();
+			getReq.ids = reader.read <std::vector<std::uint32_t>>();
 			req = getReq;
 
 			return req;
@@ -68,7 +71,7 @@ EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, const ByteVector& p
 		case ACTION_TYPE::ACT_UPDATE: {
 			EntryUpdateRequest updateReq;
 
-			size_t updateCount = reader.U32();
+			size_t updateCount = reader.read<std::uint32_t>();
 			updateReq.updates.reserve(updateCount);
 
 			for (size_t i = 0; i < updateCount; i++) {
@@ -89,7 +92,7 @@ EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, const ByteVector& p
 			fieldIndices = anime::domain::validateEntrySchema(schema);
 
 			// Construct Entries Vector
-			size_t recordCount = reader.U32();
+			size_t recordCount = reader.read<std::uint32_t>();
 			createReq.entries.reserve(recordCount);
 			for (size_t i = 0; i < recordCount; i++) {
 				createReq.entries.emplace_back(readEntry(reader, fieldIndices));
@@ -102,7 +105,7 @@ EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, const ByteVector& p
 		case ACTION_TYPE::ACT_DELETE: {
 			EntryDeleteRequest deleteReq;
 
-			deleteReq.ids = reader.VECU32();
+			deleteReq.ids = reader.read<std::vector<std::uint32_t>>();
 			req = deleteReq;
 
 			return req;
@@ -111,7 +114,7 @@ EntryRequest EntryWebSocketCodec::decode(ACTION_TYPE action, const ByteVector& p
 		case ACTION_TYPE::ACT_SEARCH: {
 			EntrySearchRequest searchReq;
 
-			searchReq.searchTerm = reader.STR();
+			searchReq.searchTerm = reader.read<std::string>();
 			req= searchReq;
 
 			return req;
@@ -141,29 +144,10 @@ Entry EntryWebSocketCodec::readEntry(ByteReader& reader, std::vector<size_t>& fi
 	Entry result;
 
 	for (size_t i = 0; i < fieldIndices.size(); i++) {
-		switch (entryMetadata[fieldIndices[i]].info.type) {
-		case schemaField::dataType::U8:
-			result.*std::get<intPTR>(entryMetadata[fieldIndices[i]].ptr) = reader.U8();
-			break;
-		case schemaField::dataType::U16:
-			result.*std::get<intPTR>(entryMetadata[fieldIndices[i]].ptr) = reader.U16();
-			break;
-		case schemaField::dataType::U32:
-			result.*std::get<intPTR>(entryMetadata[fieldIndices[i]].ptr) = reader.U32();
-			break;
-		case schemaField::dataType::STR:
-			result.*std::get<strPTR>(entryMetadata[fieldIndices[i]].ptr) = reader.STR();
-			break;
-		case schemaField::dataType::VECU8:
-			result.*std::get<vecPTR>(entryMetadata[fieldIndices[i]].ptr) = reader.VECU8();
-			break;
-		case schemaField::dataType::VECU16:
-			result.*std::get<vecPTR>(entryMetadata[fieldIndices[i]].ptr) = reader.VECU16();
-			break;
-		default:
-			throw std::runtime_error("Unknown data type in schema for field: " + entryMetadata[fieldIndices[i]].info.name);
-
-		}
+		std::visit([&](const auto& memberPtr) {
+			using FieldType = std::remove_cvref_t<decltype(result.*memberPtr)>;
+			result.*memberPtr = reader.read<FieldType>();
+		}, entryMetadata[fieldIndices[i]].ptr);
 	}
 	return result;
 }
@@ -171,12 +155,12 @@ schemaData EntryWebSocketCodec::readSchema(ByteReader& reader) {
 	schemaData result;
 	schemaField buffer;
 
-	size_t fieldCount = reader.U32();
+	size_t fieldCount = reader.read<std::uint32_t>();
 
 	for (size_t i = 0; i < fieldCount; i++) {
-		buffer.name = reader.STR();
-		buffer.type = static_cast<schemaField::dataType>(reader.U8());
-		buffer.mode = static_cast<schemaField::filterMode>(reader.U8());
+		buffer.name = reader.read<std::string>();
+		buffer.type = static_cast<schemaField::dataType>(reader.read<std::uint8_t>());
+		buffer.mode = static_cast<schemaField::filterMode>(reader.read<std::uint8_t>());
 		result.push_back(buffer);
 	}
 
@@ -185,11 +169,11 @@ schemaData EntryWebSocketCodec::readSchema(ByteReader& reader) {
 sectionHeader EntryWebSocketCodec::readSection(ByteReader& reader) {
 	sectionHeader header;
 
-	header.type = static_cast<sectionType>(reader.U8());
-	header.title = reader.STR();
-	header.recordCount = reader.U32();
-	header.fieldCount = reader.U32();
-	header.hasSchema = static_cast<bool>(reader.U8());
+	header.type = static_cast<sectionType>(reader.read<std::uint8_t>());
+	header.title = reader.read<std::string>();
+	header.recordCount = reader.read<std::uint32_t>();
+	header.fieldCount = reader.read<std::uint32_t>();
+	header.hasSchema = static_cast<bool>(reader.read<std::uint8_t>());
 
 	return header;
 }
@@ -199,73 +183,40 @@ EntryUpdate EntryWebSocketCodec::translateUpdate(const Update& update) {
 	result.op = update.operation;
 	result.fieldIndex = update.fieldIndex;
 
-	switch (update.type) {
-		case dataType::U8:
-			result.value = static_cast<int>(std::get<uint8_t>(update.value));
-			break;
-		case dataType::U16:
-			result.value = static_cast<int>(std::get<uint16_t>(update.value));
-			break;
-		case dataType::U32: {
-			uint32_t raw = std::get<uint32_t>(update.value);
-			if (raw > static_cast<uint32_t>(std::numeric_limits<int>::max())) {
-				throw std::runtime_error("Update value exceeds entry integer range.");
-			}
-			result.value = static_cast<int>(raw);
-			break;
+	std::visit([&](const auto& value) {
+		using FieldType = std::remove_cvref_t<decltype(result.value)>;
+		using UpdateType = std::remove_cvref_t<decltype(result.value)>; // probably want to swap to use non-exact type matching, idk
+		if constexpr (std::same_as<FieldType, UpdateType>) {
+			result.value = update.value;
+		} else {
+			throw std::runtime_error("Update type must be the same as the target field. ");
 		}
-		case dataType::STR:
-			result.value = std::get<std::string>(update.value);
-			break;
-		case dataType::VECU8:
-		case dataType::VECU16:
-			result.value = std::get<std::vector<int>>(update.value);
-			break;
-		default:
-			throw std::runtime_error("Unknown update value data type.");
-	}
+	}, update.value);
 
 	return result;
 }
 
 void EntryWebSocketCodec::encodeSection(ByteWriter& encoder, const sectionHeader& section) {
-	encoder.U8(static_cast<uint8_t>(section.type));
-	encoder.STR(section.title);
-	encoder.U32(section.recordCount);
-	encoder.U32(section.fieldCount);
-	encoder.U8(static_cast<uint8_t>(section.hasSchema));
+	encoder.write(static_cast<uint8_t>(section.type));
+	encoder.write(section.title);
+	encoder.write(section.recordCount);
+	encoder.write(section.fieldCount);
+	encoder.write(static_cast<uint8_t>(section.hasSchema));
 }
 void EntryWebSocketCodec::encodeSchema(ByteWriter& encoder, const schemaData& schema) {
-	encoder.U32(schema.size());
+	encoder.write(static_cast<std::uint32_t>(schema.size()));
 
 	for (const auto& field : schema) {
-		encoder.STR(field.name);
-		encoder.U8(static_cast<uint8_t>(field.type));
-		encoder.U8(static_cast<uint8_t>(field.mode));
+		encoder.write(field.name);
+		encoder.write(static_cast<uint8_t>(field.type));
+		encoder.write(static_cast<uint8_t>(field.mode));
 	}
 }
 void EntryWebSocketCodec::encodeEntry(ByteWriter& encoder, const Entry& entry) {
 	for (size_t i = 0; i < entryMetadata.size(); i++) {
-		switch (entryMetadata[i].info.type) {
-		case schemaField::dataType::U8:
-			encoder.U8(entry.*std::get<intPTR>(entryMetadata[i].ptr));
-			break;
-		case schemaField::dataType::U16:
-			encoder.U16(entry.*std::get<intPTR>(entryMetadata[i].ptr));
-			break;
-		case schemaField::dataType::U32:
-			encoder.U32(entry.*std::get<intPTR>(entryMetadata[i].ptr));
-			break;
-		case schemaField::dataType::STR:
-			encoder.STR(entry.*std::get<strPTR>(entryMetadata[i].ptr));
-			break;
-		case schemaField::dataType::VECU8:
-			encoder.VECU8(entry.*std::get<vecPTR>(entryMetadata[i].ptr));
-			break;
-		case schemaField::dataType::VECU16:
-			encoder.VECU16(entry.*std::get<vecPTR>(entryMetadata[i].ptr));
-			break;
-		}
+		std::visit([&](const auto& memberPtr) {
+			encoder.write(entry.*memberPtr);
+		}, entryMetadata[i].ptr);
 	}
 }
 
@@ -273,7 +224,7 @@ ByteVector EntryWebSocketCodec::encodeResponse(const EntryGetResponse& response)
 	ByteWriter encoder;
 
 	encodeSchema(encoder, response.schema);
-	encoder.U32(response.entries.size());
+	encoder.write(static_cast<uint32_t>(response.entries.size()));
 	for (const Entry& entry : response.entries) {
 		encodeEntry(encoder, entry);
 	}
@@ -283,21 +234,21 @@ ByteVector EntryWebSocketCodec::encodeResponse(const EntryGetResponse& response)
 ByteVector EntryWebSocketCodec::encodeResponse(const EntryIdsResponse& response) {
 	ByteWriter encoder;
 
-	encoder.VECU32(response.ids);
+	encoder.write(response.ids);
 
 	return encoder.buffer;
 }
 ByteVector EntryWebSocketCodec::encodeResponse(const EntrySuccessResponse& response) {
 	ByteWriter encoder;
 
-	encoder.STR(response.message);
+	encoder.write(response.message);
 
 	return encoder.buffer;
 }
 ByteVector EntryWebSocketCodec::encodeResponse(const EntryErrorResponse& response) {
 	ByteWriter encoder;
 
-	encoder.STR(response.message);
+	encoder.write(response.message);
 
 	return encoder.buffer;
 }

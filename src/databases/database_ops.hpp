@@ -18,6 +18,8 @@
 #include <stdexcept>
 #include <variant>
 #include <vector>
+#include <unordered_set>
+#include <ranges>
 
 namespace anime::storage::helpers {
 
@@ -26,11 +28,14 @@ using anime::schema::VALUE_REFERENCE_TYPE;
 using anime::storage::schemaField;
 using anime::storage::recordData;
 
+template <typename> inline constexpr bool always_false_v = false;
 template <typename T> struct is_vector : std::false_type {};
 template <typename T, typename Allocator> struct is_vector<std::vector<T, Allocator>> : std::true_type {};
 template <typename T> inline constexpr bool is_vector_v = is_vector<std::remove_cvref_t<T>>::value;
 template <typename T> concept UnsignedInteger = std::unsigned_integral<std::remove_cvref_t<T>> && !std::same_as<std::remove_cvref_t<T>, bool>;
+template <typename T> concept UnsignedVector = is_vector_v<T> && UnsignedInteger<typename std::remove_cvref_t<T>::value_type>;
 
+// Helpers for converting and validating unsigned recordField alternatives.
 template <UnsignedInteger Destination, UnsignedInteger Source>
 Destination checkedConvert(const Source input) {
 	if (std::in_range<Destination>(input)) {
@@ -71,6 +76,7 @@ void validateVectorElement(const FieldInfo& fieldInfo, const T& value) {
 			throw std::runtime_error(" Invalid unsigned integer type. ");
 	}
 }
+// Overloads for validating recordField alternatives and the variant itself.
 template <std::unsigned_integral T> requires(!std::same_as<T, bool>)
 void validateField(const FieldInfo& fieldInfo, const T& value) {
 	switch (fieldInfo.type) {
@@ -107,7 +113,7 @@ void validateField(const FieldInfo& fieldInfo, const T& value) {
 		}
 		case VALUE_REFERENCE_TYPE::BOUNDS: {
 			if (!fieldInfo.bounds.has_value()) {
-				throw std::runtime_error("Missing bounds for range field: " + meta.name);
+				throw std::runtime_error("Missing bounds for range field: " + fieldInfo.name);
 			}
 			if (value < fieldInfo.bounds->lower || value > fieldInfo.bounds->upper) {
 				throw std::runtime_error("Value for field \"" + fieldInfo.name + "\" out of specified range.");
@@ -151,6 +157,7 @@ using helpers::checkedConvert;
 
 
 namespace vector_ops {
+	// Overloads for adding unsigned scalar or vector recordField values uniquely.
 	template <UnsignedInteger T> void addUniqueElement(std::vector<T>& field, const recordField& value) {
 		std::visit(
 			[&](const auto& input) {
@@ -191,6 +198,7 @@ namespace vector_ops {
 	}
 
 
+	// Overloads for removing unsigned scalar or vector recordField values.
 	template <UnsignedInteger T> void removeElement(std::vector<T>& field, const recordField& value) {
 		std::visit(
 			[&](const auto& input) {
@@ -241,6 +249,7 @@ namespace vector_ops {
 }
 
 namespace field_ops {
+	// Overloads for assigning recordField values or their alternatives to matching field types.
 	template <typename T> void setField(T& field, const recordField& value) {
 		// currently using primitive approach
 		// Check if types are the same/compatible and if they are set(primitive is just is_same_v<> but more complex
@@ -263,6 +272,7 @@ namespace field_ops {
 			throw std::runtime_error(" Provided value must be of the same type as the target field. ");
 		}
 	}
+	// Helper for clearing fields whose types match non-monostate recordField alternatives.
 	template <typename T> void clearField(T& field) {
 		// Need to decide how to approach, im unsure if i can use native type defualts, string should be empty string,
 		// vector empty vector and any number should be to 0

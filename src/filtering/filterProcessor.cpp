@@ -155,7 +155,27 @@ bool filterProcessor::validateFilter(const FieldFilter& filter, const FieldInfo&
 	return true;
 }
 
-
+bool filterProcessor::check(const FieldFilter& filter, const recordField& field, const FieldInfo& info) {
+	std::visit( [&](const auto& value) {
+		switch (info.mode) {
+			case schemaField::filterMode::FM_RANGE: {
+			
+			
+			}
+			case schemaField::filterMode::FM_MULTI_VALUE: {
+			
+			
+			}
+			case schemaField::filterMode::FM_RMV: {
+			
+			
+			}
+		    defualt: 
+                throw std::runtime_error("");
+		}
+	}, field);
+	return true;
+}
 bool filterProcessor::check(const FieldFilter& filter, const recordField& field, const FieldInfo& info) {
 	const int* scalar = std::get_if<int>(&field);
 	const std::vector<int>* values = std::get_if<std::vector<int>>(&field);

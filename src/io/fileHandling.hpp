@@ -15,6 +15,16 @@
 #include <system_error>
 #include <variant>
 #include <vector>
+#include <filesystem>
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
+
 #include "io/file_types.hpp"
 
 namespace anime::storage {
@@ -53,11 +63,11 @@ class fileProcessor {
 	public:
 		template<typename f>
 			requires FileReadHandler<f>
-		void readFile(std::string file, f& handler, const fileType& expected_type);
+		void readFile(const std::filesystem::path& file, f& handler, const fileType& expected_type);
 
 		template<typename Source>
 			requires FileWriteSource<Source>
-		void saveFile(std::string file, Source& source, fileType type);
+		void saveFile(const std::filesystem::path& file, Source& source, fileType type);
 
 	private:
 		inline bool checkMagic(std::string& line) {
@@ -75,6 +85,7 @@ class fileProcessor {
 		schemaField::filterMode readFilterMode(std::string& filterField);
 		schemaData readSchema(std::string& line, const int& fieldCount);
 	
+		// Helpers for parsing recordField alternatives and constructing the variant from schema types.
 		template <typename T> [[nodiscard]] T parseUnsigned(std::string_view string) {
 			bool invalid_digit = std::any_of(string.begin(), string.end(), [&](char c) { return c < '0' || c > '9';});
 			if (invalid_digit) [[unlikely]]{
@@ -135,6 +146,7 @@ class fileProcessor {
 		std::string printSection(const sectionHeader& section);
 		std::string printSchema(const schemaData& schema);
 
+		// Overloads for printing recordField alternatives, with additional signed integer and vector overloads.
 		template <std::unsigned_integral T> requires (!std::same_as<T, bool>)
 		void printField(std::ostream& out, T value) {
 			out << static_cast<std::uint64_t>(value);

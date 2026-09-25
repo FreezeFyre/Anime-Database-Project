@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <filesystem>
 #include "domain/entry.hpp"
 #include "io/fileHandling.hpp"
 #include "filtering/filterProcessor.hpp"
@@ -28,9 +29,9 @@ class entryDB {
 		using IdType = EntryId;
 
 		// File load/save entry points
-		void loadEntries(std::string file);
-		void loadLookupTables(std::string file);
-		void saveEntries(std::string file);
+		void loadEntries(const std::filesystem::path& file);
+		void loadLookupTables(const std::filesystem::path& file);
+		void saveEntries(const std::filesystem::path& file);
 
 
 		// File read handlers

@@ -153,7 +153,7 @@ namespace anime::domain {
 			.rule = CompilationRule{
 				.operation = COMPILE_OPERATION::SUM,
 				.source = "episode_count",
-				.condition = CompileCondition{.field = "format", .value = 0, .type = CompileCondition::CONDITION_TYPE::EQUAL}
+				.condition = CompileCondition{.field = "format", .value = std::uint32_t{0}, .type = CompileCondition::CONDITION_TYPE::EQUAL}
 			}
 		},GroupField{
 			.info = {
@@ -164,7 +164,7 @@ namespace anime::domain {
 			.ptr = &Group::movieCount,
 			.rule = CompilationRule{
 				.operation = COMPILE_OPERATION::COUNT,
-				.condition = CompileCondition{.field = "format", .value = 1, .type = CompileCondition::CONDITION_TYPE::EQUAL}
+				.condition = CompileCondition{.field = "format", .value = std::uint32_t{1}, .type = CompileCondition::CONDITION_TYPE::EQUAL}
 			}
 		},GroupField{
 			.info = {
@@ -175,7 +175,7 @@ namespace anime::domain {
 			.ptr = &Group::seriesCount,
 			.rule = CompilationRule{
 				.operation = COMPILE_OPERATION::COUNT,
-				.condition = CompileCondition{.field = "format", .value = 0, .type = CompileCondition::CONDITION_TYPE::EQUAL}
+				.condition = CompileCondition{.field = "format", .value = std::uint32_t{0}, .type = CompileCondition::CONDITION_TYPE::EQUAL}
 			}
 		},GroupField{
 			.info = {

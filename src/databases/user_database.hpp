@@ -30,8 +30,8 @@ using anime::schema::FieldInfo;
 
 class userDB {
 	public:
-		void load(const std::string& filename);
-		void save(const std::string& filename);
+		void load(const std::filesystem::path& filename);
+		void save(const std::filesystem::path& filename);
 
 		// File Reading
 		void section(const sectionHeader& section);
@@ -82,7 +82,7 @@ class userDB {
 		recordField getFromIdentity(const UserIdentity& identity, const size_t fieldIndex) const;
 
 	private:
-	    std::string savePath;
+	    std::filesystem::path savePath;
 
 		UserId nextUserId = 1;
 		IdentityId nextIdentityId = 1;

@@ -1,9 +1,23 @@
 #include "databases/user_database.hpp"
 
-#include <algorithm>
-#include <cctype>
+#include <iostream>
+#include <chrono>
+#include <cstdint>
+#include <domain/types.hpp>
+#include <domain/user.hpp>
+#include <exception>
+#include <io/file_types.hpp>
+#include <io/fileHandling.hpp>
+#include <protocol/auth_requests.hpp>
+#include <schema/field.hpp>
 #include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
+#include <variant>
+#include <vector>
 
 
 
@@ -13,7 +27,7 @@
 namespace anime::storage {
 using namespace anime::domain;
 using namespace anime::schema;
-void userDB::load(const std::string& filename) {
+void userDB::load(const std::filesystem::path& filename) {
 	fileProcessor f;
 	try {
 		f.readFile(filename, *this, fileType::HEADER_DATABASE);
@@ -25,7 +39,7 @@ void userDB::load(const std::string& filename) {
 		std::cerr << "Error Loading User Database: " << e.what() << "\n";
 	}
 }
-void userDB::save(const std::string& filename) {
+void userDB::save(const std::filesystem::path& filename) {
 	fileProcessor f;
 	try {
 		f.saveFile(filename, *this, fileType::HEADER_DATABASE);
@@ -573,55 +587,15 @@ recordField userDB::getIdentityField(size_t id, size_t fieldIndex) const {
 	size_t index = identityIdMap.at(id);
 	return getFromIdentity(identities[index], fieldIndex);
 }
-// Replace code -> is made via ai 
 recordField userDB::getFromUser(const User& user, const size_t fieldIndex) const {
-	recordField result;
-
-	const UserMemPtr& ptr = UserMeta[fieldIndex].ptr;
-
-	std::visit([&](auto memberPtr) {
-		using Member = std::remove_cvref_t<decltype(user.*memberPtr)>;
-
-		if constexpr (std::is_same_v<Member, UserId>) {
-			result = static_cast<int>(user.*memberPtr);
-		}
-		else if constexpr (std::is_same_v<Member, USER_ACCOUNT_ROLE>) {
-			result = static_cast<int>(user.*memberPtr);
-		}
-		else if constexpr (std::is_same_v<Member, bool>) {
-			result = static_cast<int>(user.*memberPtr);
-		}
-		else {
-			result = user.*memberPtr;
-		}
-	}, ptr);
-
-	return result;
+	return std::visit([&](auto memberPtr) {
+		return user.*memberPtr;
+	}, UserMeta[fieldIndex].ptr);
 }
 recordField userDB::getFromIdentity(const UserIdentity& identity, const size_t fieldIndex) const {
-	recordField result;
-
-	const UserIdentityMemPtr& ptr = UserIdentityMeta[fieldIndex].ptr;
-
-	std::visit([&](auto memberPtr) {
-		using Member = std::remove_cvref_t<decltype(identity.*memberPtr)>;
-
-		if constexpr (std::is_same_v<Member, uint32_t>) {
-			result = static_cast<int>(identity.*memberPtr);
-		}
-		else if constexpr (std::is_same_v<Member, LoginProvider>) {
-			result = static_cast<int>(identity.*memberPtr);
-		}
-		else if constexpr (std::is_same_v<Member, bool>) {
-			result = static_cast<int>(identity.*memberPtr);
-		}
-		else {
-			result = identity.*memberPtr;
-		}
-	}, ptr);
-
-	return result;
+	return std::visit([&](auto memberPtr) {
+		return identity.*memberPtr;
+	}, UserIdentityMeta[fieldIndex].ptr);
 }
-// End of ai code
 } // namespace anime::storage
 

@@ -5,6 +5,8 @@
 #include <optional>
 #include <cstdint>
 
+#include "databases/database_ops.hpp"
+
 namespace anime::protocol {
 
 #ifdef OPTIONAL
@@ -12,26 +14,34 @@ namespace anime::protocol {
 #endif
 
 using ByteVector = std::vector<uint8_t>;
+using anime::storage::helpers::always_false_v;
+using anime::storage::helpers::is_vector_v;
+using anime::storage::helpers::UnsignedInteger;
+using anime::storage::helpers::UnsignedVector;
 
-class ByteWriter {
+class ByteWriter { // Big endian encoding
 public:
 	ByteVector buffer;
-	
-	void BOOL(bool value);
-	void U8(uint8_t value);
-	void U16(uint16_t value);
-	void U32(uint32_t value); 
-	void F32(float value);
-	void F64(float value);
-	void CHAR(char c);
-	void STR(const std::string& str);
-	void VECU32(const std::vector<uint32_t>& vec);
-	void VECU16(const std::vector<int>& vec);
-	void VECU8(const std::vector<int>& vec);
+
+	void write(bool value);
+	void write(char c);
+	void write(const std::string& str);
+	void write(std::uint8_t value);
+	void write(std::uint16_t value);
+	void write(std::uint32_t value);
+	void write(std::uint64_t value);
+	template <UnsignedInteger T> void write(const std::vector<T>& vec) {
+		if (std::in_range<std::uint32_t>(vec.size())) {
+			write(static_cast<std::uint32_t>(vec.size()));
+		} else {
+			throw std::runtime_error(" Vector is to large, cant have lenght over a 32bit uint. ");
+		}
+		for (T val : vec) {
+			write(val);
+		}
+	}
 
 
-	template<typename T>
-	void OPTIONAL(const std::optional<T>& opt);
 };
 
 
@@ -40,20 +50,50 @@ public:
 	const std::vector<uint8_t>& input;
 	size_t offset = 0;
 
-	bool BOOL();
-	uint8_t U8();
-	uint16_t U16();
-	uint32_t U32();
-	float F32();
-	float F64();
-	char CHAR();
-	std::string STR();
-	std::vector<int> VECU8();
-	std::vector<int> VECU16();
-	std::vector<uint32_t> VECU32();
+	template <typename T> T read() {
+		if constexpr (UnsignedInteger<T>) {
+			if (offset > input.size() || sizeof(T) > input.size() - offset) {
+				throw std::runtime_error("Not enough bytes to read this value.");
+			}
+			T value = 0;
+			for (size_t i = 0; i < sizeof(T); ++i) {
+				const auto next = input[offset++];
+				value = static_cast<T>((value << 8) | next);
+			}
+			return value;
+		} else if constexpr (UnsignedVector<T>) {
+			using ElementType = typename T::value_type;
+			std::uint32_t length = read<std::uint32_t>();
+			if (length > (input.size() - offset) / sizeof(ElementType)) {
+				throw std::runtime_error("Not enough bytes to read this vector.");
+			}
+			T buffer;
+			buffer.reserve(length);
+			for (size_t i = 0; i < length; i++) {
+				buffer.push_back(read<ElementType>());
+			}
+			return buffer;
+		} else if constexpr (std::same_as<T, std::string>) {
+			std::uint32_t length = read<std::uint32_t>();
+			std::string str;
+			if (length > (input.size() - offset) / sizeof(char)) {
+				throw std::runtime_error("Not enough bytes to read this string.");
+			}
+			str.reserve(length);
+			for (std::uint32_t i = 0; i < length; i++) {
+				str.push_back(read<char>());
+			}
+			return str;
+		} else if constexpr (std::same_as<T, char>) {
+			return static_cast<char>(read<std::uint8_t>());
+		} else if constexpr (std::same_as<T, bool>) {
+			return read<std::uint8_t>() == 1;
+		} else {
+			static_assert(always_false_v<T>, "Unsupported type for ByteReader::read");
+		}
+	}
 
-	template<typename T>
-	std::optional<T> OPTIONAL();
+
 };
 
 } // namespace anime::protocol
