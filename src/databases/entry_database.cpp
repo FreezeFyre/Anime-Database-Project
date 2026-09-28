@@ -110,6 +110,8 @@ void entryDB::schema(const sectionHeader& section, const schemaData& schema) {
 }
 void entryDB::record(const sectionHeader& section, const recordData& record, const schemaData& schema) {
 	// Check For ID, will probably change to check against a map of existing ids to ensure there arent duplicates
+	using anime::storage::helpers::UnsignedInteger;
+
 	EntryId id = std::get<EntryId>(record[0]);
 	EntryId expectedId = database.size();
 	if (id != expectedId) {
@@ -131,22 +133,9 @@ void entryDB::record(const sectionHeader& section, const recordData& record, con
 			
 			if constexpr (std::is_same_v<MemberType, ValueType>) {
 				entry.*member = value;
-			} else if constexpr (std::is_integral_v<MemberType> && std::is_integral_v<ValueType>) { // Handles non-exact typing(needed for current dynamic width parsing)
-				if constexpr (std::is_same_v<MemberType, bool>) {
-					if (value == 0) {
-						entry.*member = false;
-					} else if (value == 1) {
-						entry.*member = true;
-					} else {
-						throw std::runtime_error("Expected 1 or 0 for bool field.\n");
-					}
-				} else if (std::in_range<MemberType>(value)) {
-					entry.*member = static_cast<MemberType>(value);
-				}
-			}
-			
-			
-			else {
+			} else if constexpr (UnsignedInteger<MemberType> && UnsignedInteger<ValueType>) {
+				entry.*member = static_cast<MemberType>(value);
+			} else {
 				throw std::runtime_error("Type mismatch for field '" + fieldInfo.name + "': expected " + typeid(MemberType).name() + ", got " + typeid(ValueType).name());
 			}
 		}, entryMetadata[fieldMap[i]].ptr, record[i]);
@@ -675,7 +664,7 @@ recordField entryDB::getField(size_t id, size_t fieldIndex) const {
 }
 recordField entryDB::getFromEntry(const Entry& entry, const size_t fieldIndex) const {
 	return std::visit([&](auto memberPtr) {
-		return entry.*memberPtr;
+		return recordField{entry.*memberPtr};
 	}, entryMetadata[fieldIndex].ptr);
 }
 size_t entryDB::getTableSize(const std::string& title) {

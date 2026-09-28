@@ -156,85 +156,62 @@ bool filterProcessor::validateFilter(const FieldFilter& filter, const FieldInfo&
 }
 
 bool filterProcessor::check(const FieldFilter& filter, const recordField& field, const FieldInfo& info) {
-	std::visit( [&](const auto& value) {
+	using anime::storage::helpers::UnsignedInteger;
+	using anime::storage::helpers::UnsignedVector;
+
+	return std::visit( [&](const auto& value) {
+		using FieldType = std::remove_cvref_t<decltype(value)>;
 		switch (info.mode) {
 			case schemaField::filterMode::FM_RANGE: {
-			
-			
+				if constexpr (UnsignedInteger<FieldType>) {
+					if (checkRange(filter.range, value)) {
+						return true;
+					}
+				}
+				return false;
 			}
 			case schemaField::filterMode::FM_MULTI_VALUE: {
-			
-			
+				if constexpr (UnsignedInteger<FieldType>) {
+					if (!filter.exclude.empty() and std::ranges::contains(filter.exclude, value)) {
+						return false;
+					}
+					if (!filter.includeAny.empty() && !std::ranges::contains(filter.includeAny, value)) {
+						return false;
+					}
+					if (!filter.includeAll.empty() && !std::ranges::contains(filter.includeAll, value)) {
+						return false;
+					}
+					return true;
+				} else if constexpr (UnsignedVector<FieldType>) {
+					if (!filter.exclude.empty() and std::ranges::any_of(filter.exclude, [&](const auto& v) { return std::ranges::contains(value, v); })) {
+						return false;
+					}
+					if (!filter.includeAny.empty() and !std::ranges::any_of(filter.includeAny, [&](const auto& v) { return std::ranges::contains(value, v); })) {
+						return false;
+					}
+					if (!filter.includeAll.empty() and !std::ranges::all_of(filter.includeAll, [&](const auto& v) { return std::ranges::contains(value, v); })) {
+						return false;
+					}
+					return true;
+				} else
+					throw std::runtime_error(" Currently unsupported type for filtering");
 			}
 			case schemaField::filterMode::FM_RMV: {
-			
-			
+				if constexpr(!UnsignedInteger<FieldType>) {
+					return false;
+				}
+				else if (!checkRange(filter.range, value) ||
+						 (!filter.includeAny.empty() && !std::ranges::contains(filter.includeAny, value)) ||
+						 (!filter.exclude.empty() && std::ranges::contains(filter.exclude, value))
+						) {
+					return false;
+				}
+				return true;
 			}
-		    defualt: 
-                throw std::runtime_error("");
+			default: 
+				throw std::runtime_error(" Unsupported filter mdoe. ");
 		}
 	}, field);
-	return true;
-}
-bool filterProcessor::check(const FieldFilter& filter, const recordField& field, const FieldInfo& info) {
-	const int* scalar = std::get_if<int>(&field);
-	const std::vector<int>* values = std::get_if<std::vector<int>>(&field);
-
-	switch (info.mode) {
-		case schemaField::filterMode::FM_RANGE: {
-			if (!scalar or !checkRange(filter.range, *scalar)) {
-				return false;
-			}
-			break;
-		}
-		case schemaField::filterMode::FM_MULTI_VALUE: {
-			if (scalar) {
-				FilterValue value = static_cast<FilterValue>(*scalar);
-				if (!filter.includeAny.empty() and !includesAny(filter.includeAny, value)) {
-					return false;
-				}
-				if (!filter.includeAll.empty() and !includesAny(filter.includeAll, value)) {
-					return false;
-				}
-				if (!filter.exclude.empty() and includesAny(filter.exclude, value)) {
-					return false;
-				}
-				break;
-			}
-
-			if (values) {
-				if (!filter.includeAny.empty() and !includesAny(filter.includeAny, *values)) {
-					return false;
-				}
-				if (!filter.includeAll.empty() and !includesAll(filter.includeAll, *values)) {
-					return false;
-				}
-				if (!filter.exclude.empty() and includesAny(filter.exclude, *values)) {
-					return false;
-				}
-				break;
-			}
-
-			return false;
-		}
-		case schemaField::filterMode::FM_RMV: {
-			if (!scalar) {
-				return false;
-			}
-
-			FilterValue value = static_cast<FilterValue>(*scalar);
-			if (!checkRange(filter.range, *scalar) or
-			    (!filter.includeAny.empty() and !includesAny(filter.includeAny, value)) or
-			    (!filter.exclude.empty() and includesAny(filter.exclude, value))) {
-				return false;
-			}
-			break;
-		}
-		default:
-			// No Filter or Unknown Filter Mode
-			break;
-	}
-	return true;
 }
 
 namespace {
@@ -247,32 +224,32 @@ constexpr uint8_t HAS_RANGE_MAX   = 1 << 4;
 
 FilterRequest filterProcessor::decode(ByteReader& r) {
 	FilterRequest result;
-	size_t filterCount = r.U32();
+	size_t filterCount = r.read<std::uint32_t>();
 
 	for (size_t i = 0; i < filterCount; i++) {
 		FieldFilter filter;
-		filter.name = r.STR();
+		filter.name = r.read<std::string>();
 
-		uint8_t flags = r.U8();
+		uint8_t flags = r.read<std::uint8_t>();
 
 		if (flags & HAS_INCLUDE_ALL) {
-			filter.includeAll = r.VECU32();
+			filter.includeAll = r.read<std::vector<std::uint32_t>>();
 		}
 
 		if (flags & HAS_INCLUDE_ANY) {
-			filter.includeAny = r.VECU32();
+			filter.includeAny = r.read<std::vector<std::uint32_t>>();
 		}
 
 		if (flags & HAS_EXCLUDE) {
-			filter.exclude = r.VECU32();
+			filter.exclude = r.read<std::vector<std::uint32_t>>();
 		}
 
 		if (flags & HAS_RANGE_MIN) {
-			filter.range.min = r.U32();
+			filter.range.min = r.read<std::uint32_t>();
 		}
 
 		if (flags & HAS_RANGE_MAX) {
-			filter.range.max = r.U32();
+			filter.range.max = r.read<std::uint32_t>();
 		}
 
 		result.push_back(std::move(filter));

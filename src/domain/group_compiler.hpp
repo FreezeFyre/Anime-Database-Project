@@ -4,28 +4,96 @@
 #include "databases/entry_database.hpp"
 #include <span>
 
-namespace anime::domain {
+#include <execution>
+#include <algorithm>
 
+namespace anime::domain {
+ 
 using anime::storage::entryDB;
+using anime::storage::helpers::UnsignedInteger;
+using anime::storage::helpers::UnsignedVector;
+using anime::storage::helpers::is_vector_v;
+
+using anime::storage::operators::field_ops::clearField;
 
 void compileGroup(Group& group, const entryDB& entries);
 
-bool meetsCondition(const entryDB& entries, EntryId id, CompileCondition* condition);
+bool meetsCondition(const entryDB& entries, EntryId id, const CompileCondition& condition);
 
-template <typename T> void compile(T& accumulator, const entryDB& entries, COMPILE_OPERATION operation) {
-	auto entryField = entries.getField(id, entries.getFieldIndex(rule.source));
+template <UnsignedInteger T, UnsignedInteger U> void accumulate(T& field, const U& entryField, COMPILE_OPERATION operation) {
+	switch (operation) {
+		case COMPILE_OPERATION::COUNT: {
+			if (field == (std::numeric_limits<T>::max)()) {
+				throw std::runtime_error(" Cant iterate, Field already holds max value. ");
+			}
+			field++;
+			break;
+		}
+		case COMPILE_OPERATION::SUM: {
+			if (entryField > (std::numeric_limits<T>::max)() - field) {
+				throw std::overflow_error("Sum exceeds the field's maximum value.");
+			}
+			field += entryField;
+			break;
+		}
+		case COMPILE_OPERATION::MIN: {
+			if (!std::in_range<T>(entryField)) {
+				throw std::runtime_error(" Input value is out of the range of the group field's type. ");
+			}
+			auto min = std::min(field, static_cast<T>(entryField));
+			field = min;
+			break;
+		}
+		case COMPILE_OPERATION::MAX: {
+			if (!std::in_range<T>(entryField)) {
+				throw std::runtime_error(" Input value is out of the range of the group field's type. ");
+			}
+			auto max = std::max(field, static_cast<T>(entryField));
+			field = max;
+			break;
+		}
+		case COMPILE_OPERATION::AVG: {
+			throw std::runtime_error(" Scalar operation AVG is currently unsupported. ");
+			break;
+		}
+		default:
+			throw std::runtime_error(" Unsuported scalar operation: " + std::to_string(static_cast<uint8_t>(operation)));
+	}
+}
+template <UnsignedInteger T, UnsignedInteger U> void accumulate(std::vector<T>& field, const std::vector<U>& entryField, COMPILE_OPERATION operation) {
+	switch (operation) {
+		case COMPILE_OPERATION::UNION: {
+			std::unordered_set<T> buffer(field.begin(), field.end());
+
+			const bool fits = std::all_of(std::execution::par_unseq,entryField.begin(), entryField.end(), [&](const auto& value) { return std::in_range<T>(value); });
+			if (!fits) {
+				throw std::runtime_error(" Not all values from the input vector fit into the type of the group fields vector. ");
+			}
+			buffer.insert_range(entryField);
+
+			field.clear();
+			std::vector<T> temp(buffer.begin(), buffer.end());
+			field = temp;
+
+			std::sort(field.begin(), field.end(), std::greater<T>());
+
+			break;
+		}
+		default:
+			throw std::runtime_error("Unsuported vector operation: " + std::to_string(static_cast<uint8_t>(operation)) + "\n");
+	}
+}
+template <typename T, typename U> void accumulate(T&, const U&, COMPILE_OPERATION) {
+	throw std::runtime_error("Unsupported accumulation types.");
+}
+
+template <UnsignedInteger T> void compile(T& accumulator, const recordField& entryField, COMPILE_OPERATION operation) {
 	std::visit([&](auto entryFieldValue) {
 	
-		// here i call my operation logic
 		accumulate(accumulator, entryFieldValue, operation);
-
 
 	}, entryField);
 }
-
-// Temporarily non-fixed size for simplicity so i dont have to start implemnenting my refactor to global fixed sizes
-void accumulate(int& accumulator, int entryField, COMPILE_OPERATION operation);
-void accumulate(std::vector<int>& accumulator, std::vector<int> entryField, COMPILE_OPERATION operation);
 
 
 

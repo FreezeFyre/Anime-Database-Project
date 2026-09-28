@@ -204,7 +204,7 @@ void EntryWebSocketCodec::encodeSection(ByteWriter& encoder, const sectionHeader
 	encoder.write(static_cast<uint8_t>(section.hasSchema));
 }
 void EntryWebSocketCodec::encodeSchema(ByteWriter& encoder, const schemaData& schema) {
-	encoder.write(static_cast<std::uint32_t>(schema.size()));
+	encoder.write(helpers::checkedConvert<std::uint32_t>(schema.size()));
 
 	for (const auto& field : schema) {
 		encoder.write(field.name);
@@ -224,7 +224,7 @@ ByteVector EntryWebSocketCodec::encodeResponse(const EntryGetResponse& response)
 	ByteWriter encoder;
 
 	encodeSchema(encoder, response.schema);
-	encoder.write(static_cast<uint32_t>(response.entries.size()));
+	encoder.write(helpers::checkedConvert<std::uint32_t>(response.entries.size()));
 	for (const Entry& entry : response.entries) {
 		encodeEntry(encoder, entry);
 	}

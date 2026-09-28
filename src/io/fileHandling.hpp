@@ -177,6 +177,7 @@ class fileProcessor {
 
 };
 
-
+#include "io/readFile.tpp"
+#include "io/saveFile.tpp"
 
 } // namespace anime::storage

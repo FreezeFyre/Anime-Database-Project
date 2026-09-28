@@ -50,10 +50,12 @@ void fixtureRoundTrip(anime::app::Context& context) {
 }
 
 void transportAndHandlerCompatibility(anime::app::Context& context) {
-	ByteWriter payload; payload.VECU32({0});
+	ByteWriter payload; payload.write(std::vector<std::uint32_t>{0});
 	ByteWriter envelope;
-	envelope.U32(ENCODE_VERSION); envelope.U8(1); envelope.U8(1); envelope.U8(1);
-	envelope.U32(1234); envelope.U32(static_cast<std::uint32_t>(payload.buffer.size()));
+	envelope.write(static_cast<std::uint32_t>(ENCODE_VERSION));
+	envelope.write(std::uint8_t{1}); envelope.write(std::uint8_t{1}); envelope.write(std::uint8_t{1});
+	envelope.write(std::uint32_t{1234});
+	envelope.write(anime::storage::helpers::checkedConvert<std::uint32_t>(payload.buffer.size()));
 	envelope.buffer.insert(envelope.buffer.end(),payload.buffer.begin(),payload.buffer.end());
 	WebSocketCodec codec;
 	auto request=codec.decode(envelope.buffer);
@@ -65,9 +67,9 @@ void transportAndHandlerCompatibility(anime::app::Context& context) {
 	assert(entries.size()==context.entries.getSize());
 	const auto wire=codec.encode(request,response);
 	ByteReader reader{wire};
-	assert(reader.U32()==ENCODE_VERSION); assert(reader.U8()==2);
-	assert(reader.U8()==1); assert(reader.U8()==1); assert(reader.U32()==1234);
-	assert(reader.U32()==wire.size()-15);
+	assert(reader.read<std::uint32_t>()==ENCODE_VERSION); assert(reader.read<std::uint8_t>()==2);
+	assert(reader.read<std::uint8_t>()==1); assert(reader.read<std::uint8_t>()==1); assert(reader.read<std::uint32_t>()==1234);
+	assert(reader.read<std::uint32_t>()==wire.size()-15);
 
 	anime::app::EntryRouter direct;
 	const auto rejected=direct.route(EntryUpdateRequest{},context,session);

@@ -35,6 +35,10 @@ template <typename T> inline constexpr bool is_vector_v = is_vector<std::remove_
 template <typename T> concept UnsignedInteger = std::unsigned_integral<std::remove_cvref_t<T>> && !std::same_as<std::remove_cvref_t<T>, bool>;
 template <typename T> concept UnsignedVector = is_vector_v<T> && UnsignedInteger<typename std::remove_cvref_t<T>::value_type>;
 
+
+// Should add a helper that tests for compatible typing, ie vector_uint8 is compatible to vector_uint64 but not vice versa etc etc
+
+
 // Helpers for converting and validating unsigned recordField alternatives.
 template <UnsignedInteger Destination, UnsignedInteger Source>
 Destination checkedConvert(const Source input) {

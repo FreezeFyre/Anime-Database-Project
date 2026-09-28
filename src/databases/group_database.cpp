@@ -43,6 +43,8 @@ void groupDB::schema(const sectionHeader& section, const schemaData& schema) {
 }
 void groupDB::record(const sectionHeader& section, const recordData& record, const schemaData& schema){
 	// Check For ID, will probably change to check against a map of existing ids to ensure there arent duplicates
+	using anime::storage::helpers::UnsignedInteger;
+
 	GroupId id = std::get<GroupId>(record[0]);
 	GroupId expectedId = groups.size();
 	if (id != expectedId) {
@@ -64,22 +66,11 @@ void groupDB::record(const sectionHeader& section, const recordData& record, con
 			
 			if constexpr (std::is_same_v<MemberType, ValueType>) {
 				group.*member = value;
-			} else if constexpr (std::is_integral_v<MemberType> && std::is_integral_v<ValueType>) { // Handles non-exact typing(needed for current dynamic width parsing)
-				if constexpr (std::is_same_v<MemberType, bool>) {
-					if (value == 0) {
-						group.*member = false;
-					} else if (value == 1) {
-						group.*member = true;
-					} else {
-						throw std::runtime_error("Expected 1 or 0 for bool field.\n");
-					}
-				} else if (std::in_range<MemberType>(value)) {
+			} else if constexpr (UnsignedInteger<MemberType> && UnsignedInteger<ValueType>) { // Handles non-exact typing(needed for current dynamic width parsing)
+				if (std::in_range<MemberType>(value)) {
 					group.*member = static_cast<MemberType>(value);
 				}
-			}
-			
-			
-			else {
+			} else {
 				throw std::runtime_error("Type mismatch for field '" + fieldInfo.name + "': expected " + typeid(MemberType).name() + ", got " + typeid(ValueType).name());
 			}
 		}, groupMetadata[fieldMap[i]].ptr, record[i]);

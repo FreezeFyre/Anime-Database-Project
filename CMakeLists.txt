@@ -18,10 +18,15 @@ if(MSVC)
 	add_compile_options(/EHsc)
 endif()
 
+if(WIN32)
+    add_compile_definitions(NOMINMAX)
+endif()
+
 set(PROJECT_CORE_SOURCES
 	"src/io/fileHandling.cpp"
 	"src/databases/entry_database.cpp"
 	"src/domain/entry_schema.cpp"
+	"src/domain/group_schema.cpp"
 	"src/protocol/entry_codec.cpp"
 	"src/app/entry_handler.cpp"
 	"src/databases/user_database.cpp"
@@ -88,6 +93,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/databases/auth/password.cpp")
 		"src/databases/user_database.cpp"
 		"src/databases/auth/password.cpp"
 		"src/databases/group_database.cpp"
+		"src/domain/group_schema.cpp"
 	)
 
 	target_link_libraries(auth_test PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)

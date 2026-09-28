@@ -30,9 +30,9 @@ void requestFixtures() {
 	const ByteVector emptyFilters{0,0,0,0};
 	assert(std::get<EntryFilterRequest>(codec.decode(ACTION_TYPE::ACT_FILTER, emptyFilters)).filters.empty());
 	ByteWriter filters;
-	filters.U32(1); filters.STR("rank"); filters.U8(31);
-	filters.VECU32({1}); filters.VECU32({2,3}); filters.VECU32({4});
-	filters.U32(5); filters.U32(10);
+	filters.write(std::uint32_t{1}); filters.write(std::string{"rank"}); filters.write(std::uint8_t{31});
+	filters.write(std::vector<std::uint32_t>{1}); filters.write(std::vector<std::uint32_t>{2,3}); filters.write(std::vector<std::uint32_t>{4});
+	filters.write(std::uint32_t{5}); filters.write(std::uint32_t{10});
 	const auto filter=std::get<EntryFilterRequest>(codec.decode(ACTION_TYPE::ACT_FILTER,filters.buffer)).filters.at(0);
 	assert(filter.name=="rank" && filter.includeAll==std::vector<std::uint32_t>{1});
 	assert((filter.includeAny==std::vector<std::uint32_t>{2,3}));
@@ -40,32 +40,54 @@ void requestFixtures() {
 	assert(filter.range.min==5 && filter.range.max==10);
 
 	ByteWriter updates;
-	updates.U32(6);
-	for (std::uint8_t type=0; type<6; ++type) {
-		updates.U32(42);
-		updates.U8(static_cast<std::uint8_t>(UPDATE_OPERATION::SET_FIELD));
-		updates.U8(type);
-		updates.U8(type);
-		switch(static_cast<dataType>(type)) {
-		case dataType::U8: updates.U8(255); break;
-		case dataType::U16: updates.U16(4096); break;
-		case dataType::U32: updates.U32(100000); break;
-		case dataType::STR: updates.STR("updated"); break;
-		case dataType::VECU8: updates.VECU8({1,255}); break;
-		case dataType::VECU16: updates.VECU16({1,4096}); break;
+	updates.write(std::uint32_t{6});
+	std::uint8_t fieldIndex = 0;
+	for (dataType type : {dataType::U8, dataType::U16, dataType::U32,
+	                     dataType::STR, dataType::VECU8, dataType::VECU16}) {
+		updates.write(std::uint32_t{42});
+		updates.write(static_cast<std::uint8_t>(UPDATE_OPERATION::SET_FIELD));
+		updates.write(fieldIndex++);
+		updates.write(static_cast<std::uint8_t>(type));
+		switch(type) {
+		case dataType::U8: updates.write(std::uint8_t{255}); break;
+		case dataType::U16: updates.write(std::uint16_t{4096}); break;
+		case dataType::U32: updates.write(std::uint32_t{100000}); break;
+		case dataType::STR: updates.write(std::string{"updated"}); break;
+		case dataType::VECU8: updates.write(std::vector<std::uint8_t>{1,255}); break;
+		case dataType::VECU16: updates.write(std::vector<std::uint16_t>{1,4096}); break;
 		default: break;
 		}
 	}
 	const auto decoded=std::get<EntryUpdateRequest>(codec.decode(ACTION_TYPE::ACT_UPDATE, updates.buffer));
 	assert(decoded.updates.size()==6);
 	assert(decoded.updates[0].id==42);
-	assert(std::get<int>(decoded.updates[0].value)==255);
-	assert(std::get<int>(decoded.updates[1].value)==4096);
-	assert(std::get<int>(decoded.updates[2].value)==100000);
+	assert(std::get<std::uint8_t>(decoded.updates[0].value)==255);
+	assert(std::get<std::uint16_t>(decoded.updates[1].value)==4096);
+	assert(std::get<std::uint32_t>(decoded.updates[2].value)==100000);
 	assert(std::get<std::string>(decoded.updates[3].value)=="updated");
-	assert((std::get<std::vector<int>>(decoded.updates[4].value)==std::vector<int>{1,255}));
-	assert((std::get<std::vector<int>>(decoded.updates[5].value)==std::vector<int>{1,4096}));
+	assert((std::get<std::vector<std::uint8_t>>(decoded.updates[4].value)==std::vector<std::uint8_t>{1,255}));
+	assert((std::get<std::vector<std::uint16_t>>(decoded.updates[5].value)==std::vector<std::uint16_t>{1,4096}));
 	expectError([&]{codec.decode(ACTION_TYPE::ACT_UNKNOWN, {});}, "Unknown entry action type.");
+}
+
+void byteLayout() {
+	ByteWriter writer;
+	writer.write(std::uint8_t{0x12});
+	writer.write(std::uint16_t{0x3456});
+	writer.write(std::uint32_t{0x789ABCDE});
+	writer.write(std::string{"OK"});
+	writer.write(std::vector<std::uint16_t>{1, 256});
+	const ByteVector expected{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE,
+	                          0, 0, 0, 2, 'O', 'K',
+	                          0, 0, 0, 2, 0, 1, 1, 0};
+	assert(writer.buffer == expected);
+	ByteReader reader{expected};
+	assert(reader.read<std::uint8_t>() == 0x12);
+	assert(reader.read<std::uint16_t>() == 0x3456);
+	assert(reader.read<std::uint32_t>() == 0x789ABCDE);
+	assert(reader.read<std::string>() == "OK");
+	assert((reader.read<std::vector<std::uint16_t>>() == std::vector<std::uint16_t>{1, 256}));
+	assert(reader.offset == expected.size());
 }
 
 void responseFixturesAndCreateRoundTrip() {
@@ -111,6 +133,7 @@ void schemaCompatibility() {
 }
 
 int main() {
+	byteLayout();
 	requestFixtures();
 	responseFixturesAndCreateRoundTrip();
 	schemaCompatibility();

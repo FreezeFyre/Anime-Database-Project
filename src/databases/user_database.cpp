@@ -16,8 +16,11 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <type_traits>
 #include <variant>
 #include <vector>
+
+#include "database_ops.hpp"
 
 
 
@@ -81,96 +84,75 @@ void userDB::schema(const sectionHeader& section, const schemaData& schema) {
 	}
 }
 void userDB::record(const sectionHeader& section, const recordData& record, const schemaData& schema) {
+	using anime::storage::helpers::UnsignedInteger;
 	if (section.title == "USER_DATA") {
-		User user;
 
+		UserId id = std::get<UserId>(record[0]);
+		UserId expectedId = users.size();
+		if (id != expectedId) {
+			throw std::runtime_error("Non-sequential or corrupt ID in file. \n");
+		}
+
+		User user{};
 		for (size_t i = 0; i < userFieldMap.size(); i++) {
+			const auto& fieldInfo = UserMeta[userFieldMap[i]].info;
+
 			try {
-				validatePresence(record[i], UserMeta[userFieldMap[i]].info);
+				validatePresence(record[i], fieldInfo);
 			}
 			catch (const std::exception& e) {
 				throw std::runtime_error("Error validating user record field \"" + std::to_string(userFieldMap[i]) + "\": " + e.what());
 			}
 
+			std::visit([&](auto memberPtr, const auto& value) {
+					using MemberType = std::remove_cvref_t<decltype(user.*memberPtr)>;
+					using ValueType = std::remove_cvref_t<decltype(value)>;
 
-			if (auto ptr = std::get_if<UserId User::*>(&UserMeta[userFieldMap[i]].ptr)) {
-				if (auto val = std::get_if<int>(&record[i])) {
-					user.*(*ptr) = static_cast<UserId>(*val);
-				} else {
-					throw std::runtime_error("Invalid data type in user record field " + std::to_string(i));
-				}
-			}
-			else if (auto ptr = std::get_if<std::string User::*>(&UserMeta[userFieldMap[i]].ptr)) {
-				if (auto val = std::get_if<std::string>(&record[i])) {
-					user.*(*ptr) = *val;
-				} else {
-					throw std::runtime_error("Invalid data type in user record field " + std::to_string(i));
-				}
-			}
-			else if (auto ptr = std::get_if<USER_ACCOUNT_ROLE User::*>(&UserMeta[userFieldMap[i]].ptr)) {
-				if (auto val = std::get_if<int>(&record[i])) {
-					user.*(*ptr) = static_cast<USER_ACCOUNT_ROLE>(*val);
-				} else {
-					throw std::runtime_error("Invalid data type in user record field " + std::to_string(i));
-				}
-			}
-			else if (auto ptr = std::get_if<bool User::*>(&UserMeta[userFieldMap[i]].ptr)) {
-				if (auto val = std::get_if<int>(&record[i])) {
-					user.*(*ptr) = (*val != 0);
-				} else {
-					throw std::runtime_error("Invalid data type in user record field " + std::to_string(i));
-				}
-			} else {
-				throw std::runtime_error("Unknown data type in user record field " + std::to_string(i));
-			}
-
+					if constexpr (std::is_same_v<MemberType, ValueType>) {
+						user.*memberPtr = value;
+					} else if constexpr (UnsignedInteger<MemberType> && UnsignedInteger<ValueType>) {
+						user.*memberPtr = static_cast<MemberType>(value);
+					} else {
+						throw std::runtime_error("Type mismatch for field '" + fieldInfo.name + "': expected " + typeid(MemberType).name() + ", got " + typeid(ValueType).name());
+					}
+			}, UserMeta[userFieldMap[i]].ptr, record[i]);
 		}
 
 		size_t index = users.size();
 		users.emplace_back(std::move(user));
 		userIdMap.emplace(static_cast<UserId>(users[index].id), index);
-		nextUserId++;
 	} else if (section.title == "IDENTITY_DATA") {
-		UserIdentity identity;
+
+		IdentityId id = std::get<IdentityId>(record[0]);
+		IdentityId expectedId = users.size();
+		if (id != expectedId) {
+			throw std::runtime_error("Non-sequential or corrupt ID in file. \n");
+		}
+
+		UserIdentity identity{};
 
 		for (size_t i = 0; i < identityFieldMap.size(); i++) {
+			const auto& fieldInfo = UserIdentityMeta[identityFieldMap[i]].info;
+
 			try {
-				validatePresence(record[i], UserIdentityMeta[identityFieldMap[i]].info);
+				validatePresence(record[i], fieldInfo);
 			}
 			catch (const std::exception& e) {
 				throw std::runtime_error("Error validating identity record field \"" + std::to_string(identityFieldMap[i]) + "\": " + e.what());
 			}
 
-			if (auto ptr = std::get_if<uint32_t UserIdentity::*>(&UserIdentityMeta[identityFieldMap[i]].ptr)) {
-				if (auto val = std::get_if<int>(&record[i])) {
-					identity.*(*ptr) = *val;
-				} else {
-					throw std::runtime_error("Invalid data type in identity record field " + std::to_string(i));
-				}
-			}
-			else if (auto ptr = std::get_if<LoginProvider UserIdentity::*>(&UserIdentityMeta[identityFieldMap[i]].ptr)) {
-				if (auto val = std::get_if<int>(&record[i])) {
-					identity.*(*ptr) = static_cast<LoginProvider>(*val);
-				} else {
-					throw std::runtime_error("Invalid data type in identity record field " + std::to_string(i));
-				}
-			}
-			else if (auto ptr = std::get_if<std::string UserIdentity::*>(&UserIdentityMeta[identityFieldMap[i]].ptr)) {
-				if (auto val = std::get_if<std::string>(&record[i])) {
-					identity.*(*ptr) = *val;
-				} else {
-					throw std::runtime_error("Invalid data type in identity record field " + std::to_string(i));
-				}
-			}
-			else if (auto ptr = std::get_if<bool UserIdentity::*>(&UserIdentityMeta[identityFieldMap[i]].ptr)) {
-				if (auto val = std::get_if<int>(&record[i])) {
-					identity.*(*ptr) = (*val != 0);
-				} else {
-					throw std::runtime_error("Invalid data type in identity record field " + std::to_string(i));
-				}
-			} else {
-				throw std::runtime_error("Unknown data type in identity record field " + std::to_string(i));
-			}
+			std::visit([&](auto memberPtr, const auto& value) {
+					using MemberType = std::remove_cvref_t<decltype(identity.*memberPtr)>;
+					using ValueType = std::remove_cvref_t<decltype(value)>;
+
+					if constexpr (std::is_same_v<MemberType, ValueType>) {
+						identity.*memberPtr = value;
+					} else if constexpr (UnsignedInteger<MemberType> && UnsignedInteger<ValueType>) {
+						identity.*memberPtr = static_cast<MemberType>(value);
+					} else {
+						throw std::runtime_error("Type mismatch for field '" + fieldInfo.name + "': expected " + typeid(MemberType).name() + ", got " + typeid(ValueType).name());
+					}
+			}, UserIdentityMeta[identityFieldMap[i]].ptr, record[i]);
 		}
 
 		size_t index = identities.size();
@@ -572,7 +554,7 @@ bool userDB::validateEmail(const std::string& email) const {
 		std::clog << email << " invalid domain(dosent contain .) \n";
 		return false;
 	}
-    return true;
+	return true;
 }
 
 
@@ -588,13 +570,21 @@ recordField userDB::getIdentityField(size_t id, size_t fieldIndex) const {
 	return getFromIdentity(identities[index], fieldIndex);
 }
 recordField userDB::getFromUser(const User& user, const size_t fieldIndex) const {
-	return std::visit([&](auto memberPtr) {
-		return user.*memberPtr;
+	return std::visit([&](auto memberPtr) -> recordField {
+		using MemberType = std::remove_cvref_t<decltype(user.*memberPtr)>;
+		if constexpr (std::is_enum_v<MemberType>) {
+			return static_cast<std::underlying_type_t<MemberType>>(user.*memberPtr);
+		} else
+			return user.*memberPtr;
 	}, UserMeta[fieldIndex].ptr);
 }
 recordField userDB::getFromIdentity(const UserIdentity& identity, const size_t fieldIndex) const {
-	return std::visit([&](auto memberPtr) {
-		return identity.*memberPtr;
+	return std::visit([&](auto memberPtr) -> recordField {
+		using MemberType = std::remove_cvref_t<decltype(identity.*memberPtr)>;
+		if constexpr (std::is_enum_v<MemberType>) {
+			return static_cast<std::underlying_type_t<MemberType>>(identity.*memberPtr);
+		} else
+			return identity.*memberPtr;
 	}, UserIdentityMeta[fieldIndex].ptr);
 }
 } // namespace anime::storage
