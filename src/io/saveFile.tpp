@@ -1,5 +1,9 @@
 #pragma once
 
+#include "io/fileHandling.hpp"
+
+namespace anime::storage {
+
 template <typename Source>
 	requires FileWriteSource<Source>
 void fileProcessor::saveFile(const std::filesystem::path& file, Source& source, fileType type) {
@@ -96,3 +100,5 @@ void fileProcessor::saveFile(const std::filesystem::path& file, Source& source, 
 		}
 	}
 }
+
+} // namespace anime::storage

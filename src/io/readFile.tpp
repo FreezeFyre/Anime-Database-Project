@@ -1,5 +1,9 @@
 #pragma once
 
+#include "io/fileHandling.hpp"
+
+namespace anime::storage {
+
 /*
 Parse File Templated Function is designed to parse a file that contains database data in my file format.
 The function takes a input of a file path and a class object that is expected to have header, schema, and record handlers.
@@ -12,8 +16,7 @@ template<typename f>
 void fileProcessor::readFile(const std::filesystem::path& file, f& handler, const fileType& expected_type) {
 	std::ifstream source(file);
 	if (!source.is_open()) {
-		throw std::runtime_error("Failed to Open File: " + file);
-		return;
+		throw std::runtime_error("Failed to Open File: " + file.string());
 	}
 
 	fileHeader header;
@@ -94,3 +97,5 @@ void fileProcessor::readFile(const std::filesystem::path& file, f& handler, cons
 		}
 	}
 }
+
+} // namespace anime::storage

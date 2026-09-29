@@ -30,7 +30,7 @@ std::vector<size_t> validateGroupSchema(const schemaData& schema) {
 	}
 
 	for (const GroupField& metaField : groupMetadata) {
-		const auto& metaField = metaField.info;
+		const auto& meta = metaField.info;
 		if (!seen.contains(meta.name)) {
 			if (meta.presence == FIELD_PRESENCE::REQUIRED) {
 				throw std::runtime_error("Required field is missing from schema: " + meta.name);

@@ -9,6 +9,7 @@
 #include <charconv>
 #include <cstdint>
 #include <ostream>
+#include <iostream>
 #include <fstream>
 #include <stdexcept>
 #include <string_view>
@@ -177,7 +178,7 @@ class fileProcessor {
 
 };
 
+} // namespace anime::storage
+
 #include "io/readFile.tpp"
 #include "io/saveFile.tpp"
-
-} // namespace anime::storage

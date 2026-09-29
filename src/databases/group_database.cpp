@@ -82,6 +82,9 @@ void groupDB::record(const sectionHeader& section, const recordData& record, con
 	idMap.emplace(static_cast<GroupId>(groups[index].id), index);
 
 }
+void groupDB::table(const sectionHeader&, const std::string&) {
+	throw std::runtime_error("Lookup-table sections are not supported for groups.");
+}
 
 fileHeader groupDB::getHeader(fileType type) const {
 	fileHeader result = {.type = type, .sectionCount = 1};

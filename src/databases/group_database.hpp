@@ -38,6 +38,7 @@ class groupDB {
 	    using IdType = GroupId;
 
 		void load(const std::filesystem::path& filename);
+		void compile();
 		void save(const std::filesystem::path& filename);
 
 		// Read Handlers
