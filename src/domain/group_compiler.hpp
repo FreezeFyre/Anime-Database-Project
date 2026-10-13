@@ -7,7 +7,7 @@
 #include <execution>
 #include <algorithm>
 
-namespace anime::domain {
+namespace anime::domain::group {
  
 using anime::storage::entryDB;
 using anime::storage::helpers::UnsignedInteger;

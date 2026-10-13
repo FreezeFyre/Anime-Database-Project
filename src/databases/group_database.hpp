@@ -33,13 +33,47 @@ using anime::domain::GroupUpdate;
 using anime::filtering::FilterRequest;
 using anime::filtering::filterProcessor;
 
+class entryDB;
+
 class groupDB {
 	public:
 	    using IdType = GroupId;
 
 		void load(const std::filesystem::path& filename);
-		void compile();
+		void compile(const entryDB& entries);
 		void save(const std::filesystem::path& filename);
+		inline void printAll() {
+			for (const auto& group : groups) {
+				std::cout << '{';
+				for (const auto& field : anime::domain::groupMetadata) {
+					std::visit(
+				    [&](const auto& memberPtr) {
+					    const auto& value = group.*memberPtr;
+					    using ValueType = std::remove_cvref_t<decltype(value)>;
+						if constexpr (std::same_as<ValueType, std::string>) {
+							std::cout << value;
+						} else if constexpr (storage::helpers::UnsignedVector<ValueType>) {
+							std::cout << '{';
+							for (const auto& val : value) {
+								std::cout << std::to_string(static_cast<std::uint64_t>(val)) << ',';
+							}
+							std::cout << '}';
+						} else if constexpr (storage::helpers::UnsignedInteger<ValueType>) {
+							std::cout << std::to_string(static_cast<std::uint64_t>(value));
+						} else if constexpr (std::same_as<ValueType, bool>) {
+							if (value) {
+								std::cout << "True";
+							} else
+								std::cout << "False";
+						} else
+							throw std::runtime_error("Cant handle data type");
+				    },
+				    field.ptr); 
+					std::cout << ',';
+				}
+				std::cout << '}' << "\n";
+			}
+		}
 
 		// Read Handlers
 		void section(const sectionHeader& header);
@@ -71,6 +105,9 @@ class groupDB {
 		// Query Operations
 	    std::vector<GroupId> getFilteredIds(const FilterRequest& request) const;
 	    std::vector<GroupId> getSortedIds() const;
+		inline bool contains(GroupId id) const {
+			return idMap.contains(id);
+		}
 
 		// Indexing
 

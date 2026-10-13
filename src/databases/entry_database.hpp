@@ -12,6 +12,7 @@ namespace anime::storage {
 using anime::domain::USER_ACCOUNT_ROLE;
 using anime::domain::Entry;
 using anime::domain::EntryId;
+using anime::domain::GroupId;
 using anime::domain::IndexStructure;
 using anime::domain::entryMetadata;
 using anime::domain::entryFieldNames;
@@ -23,6 +24,7 @@ using anime::filtering::filterProcessor;
 template <typename T> struct is_vector : std::false_type {};
 template <typename T, typename Allocator> struct is_vector<std::vector<T, Allocator>> : std::true_type {};
 
+class groupDB;
 
 class entryDB {
 	public:
@@ -33,6 +35,39 @@ class entryDB {
 		void loadLookupTables(const std::filesystem::path& file);
 		void saveEntries(const std::filesystem::path& file);
 
+		// Debug
+		inline void printAll() {
+			for (const auto& entry : database) {
+				std::cout << '{';
+				for (const auto& field : entryMetadata) {
+					std::visit(
+				    [&](const auto& memberPtr) {
+					    const auto& value = entry.*memberPtr;
+					    using ValueType = std::remove_cvref_t<decltype(value)>;
+						if constexpr (std::same_as<ValueType, std::string>) {
+							std::cout << value;
+						} else if constexpr (storage::helpers::UnsignedVector<ValueType>) {
+							std::cout << '{';
+							for (const auto& val : value) {
+								std::cout << std::to_string(static_cast<std::uint64_t>(val)) << ',';
+							}
+							std::cout << '}';
+						} else if constexpr (storage::helpers::UnsignedInteger<ValueType>) {
+							std::cout << std::to_string(static_cast<std::uint64_t>(value));
+						} else if constexpr (std::same_as<ValueType, bool>) {
+							if (value) {
+								std::cout << "True";
+							} else
+								std::cout << "False";
+						} else
+							throw std::runtime_error("Cant handle data type");
+				    },
+				    field.ptr); 
+					std::cout << ',';
+				}
+				std::cout << '}' << "\n";
+			}
+		}
 
 		// File read handlers
 		void section(const sectionHeader& header);
@@ -51,13 +86,13 @@ class entryDB {
 		EntryId getId(size_t index) const {
 			return static_cast<EntryId>(database[index].id);
 		}
-	    size_t getFieldIndex(const std::string& fieldName) const {
-		    auto it = entryFieldNames.find(fieldName);
-		    if (it != entryFieldNames.end()) {
-			    return it->second;
-		    }
-		    throw std::runtime_error("Field name not found: " + fieldName);
-	    }
+		size_t getFieldIndex(const std::string& fieldName) const {
+			auto it = entryFieldNames.find(fieldName);
+			if (it != entryFieldNames.end()) {
+				return it->second;
+			}
+			throw std::runtime_error("Field name not found: " + fieldName);
+		}
 
 		// Entry operations
 		void addEntry(const Entry& entry, const USER_ACCOUNT_ROLE& role);
@@ -73,6 +108,7 @@ class entryDB {
 		void clearField(Entry& entry, size_t fieldIndex);
 		std::string normalizeString(const std::string& string);
 		std::vector<size_t> idToIndex(std::vector<EntryId> ids);
+		void addMembership(GroupId group, EntryId entry);
 
 		// Query operations
 		std::vector<EntryId> getFilteredIDS(const FilterRequest& filters) const;
@@ -85,10 +121,13 @@ class entryDB {
 		bool rankInsert(int rank);
 
 		// Validation
-		std::vector<size_t> validateSchema(const schemaData& schema);
 		void validateTable(const std::string& title);
-		//void validateField(const recordField& value,const size_t fieldIndex);
-		void validateScalar(const int value, const FieldInfo& meta);
+		bool validateIds();
+		bool validateRanks();
+		bool validateTitles();
+		bool validateRanges();
+		bool validateReferences();
+		bool validateExternal(const groupDB& groups);
 
 		// Utility accessors
 		const FieldInfo& getFieldInfo(size_t fieldIndex) const {
@@ -108,7 +147,7 @@ class entryDB {
 		std::vector<size_t> fieldMap;
 
 		std::unordered_map<std::string, std::vector<std::string>> lookupTables;
-		
+		std::unordered_map<GroupId, std::vector<EntryId>> membershipMap;
 
 		// Acceleration Structures
 		IndexStructure TableIndexes;

@@ -1,3 +1,4 @@
+#include "entry_database.hpp"
 // Anime List database implementation.
 // Created by Luke Raykovitz on 10/24/25.
 
@@ -18,9 +19,11 @@
 #include <utility>
 #include <variant>
 #include <vector>
-#include "databases/entry_database.hpp"
 #include "database_ops.hpp"
 #include "domain/entry_schema.hpp"
+#include "validation.hpp"
+
+#include "group_database.hpp"
 
 namespace anime::storage {
 
@@ -28,7 +31,7 @@ using namespace anime::domain;
 using namespace anime::filtering;
 using namespace anime::schema;
 using namespace anime::storage::operators;
-using anime::storage::helpers::validateField;
+using anime::storage::validation::validateField;
 using anime::storage::helpers::is_vector_v;
 using anime::storage::helpers::UnsignedInteger;
 
@@ -106,7 +109,7 @@ void entryDB::section(const sectionHeader& header) {
 }
 void entryDB::schema(const sectionHeader& section, const schemaData& schema) {
 	fieldMap.clear();
-	fieldMap = validateSchema(schema);
+	fieldMap = anime::domain::validateEntrySchema(schema);
 }
 void entryDB::record(const sectionHeader& section, const recordData& record, const schemaData& schema) {
 	// Check For ID, will probably change to check against a map of existing ids to ensure there arent duplicates
@@ -139,12 +142,13 @@ void entryDB::record(const sectionHeader& section, const recordData& record, con
 				throw std::runtime_error("Type mismatch for field '" + fieldInfo.name + "': expected " + typeid(MemberType).name() + ", got " + typeid(ValueType).name());
 			}
 		}, entryMetadata[fieldMap[i]].ptr, record[i]);
-	}
 
+	}
 
 	size_t index = database.size();
 	database.emplace_back(std::move(entry));
 	idMap.emplace(static_cast<EntryId>(database[index].id), index);
+	addMembership(entry.ip_group, entry.id);
 }
 void entryDB::table(const sectionHeader& section, const std::string& table) {
 	auto found = lookupTables.find(section.title);
@@ -506,7 +510,9 @@ std::vector<size_t> entryDB::idToIndex(std::vector<EntryId> ids) {
 	}
 	return result;
 }
-
+void entryDB::addMembership(GroupId group, EntryId entry) {
+	membershipMap[group].push_back(entry);
+}
 
 
 //====================================
@@ -608,9 +614,6 @@ bool entryDB::rankInsert(int rank) {
 //====================================
 //			Validation
 //====================================
-std::vector<size_t> entryDB::validateSchema(const schemaData& schema) {
-	return anime::domain::validateEntrySchema(schema);
-}
 void entryDB::validateTable(const std::string& title) {
 	for (size_t i = 0; i < entryMetadata.size(); i++) {
 		if (entryMetadata[i].info.tableTitle == title) {
@@ -623,33 +626,41 @@ void entryDB::validateTable(const std::string& title) {
 	}
 	throw std::runtime_error("No field matches the table: " + title);
 }
-void entryDB::validateScalar(const int value, const FieldInfo& meta) {
-	switch (meta.reference) {
-		case VALUE_REFERENCE_TYPE::LOOKUP_TABLE: {
-			if (value < 0) {
-				throw std::runtime_error("Negative value for table reference field: " + meta.name);
+bool entryDB::validateIds() {
+	return validation::validateIds(database, &Entry::id);
+}
+bool entryDB::validateRanks() {
+	return validation::validateRanks(database, &Entry::rank);
+}
+bool entryDB::validateTitles() {
+	return validation::validateTitles(database, &Entry::title);
+}
+bool entryDB::validateRanges() {
+	for (const auto& field : entryMetadata) {
+		if (field.info.reference == VALUE_REFERENCE_TYPE::BOUNDS && field.info.bounds.has_value()) {
+			if(std::visit([&](const auto& memberPtr) {
+				return !validation::validateRanges(database, memberPtr, field.info.bounds.value());
+				}, field.ptr)) {
+				return false;
 			}
-			size_t tableSize = getTableSize(meta.tableTitle);
-			if (value >= tableSize) {
-				throw std::runtime_error("Value for field \"" + meta.name + "\" out of bounds of its reference table.");
-			}
-			break;
 		}
-		case VALUE_REFERENCE_TYPE::BOUNDS: {
-			if (!meta.bounds.has_value()) {
-				throw std::runtime_error("Missing bounds for range field: " + meta.name);
-			}
-			if (value < meta.bounds->lower || value > meta.bounds->upper) {
-				throw std::runtime_error("Value for field \"" + meta.name + "\" out of specified range.");
-			}
-			break;
-		}
-		case VALUE_REFERENCE_TYPE::NONE: {
-			break;
-		}
-		default:
-			throw std::runtime_error("Unknown value reference type for field: " + meta.name);
 	}
+	return true;
+}
+bool entryDB::validateReferences() {
+	for (const auto& field : entryMetadata) {
+		if (field.info.reference == VALUE_REFERENCE_TYPE::LOOKUP_TABLE) {
+			if(std::visit([&](const auto& memberPtr) {
+				return !validation::validateReferences(database, memberPtr, lookupTables.at(field.info.tableTitle));
+				}, field.ptr)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+bool entryDB::validateExternal(const groupDB& groups) {
+	return validation::validateExternal(database, &Entry::ip_group, [&groups](GroupId id) { return groups.contains(id); });
 }
 
 
@@ -657,7 +668,6 @@ void entryDB::validateScalar(const int value, const FieldInfo& meta) {
 //====================================
 //			Utility
 //====================================
-// Kinda want to re-write cause this uses ai code
 recordField entryDB::getField(size_t id, size_t fieldIndex) const {
 	size_t index = idMap.at(id);
 	return getFromEntry(database[index], fieldIndex);

@@ -10,6 +10,7 @@ namespace anime::storage {
 using namespace anime::domain;
 using namespace anime::filtering;
 using namespace anime::schema;
+using anime::domain::group::compileGroup;
 
 void groupDB::load(const std::filesystem::path& filename) {
 	fileProcessor parser;
@@ -18,6 +19,11 @@ void groupDB::load(const std::filesystem::path& filename) {
 		parser.readFile(filename, *this, fileType::HEADER_DATABASE);
 	} catch (const std::exception& e) {
 		std::cerr << "Error loading group database: " << e.what() << "\n";
+	}
+}
+void groupDB::compile(const entryDB& entries) {
+	for (auto& group : groups) {
+		compileGroup(group, entries);
 	}
 }
 void groupDB::save(const std::filesystem::path& filename) {
@@ -29,6 +35,8 @@ void groupDB::save(const std::filesystem::path& filename) {
 	}
 
 }
+// work on compilation
+
 
 void groupDB::section(const sectionHeader & header) {
 	if (header.type == sectionType::SECTION_DATABASE_RECORDS) {

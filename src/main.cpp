@@ -35,8 +35,17 @@ int main(int inSize, char* input[]) {
 	}
 	// End of arguments
 	anime::app::Context context;
-	context.entries.loadEntries(dataRoot / "animeDatabase.1.dat");
+	context.entries.loadEntries(dataRoot / "animeDatabase.crunchyroll.dat");
 	context.entries.loadLookupTables(dataRoot / "animeLookupTables.1.dat");
+
+	context.groups.load(dataRoot / "groupDatabase.crunchyroll.dat");
+	context.groups.printAll();
+	try {
+		context.groups.compile(context.entries);
+	} catch (const std::exception& e) {
+		std::cerr << "Caught Error: " << e.what() << std::endl;
+	}
+	context.groups.printAll();
 
 	context.users.load(dataRoot / "userDatabase.1.dat");
 
@@ -45,3 +54,5 @@ int main(int inSize, char* input[]) {
 
 	return 0;
 }
+
+// Load Entries, Load Groups, Check entries for ip groups and build group members from that. Validate External references from entries and groups

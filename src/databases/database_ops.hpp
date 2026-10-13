@@ -38,8 +38,7 @@ template <typename T> concept UnsignedVector = is_vector_v<T> && UnsignedInteger
 
 // Should add a helper that tests for compatible typing, ie vector_uint8 is compatible to vector_uint64 but not vice versa etc etc
 
-
-// Helpers for converting and validating unsigned recordField alternatives.
+// Helpers for converting unsigned recordField alternatives.
 template <UnsignedInteger Destination, UnsignedInteger Source>
 Destination checkedConvert(const Source input) {
 	if (std::in_range<Destination>(input)) {
@@ -49,107 +48,6 @@ Destination checkedConvert(const Source input) {
 		throw std::runtime_error(" Input value is not within the range of the provided type. ");
 	}
 }
-template <std::unsigned_integral T> requires(!std::same_as<T, bool>)
-void validateVectorElement(const FieldInfo& fieldInfo, const T& value) {
-	switch (fieldInfo.type) {
-		case schemaField::dataType::VECU8: {
-			if (!std::in_range<std::uint8_t>(value)) {
-				throw std::runtime_error(" Value to large for field, max value is: " + std::to_string(std::numeric_limits<std::uint8_t>::max()) +", Got:" + std::to_string(value));
-			}
-			break;
-		}
-		case schemaField::dataType::VECU16: {
-			if (!std::in_range<std::uint16_t>(value)) {
-				throw std::runtime_error(" Value to large for field, max value is: " + std::to_string(std::numeric_limits<std::uint16_t>::max()) + ", Got:" + std::to_string(value));
-			}
-			break;
-		}
-		case schemaField::dataType::VECU32: {
-			if (!std::in_range<std::uint32_t>(value)) {
-				throw std::runtime_error(" Value to large for field, max value is: " + std::to_string(std::numeric_limits<std::uint32_t>::max()) + ", Got:" + std::to_string(value));
-			}
-			break;
-		}
-		case schemaField::dataType::VECU64: {
-			if (!std::in_range<std::uint64_t>(value)) {
-				throw std::runtime_error(" Value to large for field, max value is: " + std::to_string(std::numeric_limits<std::uint64_t>::max()) + ", Got:" + std::to_string(value));
-			}
-			break;
-		}
-		default:
-			throw std::runtime_error(" Invalid unsigned integer type. ");
-	}
-}
-// Overloads for validating recordField alternatives and the variant itself.
-template <std::unsigned_integral T> requires(!std::same_as<T, bool>)
-void validateField(const FieldInfo& fieldInfo, const T& value) {
-	switch (fieldInfo.type) {
-		case schemaField::dataType::U8: {
-			if (!std::in_range<std::uint8_t>(value)) {
-				throw std::runtime_error(" Value to large for field, max value is: " + std::to_string(std::numeric_limits<std::uint8_t>::max()) + ", Got:" + std::to_string(value));
-			}
-			break;
-		}
-		case schemaField::dataType::U16: {
-			if (!std::in_range<std::uint16_t>(value)) {
-				throw std::runtime_error(" Value to large for field, max value is: " + std::to_string(std::numeric_limits<std::uint16_t>::max()) + ", Got:" + std::to_string(value));
-			}
-			break;
-		}
-		case schemaField::dataType::U32: {
-			if (!std::in_range<std::uint32_t>(value)) {
-				throw std::runtime_error(" Value to large for field, max value is: " + std::to_string(std::numeric_limits<std::uint32_t>::max()) + ", Got:" + std::to_string(value));
-			}
-			break;
-		}
-		case schemaField::dataType::U64: {
-			if (!std::in_range<std::uint64_t>(value)) {
-				throw std::runtime_error(" Value to large for field, max value is: " + std::to_string(std::numeric_limits<std::uint64_t>::max()) + ", Got:" + std::to_string(value));
-			}
-			break;
-		}
-		default:
-			throw std::runtime_error(" Invalid unsigned integer type. ");
-	}
-	switch (fieldInfo.reference) {
-		case VALUE_REFERENCE_TYPE::LOOKUP_TABLE: {
-			break;
-		}
-		case VALUE_REFERENCE_TYPE::BOUNDS: {
-			if (!fieldInfo.bounds.has_value()) {
-				throw std::runtime_error("Missing bounds for range field: " + fieldInfo.name);
-			}
-			if (value < fieldInfo.bounds->lower || value > fieldInfo.bounds->upper) {
-				throw std::runtime_error("Value for field \"" + fieldInfo.name + "\" out of specified range.");
-			}
-			break;
-		}
-		case VALUE_REFERENCE_TYPE::NONE: {
-			break;
-		}
-		default:
-			throw std::runtime_error("Unknown value reference type for field: " + fieldInfo.name);
-	}
-}
-template <std::unsigned_integral T> requires(!std::same_as<T, bool>)
-void validateField(const FieldInfo& fieldInfo, const std::vector<T>& value) {
-	if (value.empty()) {
-		return;
-	}
-
-	auto max = std::max_element(value.begin(), value.end());
-	auto max_value = *max;
-	size_t index = std::distance(value.begin(), max);
-	try {
-		validateVectorElement(fieldInfo, max_value);
-	} catch (const std::exception& e) {
-		throw std::runtime_error(std::string(e.what()) + ", at input vector index: " + std::to_string(index));
-	}
-}
-void validateField(const FieldInfo& fieldInfo, bool value);
-void validateField(const FieldInfo& fieldInfo, const std::string& value);
-void validateField(const FieldInfo& fieldInfo, const std::monostate value);
-void validateField(const FieldInfo& fieldInfo, const recordField& record);
 
 } // namespace anime::storage::helpers
 

@@ -4,7 +4,7 @@
 
 #include <unordered_set>
 
-namespace anime::domain {
+namespace anime::domain::group {
 
 void compileGroup(Group& group, const entryDB& entries) {
 	for (const GroupField& field : groupMetadata) {

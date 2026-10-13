@@ -24,18 +24,17 @@ endif()
 
 set(PROJECT_CORE_SOURCES
 	"src/io/fileHandling.cpp"
-	"src/databases/entry_database.cpp"
+	"src/app/entry_handler.cpp"
 	"src/domain/entry_schema.cpp"
 	"src/domain/group_schema.cpp"
-	"src/protocol/entry_codec.cpp"
-	"src/app/entry_handler.cpp"
+	"src/domain/group_compiler.cpp"
+	"src/databases/entry_database.cpp"
 	"src/databases/user_database.cpp"
 	"src/databases/group_database.cpp"
-	"src/databases/database_ops.cpp"
-	"src/domain/group_compiler.cpp"
 	"src/databases/auth/password.cpp"
 	"src/databases/auth/auth_service.cpp"
 	"src/filtering/filterProcessor.cpp"
+	"src/protocol/entry_codec.cpp"
 	"src/net/protocol/messenger.cpp"
 	"src/net/protocol/data.cpp"
 	"src/net/transport/net_service.cpp"
@@ -78,6 +77,21 @@ target_link_libraries(parser_stress_test PRIVATE ${PROJECT_COMMON_LIBS})
 target_include_directories(parser_stress_test PRIVATE src)
 
 add_test(NAME parser_stress_test COMMAND parser_stress_test)
+
+add_executable(crunchyroll_import_test
+	"src/tests/crunchyroll_import_test.cpp"
+	"src/io/fileHandling.cpp"
+	"src/domain/entry_schema.cpp"
+	"src/domain/group_schema.cpp"
+	"src/databases/entry_database.cpp"
+	"src/databases/group_database.cpp"
+	"src/filtering/filterProcessor.cpp")
+target_include_directories(crunchyroll_import_test PRIVATE src)
+target_link_libraries(crunchyroll_import_test PRIVATE ${PROJECT_COMMON_LIBS})
+add_test(NAME crunchyroll_import_test COMMAND crunchyroll_import_test
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/io/animeDatabase.crunchyroll.dat"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/io/groupDatabase.crunchyroll.dat"
+	"${CMAKE_CURRENT_BINARY_DIR}/crunchyroll_import_artifacts")
 
 add_executable(parser_fuzz_test
 	"src/tests/parser_fuzz_test.cpp"

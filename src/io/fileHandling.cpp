@@ -158,7 +158,12 @@ recordField fileProcessor::parseField(schemaField::dataType type, std::optional<
 	if (string == std::nullopt) {
 		return std::monostate{};
 	} else if (string.value().empty()) {
-		return std::string{};
+		// Empty numeric/vector fields represent missing optional values. Keep
+		// empty text as text; database handlers enforce required-field presence.
+		if (type == schemaField::dataType::STR) {
+			return std::string{};
+		}
+		return std::monostate{};
 	}
 
 	switch (type) {

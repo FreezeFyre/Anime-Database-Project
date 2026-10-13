@@ -1,0 +1,13 @@
+{
+  "grouping_term": "Storyline group",
+  "merges": [
+    {"name":"Sword Art Online","sources":["Sword Art Online","Sword Art Online Progressive"],"reason":"Kirito and Asuna's central adventures, including Progressive retellings. Alternative Gun Gale Online remains separate."},
+    {"name":"Kabaneri of the Iron Fortress","sources":["Kabaneri of the Iron Fortress","Kabaneri of the Iron Fortress: Life That Burns","Kabaneri of the Iron Fortress: Light That Gathers"],"reason":"The same Ikoma/Mumei story and its compilation films."},
+    {"name":"Fate/Grand Order","sources":["Fate/Grand Order Absolute Demonic Front: Babylonia","Fate/Grand Order Final Singularity Grand Temple of Time: Solomon"],"reason":"Connected chapters of Fujimaru, Mash and Chaldea's Grand Order."},
+    {"name":"Fate/stay night: Heaven's Feel","sources":["Fate/stay night [Heaven's Feel] I. presage flower","Fate/stay night [Heaven's Feel] II. lost butterfly","Fate/stay night [Heaven's Feel] III. spring song"],"reason":"Three consecutive films telling the Heaven's Feel route. Other Fate routes remain separate pending a broader route preference."},
+    {"name":"SPY x FAMILY","sources":["SPY x FAMILY","SPY x FAMILY CODE: White"],"reason":"The Forger family's central story and supplementary film adventure."},
+    {"name":"The Irregular at Magic High School","sources":["The Irregular at Magic High School","The Irregular at Magic High School: Reminiscence Arc"],"reason":"Tatsuya and Miyuki's central story, including their relationship's prequel."},
+    {"name":"The Quintessential Quintuplets","sources":["The Quintessential Quintuplets","The Quintessential Quintuplets Movie"],"reason":"Futaro and the quintuplets' continuing romance through its concluding film."}
+  ],
+  "rank_aliases": {"Eighty Six 86":"86 EIGHTY-SIX"}
+}
