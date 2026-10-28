@@ -2,7 +2,7 @@ ADP0|1002|0|1|
 
 0|GROUP_DATA|180|15|1|
 
-[id:3;0,rank:3;3,name:5;0,description:5;0,members:8;0,genres:6;2,knownRuntimeMinutes:4;0,episodeCount:3;0,movieCount:3;0,seriesCount:3;0,fanServiceLevel:1;0,status:1;0,runtimeComplete:4;0,compiledFromEntryRevision:4;0,compilationVersion:4;0]
+[id:3;0,rank:3;3,name:5;0,description:5;0,members:8;0,genres:8;2,knownRuntimeMinutes:4;0,episodeCount:3;0,movieCount:3;0,seriesCount:3;0,fanServiceLevel:1;0,status:1;0,runtimeComplete:0;0,compiledFromEntryRevision:4;0,compilationVersion:3;0]
 
 {0,0,"365 Days To The Wedding","",{0},,284,0,0,0,,,,0,1}
 {1,0,"7th Time Loop: The Villainess Enjoys a Carefree Life Married to Her Worst Enemy!","",{1},,286,0,0,0,,,,0,1}

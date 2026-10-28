@@ -34,6 +34,7 @@ template <typename T, typename Allocator> struct is_vector<std::vector<T, Alloca
 template <typename T> inline constexpr bool is_vector_v = is_vector<std::remove_cvref_t<T>>::value;
 template <typename T> concept UnsignedInteger = std::unsigned_integral<std::remove_cvref_t<T>> && !std::same_as<std::remove_cvref_t<T>, bool>;
 template <typename T> concept UnsignedVector = is_vector_v<T> && UnsignedInteger<typename std::remove_cvref_t<T>::value_type>;
+template <typename T, typename U> concept BothIntegral = std::integral<T> && std::integral<U>;
 
 
 // Should add a helper that tests for compatible typing, ie vector_uint8 is compatible to vector_uint64 but not vice versa etc etc
@@ -65,7 +66,7 @@ namespace vector_ops {
 			[&](const auto& input) {
 				using InputType = std::remove_cvref_t<decltype(input)>;
 
-				if constexpr (!is_vector_v<InputType>) {
+				if constexpr (is_vector_v<InputType>) {
 					std::vector<T> buffer;
 					for (const auto& element : input) {
 						if (!std::ranges::contains(buffer, element)) {

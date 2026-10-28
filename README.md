@@ -2,6 +2,10 @@
 
 A modern C++ backend for managing anime metadata, filtering, sorting, and server-based client handling. Designed to be fast, maintainable, and fully structured for integration with a future web frontend.
 
+See the [request and response logic map](docs/request-response-map.md) for connection routes, request/response transformations, service dispatch, startup, and persistence in the current implementation.
+
+The [target architecture map](docs/target-library-architecture.md) proposes LibraryService coordination of entries/groups, shared login sessions, and account permission checks.
+
 ---
 
 ## Overview

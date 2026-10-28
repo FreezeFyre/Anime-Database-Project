@@ -12,6 +12,7 @@ namespace anime::domain::group {
 using anime::storage::entryDB;
 using anime::storage::helpers::UnsignedInteger;
 using anime::storage::helpers::UnsignedVector;
+using anime::storage::helpers::BothIntegral;
 using anime::storage::helpers::is_vector_v;
 
 using anime::storage::operators::field_ops::clearField;
@@ -19,6 +20,28 @@ using anime::storage::operators::field_ops::clearField;
 void compileGroup(Group& group, const entryDB& entries);
 
 bool meetsCondition(const entryDB& entries, EntryId id, const CompileCondition& condition);
+
+template <typename Record, UnsignedInteger Field, UnsignedInteger Addend> void addUnsigned(Record& record, Field Record::* memberPtr, Addend addend) {
+	// Throwing Func | Tests if addend value can fit into the fields data type and then returns the sum
+	auto& field = record.*memberPtr;
+	if (addend > (std::numeric_limits<Field>::max)() - field) {
+		throw std::overflow_error(" Sum exceeds the target fields range. ");
+	}
+	field += static_cast<Field>(addend);
+}
+template <UnsignedInteger Field, UnsignedInteger Addend> void addUnsigned(Field& field, Addend addend) {
+	// Throwing Func | Tests if addend value can fit into the fields data type and then returns the sum
+	if (addend > (std::numeric_limits<Field>::max)() - field) {
+		throw std::overflow_error(" Sum exceeds the target fields range. ");
+	}
+	field += static_cast<Field>(addend);
+}
+
+template <typename T> T prepField(const Group& group, T Group::*memberPtr, COMPILE_OPERATION operation) {
+	T data = group.*memberPtr;
+	clearField(data);
+	return data;
+}
 
 template <UnsignedInteger T, UnsignedInteger U> void accumulate(T& field, const U& entryField, COMPILE_OPERATION operation) {
 	switch (operation) {
@@ -30,10 +53,7 @@ template <UnsignedInteger T, UnsignedInteger U> void accumulate(T& field, const 
 			break;
 		}
 		case COMPILE_OPERATION::SUM: {
-			if (entryField > (std::numeric_limits<T>::max)() - field) {
-				throw std::overflow_error("Sum exceeds the field's maximum value.");
-			}
-			field += entryField;
+			addUnsigned(field, entryField);
 			break;
 		}
 		case COMPILE_OPERATION::MIN: {
@@ -83,18 +103,13 @@ template <UnsignedInteger T, UnsignedInteger U> void accumulate(std::vector<T>& 
 			throw std::runtime_error("Unsuported vector operation: " + std::to_string(static_cast<uint8_t>(operation)) + "\n");
 	}
 }
-template <typename T, typename U> void accumulate(T&, const U&, COMPILE_OPERATION) {
+template <typename T, typename U>
+void accumulate(T&, const U&, COMPILE_OPERATION) {
 	throw std::runtime_error("Unsupported accumulation types.");
 }
 
-template <UnsignedInteger T> void compile(T& accumulator, const recordField& entryField, COMPILE_OPERATION operation) {
-	std::visit([&](auto entryFieldValue) {
-	
-		accumulate(accumulator, entryFieldValue, operation);
-
-	}, entryField);
-}
-
-
 
 }
+
+
+

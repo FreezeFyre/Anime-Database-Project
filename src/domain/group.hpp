@@ -12,12 +12,14 @@
 
 #include "domain/types.hpp"
 #include "schema/field.hpp"
+#include "../protocol/entry_messages.hpp"
 
 namespace anime::domain {
 	using anime::schema::FIELD_PRESENCE;
 	using anime::schema::FieldInfo;
 	using anime::schema::UPDATE_OPERATION;
 	using anime::schema::VALUE_REFERENCE_TYPE;
+	using anime::protocol::Update;
 	using anime::storage::recordField;
 	using anime::storage::schemaField;
 	using anime::domain::EntryId;
@@ -66,7 +68,7 @@ namespace anime::domain {
 	};
 
 	struct CompileCondition {
-		enum class CONDITION_TYPE { EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN, GREATER_EQUAL, LESS_EQUAL };
+		enum class CONDITION_TYPE { EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN, GREATER_EQUAL, LESS_EQUAL, CONTAINS};
 		std::string field;
 		recordField value;
 		CONDITION_TYPE type;
@@ -125,7 +127,7 @@ namespace anime::domain {
 		},GroupField{
 			.info = {
 				.name = "genres",
-				.type = schemaField::dataType::VECU8,
+				.type = schemaField::dataType::VECU32,
 				.mode = schemaField::filterMode::FM_MULTI_VALUE
 			},
 			.ptr = &Group::genres,
@@ -164,7 +166,7 @@ namespace anime::domain {
 			.ptr = &Group::movieCount,
 			.rule = CompilationRule{
 				.operation = COMPILE_OPERATION::COUNT,
-				.condition = CompileCondition{.field = "format", .value = std::uint32_t{1}, .type = CompileCondition::CONDITION_TYPE::EQUAL}
+				.condition = CompileCondition{.field = "format", .value = std::uint8_t{1}, .type = CompileCondition::CONDITION_TYPE::EQUAL}
 			}
 		},GroupField{
 			.info = {
@@ -184,7 +186,7 @@ namespace anime::domain {
 			},
 			.ptr = &Group::fanServiceLevel,
 			.rule = CompilationRule{
-				.operation = COMPILE_OPERATION::AVG,
+				.operation = COMPILE_OPERATION::MAX,
 				.source = "fan_service"
 			}
 		},GroupField{
@@ -200,30 +202,21 @@ namespace anime::domain {
 		},GroupField{
 			.info = {
 				.name = "runtimeComplete",
-				.type = schemaField::dataType::U64
+				.type = schemaField::dataType::BOOL
 			},
-			.ptr = &Group::runtimeComplete,
-			.rule = CompilationRule{
-				.operation = COMPILE_OPERATION::COUNT
-			}
+			.ptr = &Group::runtimeComplete
 		},GroupField{
 			.info = {
 				.name = "compiledFromEntryRevision",
 				.type = schemaField::dataType::U64
 			},
-			.ptr = &Group::compiledFromEntryRevision,
-			.rule = CompilationRule{
-				.operation = COMPILE_OPERATION::COUNT
-			}
+			.ptr = &Group::compiledFromEntryRevision
 		},GroupField{
 			.info = {
 				.name = "compilationVersion",
-				.type = schemaField::dataType::U64
+				.type = schemaField::dataType::U32
 			},
-			.ptr = &Group::compilationVersion,
-			.rule = CompilationRule{
-				.operation = COMPILE_OPERATION::COUNT
-			}
+			.ptr = &Group::compilationVersion
 		},
 	});
 
@@ -234,11 +227,6 @@ namespace anime::domain {
 		return result;
 	}();
 
-	struct GroupUpdate {
-		GroupId id;
-		UPDATE_OPERATION op;
-		size_t fieldIndex;
-		recordField value;
-	};
+	using GroupUpdate = Update;
 
 } // namespace anime::domain

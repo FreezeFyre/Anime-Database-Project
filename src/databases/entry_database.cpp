@@ -51,6 +51,7 @@ void entryDB::loadEntries(const std::filesystem::path& file) {
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error Loading Anime Database: " << e.what() << "\n";
+		throw std::runtime_error(" Error loading database" + std::string(e.what()));
 	}
 
 }
@@ -73,10 +74,19 @@ void entryDB::saveEntries(const std::filesystem::path& file) {
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error Saving Anime Database: " << e.what() << "\n";
+		throw std::runtime_error(" Error saving database" + std::string(e.what()));
 	}
 }
 
 
+void entryDB::resolveMemberships(groupDB& groups) {
+	using namespace storage::validation;
+	if (!validate(*this, VALIDATION_SCOPE::EXTERNAL_REFERENCES, groups)) {
+		throw std::runtime_error(" Error trying to validate the existence of external references. ");
+	}
+	groups.attachMembers(membershipMap);
+}
+		
 
 //====================================
 //			Read Handlers
@@ -91,8 +101,7 @@ void entryDB::section(const sectionHeader& header) {
 		try {
 			validateTable(header.title);
 
-			auto [it, inserted] =
-				lookupTables.emplace(header.title, std::vector<std::string>{});
+			auto [it, inserted] = lookupTables.emplace(header.title, std::vector<std::string>{});
 
 			if (!inserted) {
 				throw std::runtime_error("Duplicate lookup table section: " + header.title);
@@ -116,10 +125,7 @@ void entryDB::record(const sectionHeader& section, const recordData& record, con
 	using anime::storage::helpers::UnsignedInteger;
 
 	EntryId id = std::get<EntryId>(record[0]);
-	EntryId expectedId = database.size();
-	if (id != expectedId) {
-		throw std::runtime_error("Non-sequential or corrupt ID in file. \n");
-	}
+	if (id >= nextId) { nextId = id+1; }
 
 	Entry entry{};
 	for (size_t i = 0; i < fieldMap.size(); i++) {
@@ -256,10 +262,9 @@ recordData entryDB::getTableRecord(fileType type, size_t sectionIndex, size_t ro
 //====================================
 //			Operations
 //====================================
-void entryDB::addEntry(const Entry& entry, const USER_ACCOUNT_ROLE& role) {
+EntryId entryDB::addEntry(const Entry& entry, const USER_ACCOUNT_ROLE& role) {
 	if (role == USER_ACCOUNT_ROLE::VIEWER) {
 		throw std::runtime_error("User does not meet account permission level to add entries. \n");
-		return;
 	}
 
 	Entry result = entry;
@@ -286,6 +291,8 @@ void entryDB::addEntry(const Entry& entry, const USER_ACCOUNT_ROLE& role) {
 	size_t index = database.size();
 	database.push_back(result);
 	idMap.emplace(static_cast<EntryId>(result.id), index);
+
+	return result.id;
 }
 void entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const USER_ACCOUNT_ROLE& role) {
 	if (role == USER_ACCOUNT_ROLE::VIEWER) {
@@ -367,7 +374,9 @@ void entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const USER_AC
 	}
 }
 std::vector<Entry> entryDB::getEntries(std::vector<EntryId> ids) {
-	if (ids.size() == 1 and ids[0] == 0) { return database; }
+	if (ids.empty()) {
+		return database;
+	}
 
 	std::vector<Entry> result;
 	for (EntryId id : ids) {
@@ -614,7 +623,7 @@ bool entryDB::rankInsert(int rank) {
 //====================================
 //			Validation
 //====================================
-void entryDB::validateTable(const std::string& title) {
+void entryDB::validateTable(const std::string& title) const {
 	for (size_t i = 0; i < entryMetadata.size(); i++) {
 		if (entryMetadata[i].info.tableTitle == title) {
 			if (entryMetadata[i].info.reference == VALUE_REFERENCE_TYPE::LOOKUP_TABLE) {
@@ -626,16 +635,16 @@ void entryDB::validateTable(const std::string& title) {
 	}
 	throw std::runtime_error("No field matches the table: " + title);
 }
-bool entryDB::validateIds() {
+bool entryDB::validateIds() const {
 	return validation::validateIds(database, &Entry::id);
 }
-bool entryDB::validateRanks() {
+bool entryDB::validateRanks() const {
 	return validation::validateRanks(database, &Entry::rank);
 }
-bool entryDB::validateTitles() {
+bool entryDB::validateTitles() const {
 	return validation::validateTitles(database, &Entry::title);
 }
-bool entryDB::validateRanges() {
+bool entryDB::validateRanges() const {
 	for (const auto& field : entryMetadata) {
 		if (field.info.reference == VALUE_REFERENCE_TYPE::BOUNDS && field.info.bounds.has_value()) {
 			if(std::visit([&](const auto& memberPtr) {
@@ -647,7 +656,7 @@ bool entryDB::validateRanges() {
 	}
 	return true;
 }
-bool entryDB::validateReferences() {
+bool entryDB::validateReferences() const {
 	for (const auto& field : entryMetadata) {
 		if (field.info.reference == VALUE_REFERENCE_TYPE::LOOKUP_TABLE) {
 			if(std::visit([&](const auto& memberPtr) {
@@ -659,7 +668,7 @@ bool entryDB::validateReferences() {
 	}
 	return true;
 }
-bool entryDB::validateExternal(const groupDB& groups) {
+bool entryDB::validateExternal(const groupDB& groups) const {
 	return validation::validateExternal(database, &Entry::ip_group, [&groups](GroupId id) { return groups.contains(id); });
 }
 
@@ -668,9 +677,21 @@ bool entryDB::validateExternal(const groupDB& groups) {
 //====================================
 //			Utility
 //====================================
-recordField entryDB::getField(size_t id, size_t fieldIndex) const {
-	size_t index = idMap.at(id);
-	return getFromEntry(database[index], fieldIndex);
+recordField entryDB::getField(EntryId id, size_t fieldIndex) const {
+	const auto& index = idMap.find(id);
+	if (index == idMap.end()) {
+		throw std::runtime_error(" Invalid entry id"); // replace with expected
+	} else
+		return getFromEntry(database[index->second],fieldIndex);
+}
+recordField entryDB::getField(EntryId id, std::string_view fieldName) const {
+	const auto& index = idMap.find(id);
+	if (index == idMap.end()) {
+		throw std::runtime_error(" Invalid entry id"); // replace with expected
+	} else {
+		auto fieldIndex = fieldNames.at(std::string(fieldName));
+		return getFromEntry(database[index->second], fieldIndex);
+	}
 }
 recordField entryDB::getFromEntry(const Entry& entry, const size_t fieldIndex) const {
 	return std::visit([&](auto memberPtr) {

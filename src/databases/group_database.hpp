@@ -29,6 +29,7 @@ namespace anime::storage {
 using anime::domain::Group;
 using anime::domain::GroupId;
 using anime::domain::GroupUpdate;
+using anime::domain::EntryId;
 
 using anime::filtering::FilterRequest;
 using anime::filtering::filterProcessor;
@@ -40,40 +41,12 @@ class groupDB {
 	    using IdType = GroupId;
 
 		void load(const std::filesystem::path& filename);
-		void compile(const entryDB& entries);
 		void save(const std::filesystem::path& filename);
-		inline void printAll() {
-			for (const auto& group : groups) {
-				std::cout << '{';
-				for (const auto& field : anime::domain::groupMetadata) {
-					std::visit(
-				    [&](const auto& memberPtr) {
-					    const auto& value = group.*memberPtr;
-					    using ValueType = std::remove_cvref_t<decltype(value)>;
-						if constexpr (std::same_as<ValueType, std::string>) {
-							std::cout << value;
-						} else if constexpr (storage::helpers::UnsignedVector<ValueType>) {
-							std::cout << '{';
-							for (const auto& val : value) {
-								std::cout << std::to_string(static_cast<std::uint64_t>(val)) << ',';
-							}
-							std::cout << '}';
-						} else if constexpr (storage::helpers::UnsignedInteger<ValueType>) {
-							std::cout << std::to_string(static_cast<std::uint64_t>(value));
-						} else if constexpr (std::same_as<ValueType, bool>) {
-							if (value) {
-								std::cout << "True";
-							} else
-								std::cout << "False";
-						} else
-							throw std::runtime_error("Cant handle data type");
-				    },
-				    field.ptr); 
-					std::cout << ',';
-				}
-				std::cout << '}' << "\n";
-			}
-		}
+
+		void compile(const entryDB& entries);
+		void compile(GroupId id, const entryDB& entries);
+		void compile(const std::vector<GroupId>& ids, const entryDB& entries);
+		void attachMembers(const std::unordered_map<GroupId, std::vector<EntryId>>& memberships); // this updates/checks that the memberships in groups match declared entry memberships
 
 		// Read Handlers
 		void section(const sectionHeader& header);
@@ -94,13 +67,12 @@ class groupDB {
 	    size_t getFieldIndex(const std::string& fieldName) const;
 
 		// Mutate Operations
-	    void addGroup(const Group& group);
-	    void updateGroup(const std::vector<GroupUpdate>& updates);
-	    std::vector<Group> getGroups(std::vector<GroupId> ids) const;
+	    GroupId addGroup(const Group& group);
+	    void updateGroups(const std::vector<GroupUpdate>& updates);
+	    std::vector<Group> getGroups(const std::vector<GroupId>& ids) const;
+		// need to add singular get group
 	    void deleteGroup(const GroupId id);
 	    std::vector<GroupId> searchGroupTitles(const std::string& term) const;
-
-		// Operation Utilities
 
 		// Query Operations
 	    std::vector<GroupId> getFilteredIds(const FilterRequest& request) const;
@@ -109,11 +81,18 @@ class groupDB {
 			return idMap.contains(id);
 		}
 
-		// Indexing
+		// Operation Utilities
+		void setField(Group& group, size_t fieldIndex, const recordField& value);
+		void addFieldValue(Group& group, size_t fieldIndex, const recordField& value);
+		void removeFieldValue(Group& group, size_t fieldIndex, const recordField& value);
+		void clearField(Group& group, size_t fieldIndex);
 
+
+		// Indexing
+		// I should have acceleration inexing for groups, names, and ranks
 
 		// Validation
-		std::vector<size_t> validateSchema(const schemaData& schema);
+		std::vector<size_t> validateSchema(const schemaData& schema) const;
 
 		// Utilities
 		recordField getField(size_t id, size_t fieldIndex) const;

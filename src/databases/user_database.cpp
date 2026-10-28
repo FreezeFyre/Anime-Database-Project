@@ -110,6 +110,8 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 
 					if constexpr (std::is_same_v<MemberType, ValueType>) {
 						user.*memberPtr = value;
+					} else if constexpr (std::is_same_v<MemberType,anime::domain::USER_ACCOUNT_ROLE> && std::is_same_v<ValueType, std::uint8_t>) {
+						user.*memberPtr = static_cast<anime::domain::USER_ACCOUNT_ROLE>(value);
 					} else if constexpr (UnsignedInteger<MemberType> && UnsignedInteger<ValueType>) {
 						user.*memberPtr = static_cast<MemberType>(value);
 					} else {
@@ -124,7 +126,7 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 	} else if (section.title == "IDENTITY_DATA") {
 
 		IdentityId id = std::get<IdentityId>(record[0]);
-		IdentityId expectedId = users.size();
+		IdentityId expectedId = identities.size();
 		if (id != expectedId) {
 			throw std::runtime_error("Non-sequential or corrupt ID in file. \n");
 		}
@@ -148,7 +150,7 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 					if constexpr (std::is_same_v<MemberType, ValueType>) {
 						identity.*memberPtr = value;
 					} else if constexpr (UnsignedInteger<MemberType> && UnsignedInteger<ValueType>) {
-						identity.*memberPtr = static_cast<MemberType>(value);
+						identity.*memberPtr = anime::storage::helpers::checkedConvert<MemberType>(value);
 					} else {
 						throw std::runtime_error("Type mismatch for field '" + fieldInfo.name + "': expected " + typeid(MemberType).name() + ", got " + typeid(ValueType).name());
 					}

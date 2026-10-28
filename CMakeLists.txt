@@ -25,6 +25,7 @@ endif()
 set(PROJECT_CORE_SOURCES
 	"src/io/fileHandling.cpp"
 	"src/app/entry_handler.cpp"
+	"src/databases/library_service.cpp"
 	"src/domain/entry_schema.cpp"
 	"src/domain/group_schema.cpp"
 	"src/domain/group_compiler.cpp"
@@ -83,6 +84,7 @@ add_executable(crunchyroll_import_test
 	"src/io/fileHandling.cpp"
 	"src/domain/entry_schema.cpp"
 	"src/domain/group_schema.cpp"
+	"src/domain/group_compiler.cpp"
 	"src/databases/entry_database.cpp"
 	"src/databases/group_database.cpp"
 	"src/filtering/filterProcessor.cpp")
@@ -108,6 +110,10 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/databases/auth/password.cpp")
 		"src/databases/auth/password.cpp"
 		"src/databases/group_database.cpp"
 		"src/domain/group_schema.cpp"
+		"src/domain/group_compiler.cpp"
+		"src/domain/entry_schema.cpp"
+		"src/databases/entry_database.cpp"
+		"src/filtering/filterProcessor.cpp"
 	)
 
 	target_link_libraries(auth_test PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2)
@@ -138,3 +144,4 @@ target_include_directories(entry_integration_test PRIVATE src)
 target_compile_definitions(entry_integration_test PRIVATE ANIME_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/io")
 target_link_libraries(entry_integration_test PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2 CURL::libcurl)
 add_test(NAME entry_integration_test COMMAND entry_integration_test)
+add_test(NAME library_service_test COMMAND entry_integration_test --library-service)

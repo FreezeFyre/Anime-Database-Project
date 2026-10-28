@@ -68,7 +68,7 @@ inline const std::array<UserField, 4> UserMeta = { {
 	{{"id",            schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::id          },
 	{{"display_name",  schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::displayName },
 	{{"role",          schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::role        },
-	{{"disabled",      schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::disabled    }
+	{{"disabled",      schemaField::dataType::BOOL,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::disabled    }
 } };
 
 inline const std::unordered_map<std::string, size_t> userNameMap = [] {
@@ -90,7 +90,7 @@ inline const std::array<IdentityField, 8> UserIdentityMeta = {
 	 {{"email",            schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::email          },
 	 {{"provider_user_id", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::providerUserId },
 	 {{"password_hash",    schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::passwordHash   },
-	 {{"disabled",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::disabled       }
+	 {{"disabled",         schemaField::dataType::BOOL,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::disabled       }
 	}};
 inline const std::unordered_map<std::string, size_t> identityNameMap = [] {
 	std::unordered_map<std::string, size_t> result;

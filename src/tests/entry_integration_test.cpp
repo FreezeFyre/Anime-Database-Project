@@ -8,6 +8,9 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <string>
+#include <string_view>
+#include <utility>
 
 namespace {
 using namespace anime::protocol;
@@ -71,7 +74,8 @@ void transportAndHandlerCompatibility(anime::app::Context& context) {
 	assert(reader.read<std::uint8_t>()==1); assert(reader.read<std::uint8_t>()==1); assert(reader.read<std::uint32_t>()==1234);
 	assert(reader.read<std::uint32_t>()==wire.size()-15);
 
-	anime::app::EntryRouter direct;
+	anime::storage::LibraryService library{context.entries,context.groups,context.entriesMutex,context.groupsMutex};
+	anime::app::EntryRouter direct{library};
 	const auto rejected=direct.route(EntryUpdateRequest{},context,session);
 	assert(std::holds_alternative<EntryErrorResponse>(rejected.payload));
 	assert(std::holds_alternative<EntryErrorResponse>(direct.route(EntryCreateRequest{{entries.front()}},context,session).payload));
@@ -81,6 +85,10 @@ void transportAndHandlerCompatibility(anime::app::Context& context) {
 	const auto filtered=direct.route(EntryFilterRequest{},context,session);
 	assert(std::get<EntryIdsResponse>(filtered.payload).ids==context.entries.getFilteredIDS({}));
 	session.role=anime::domain::USER_ACCOUNT_ROLE::EDITOR;
+	const auto emptyDelete=direct.route(EntryDeleteRequest{},context,session);
+	assert(std::holds_alternative<EntryErrorResponse>(emptyDelete.payload));
+	assert(std::get<EntryErrorResponse>(emptyDelete.payload).message.find("At least one entry id")!=std::string::npos);
+	assert(context.entries.getSize()==entries.size());
 	const auto accepted=direct.route(EntryUpdateRequest{},context,session);
 	assert(std::holds_alternative<EntrySuccessResponse>(accepted.payload));
 
@@ -96,10 +104,64 @@ void transportAndHandlerCompatibility(anime::app::Context& context) {
 	const auto httpResponse=http.encode(copy);
 	assert(httpResponse.statusCode==405);
 }
+
+void unfinishedLibraryOperationsDoNotMutate() {
+	anime::app::Context context;
+	const fs::path fixtures=ANIME_FIXTURE_DIR;
+	context.entries.loadEntries(fixtures/"animeDatabase.crunchyroll.dat");
+	context.groups.load(fixtures/"groupDatabase.crunchyroll.dat");
+	anime::storage::LibraryService library{context.entries,context.groups,context.entriesMutex,context.groupsMutex};
+	anime::net::Session session;
+	session.signedIn=true;
+	session.role=anime::domain::USER_ACCOUNT_ROLE::ADMIN;
+
+	const auto snapshot=[&] {
+		std::vector<anime::storage::recordData> entries, groups;
+		const auto kind=anime::storage::fileType::HEADER_DATABASE;
+		for(size_t i=0;i<context.entries.getSize();++i) entries.push_back(context.entries.getRecord(kind,0,i));
+		for(size_t i=0;i<context.groups.getSection().recordCount;++i) groups.push_back(context.groups.getRecord(kind,0,i));
+		return std::make_pair(entries,groups);
+	};
+	const auto before=snapshot();
+	assert(!before.first.empty() && !before.second.empty());
+	const auto entry=context.entries.getEntries({0}).front();
+	const auto groupId=std::get<anime::domain::GroupId>(before.second.front().front());
+	const auto check=[&](const auto& result, std::string_view operation) {
+		assert(!result.has_value());
+		assert(result.error().code==LIBRARY_ERROR_CODE::NOT_IMPLEMENTED);
+		assert(result.error().err==std::string(operation)+" is not implemented.");
+		assert(snapshot()==before);
+	};
+	const Update groupUpdate{groupId,anime::schema::UPDATE_OPERATION::SET_FIELD,2,anime::storage::dataType::STR,std::string{"Draft title"}};
+	const Update entryUpdate{entry.id,anime::schema::UPDATE_OPERATION::SET_FIELD,2,anime::storage::dataType::STR,std::string{"Draft title"}};
+	anime::domain::Group newGroup;
+	newGroup.id=10000;
+	newGroup.name="Unimplemented group";
+	check(library.createAnime(CreateAnimeRequest{newGroup,{entry}},session),"createAnime");
+	check(library.updateAnime(UpdateAnimeRequest{{groupUpdate}},session),"updateAnime");
+	check(library.deleteAnime(DeleteAnimeRequest{groupId},session),"deleteAnime");
+	check(library.addEntries(AddEntriesRequest{groupId,{entry}},session),"addEntries");
+	check(library.updateEntries(UpdateEntriesRequest{{entryUpdate}},session),"updateEntries");
+	check(library.transferEntry(TransferEntryRequest{entry.id,groupId},session),"transferEntry");
+	check(library.deleteEntries(DeleteEntriesRequest{{entry.id}},session),"deleteEntries");
+	check(library.getAnime(GetAnimeRequest{{groupId}},session),"getAnime");
+	check(library.getEntries(GetEntriesRequest{{entry.id}},session),"getEntries");
+	check(library.searchAnime(SearchAnimeRequest{"Rascal"},session),"searchAnime");
+	check(library.filterAnime(FilterAnimeRequest{},session),"filterAnime");
+}
 }
 
-int main() {
+int main(int argc, char* argv[]) {
 	anime::app::Context context;
+	if(argc==2 && std::string_view(argv[1])=="--library-service") {
+		const fs::path fixtures=ANIME_FIXTURE_DIR;
+		context.entries.loadEntries(fixtures/"animeDatabase.crunchyroll.dat");
+		context.entries.loadLookupTables(fixtures/"animeLookupTables.1.dat");
+		transportAndHandlerCompatibility(context);
+		unfinishedLibraryOperationsDoNotMutate();
+		std::cout << "library_service_test passed\n";
+		return 0;
+	}
 	fixtureRoundTrip(context);
 	transportAndHandlerCompatibility(context);
 	std::cout << "entry_integration_test passed\n";

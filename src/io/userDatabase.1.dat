@@ -2,11 +2,11 @@ ADP0|1002|0|2|
 
 0|USER_DATA|1|4|1|
 
-[id:2;0,display_name:3;0,role:0;0,disabled:0;0]
+[id:3;0,display_name:5;0,role:1;0,disabled:0;0]
 
-{1,"Luke Raykovitz",0,0}
+{0,"Luke Raykovitz",0,0}
 0|IDENTITY_DATA|1|8|1|
 
-[id:2;0,user_id:2;0,provider:0;0,login_key:3;0,email:3;0,provider_user_id:3;0,password_hash:3;0,disabled:0;0]
+[id:3;0,user_id:3;0,provider:1;0,login_key:5;0,email:5;0,provider_user_id:5;0,password_hash:5;0,disabled:0;0]
 
-{1,1,0,"LukeRaykovitz","freezefyre501@gmail.com","test","$argon2id$v=19$m=65536,t=3,p=4$VVn7DraChSXRQZO/VoArag$RtJ/yGSX7ZK2zxfVFb9GdXC3mIsDtNk0yqp4HfDE6A8",0}
+{0,0,0,"LukeRaykovitz","freezefyre501@gmail.com","test","$argon2id$v=19$m=65536,t=3,p=4$VVn7DraChSXRQZO/VoArag$RtJ/yGSX7ZK2zxfVFb9GdXC3mIsDtNk0yqp4HfDE6A8",0}
