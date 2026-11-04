@@ -35,11 +35,11 @@ using anime::storage::validation::VALIDATION_SCOPE;
 			EntryResponse searchEntries(const EntrySearchRequest& request, const Session& session);
 			EntryResponse filterEntries(const EntryFilterRequest& request, const Session& session);
 
-			Result<GroupId> createAnime   (const CreateAnimeRequest& request, const Session& session);
-			Result<void> updateAnime   (const UpdateAnimeRequest& request, const Session& session);
-			Result<void> deleteAnime   (const DeleteAnimeRequest& request, const Session& session);
+			Result<GroupId> createAnime (const CreateAnimeRequest& request, const Session& session);
+			Result<void>    updateAnime (const UpdateAnimeRequest& request, const Session& session);
+			Result<void>    deleteAnime (const DeleteAnimeRequest& request, const Session& session);
 				
-			Result<std::vector<Entry>> addEntries    (const AddEntriesRequest& request, const Session& session);
+			Result<std::vector<EntryId>> addEntries    (const AddEntriesRequest& request, const Session& session);
 			Result<void> updateEntries (const UpdateEntriesRequest& request, const Session& session);
 			Result<void> transferEntry (const TransferEntryRequest& request, const Session& session);
 			Result<void> deleteEntries (const DeleteEntriesRequest& request, const Session& session);

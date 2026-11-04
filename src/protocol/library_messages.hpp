@@ -31,12 +31,12 @@ struct CreateAnimeRequest {
 	std::vector<Entry> entries;
 };
 struct UpdateAnimeRequest {
-	std::vector<Update> updates;
+	std::vector<Update> groupUpdates;
+	std::vector<Update> entryUpdates;
 };
 struct DeleteAnimeRequest {
 	std::vector<GroupId> groups;
 };
-
 struct AddEntriesRequest {
 	GroupId id;
 	std::vector<Entry> entries;
@@ -60,6 +60,27 @@ struct GetEntriesRequest {
 struct SearchAnimeRequest {
 	std::string target;
 };
+using LibraryRequest = std::variant<
+	CreateAnimeRequest,
+	UpdateAnimeRequest,
+	DeleteAnimeRequest,
+	AddEntriesRequest,
+	UpdateEntriesRequest,
+	TransferEntryRequest,
+	DeleteEntriesRequest,
+	GetAnimeRequest,
+	GetEntriesRequest,
+	SearchAnimeRequest
+>;
+
+using LibraryResponse =std::variant<
+	Result<void>,
+	Result<GroupId>,
+	Result<std::vector<GroupId>>,
+	Result<std::vector<Entry>>,
+	Result<std::vector<Group>>,
+	ErrorResponse
+>;
 
 // error response = return std::unexpected<ErrorResponse>({code, "Error Messsage"});
 }

@@ -33,4 +33,24 @@ class EntryRouter {
 		EntryResponse handle(const EntryFilterRequest& request, Context& context, anime::net::Session& session);
 };
 
+class LibraryRouter {
+	public:
+		explicit LibraryRouter(anime::storage::LibraryService& service) : library(service) {}
+
+		LibraryResponse route(const LibraryRequest& request, Context& context, anime::net::Session& session);
+
+	private:
+		anime::storage::LibraryService& library;
+		LibraryResponse handle(const CreateAnimeRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const UpdateAnimeRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const DeleteAnimeRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const AddEntriesRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const UpdateEntriesRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const TransferEntryRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const DeleteEntriesRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const GetAnimeRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const GetEntriesRequest& request, Context& context, anime::net::Session& session);
+		LibraryResponse handle(const SearchAnimeRequest& request, Context& context, anime::net::Session& session);
+};
+
 } // namespace anime::app

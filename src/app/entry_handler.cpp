@@ -39,4 +39,42 @@ EntryResponse EntryRouter::handle(const EntryFilterRequest& request, Context& co
 	return library.filterEntries(request, session);
 }
 
+
+LibraryResponse LibraryRouter::route(const LibraryRequest& request, Context& context, anime::net::Session& session) {
+	return std::visit([&](const auto& payload) {
+		return handle(payload, context, session);
+	}, request);
+}
+
+LibraryResponse LibraryRouter::handle(const CreateAnimeRequest& request, Context& context, anime::net::Session& session) {
+	return library.createAnime(request, session);
+}
+LibraryResponse LibraryRouter::handle(const UpdateAnimeRequest& request, Context& context, anime::net::Session& session) {
+	return library.updateAnime(request,session);
+}
+LibraryResponse LibraryRouter::handle(const DeleteAnimeRequest& request, Context& context, anime::net::Session& session) {
+	return library.deleteAnime(request,session);
+}
+LibraryResponse LibraryRouter::handle(const AddEntriesRequest& request, Context& context, anime::net::Session& session) {
+	return library.addEntries(request,session);
+}
+LibraryResponse LibraryRouter::handle(const UpdateEntriesRequest& request, Context& context, anime::net::Session& session) {
+	return library.updateEntries(request,session);
+}
+LibraryResponse LibraryRouter::handle(const TransferEntryRequest& request, Context& context, anime::net::Session& session) {
+	return library.transferEntry(request,session);
+}
+LibraryResponse LibraryRouter::handle(const DeleteEntriesRequest& request, Context& context, anime::net::Session& session) {
+	return library.deleteEntries(request,session);
+}
+LibraryResponse LibraryRouter::handle(const GetAnimeRequest& request, Context& context, anime::net::Session& session) {
+	return library.getAnime(request,session);
+}
+LibraryResponse LibraryRouter::handle(const GetEntriesRequest& request, Context& context, anime::net::Session& session) {
+	return library.getEntries(request,session);
+}
+LibraryResponse LibraryRouter::handle(const SearchAnimeRequest& request, Context& context, anime::net::Session& session) {
+	return library.searchAnime(request,session);
+}
+
 } // namespace anime::app

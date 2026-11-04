@@ -85,7 +85,7 @@ void fileProcessor::saveFile(const std::filesystem::path& file, Source& source, 
 			nullptr
 		)) {
 			DWORD err = GetLastError();
-			std::cerr << "ReplaceFileW failed with error code: " << err << "\n";
+			throw std::runtime_error("ReplaceFileW failed with error code: " + std::to_string(err));
 			fs::remove(temp);
 		}
 	} else {
@@ -95,7 +95,7 @@ void fileProcessor::saveFile(const std::filesystem::path& file, Source& source, 
 			MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH
 			)) {
 			DWORD err = GetLastError();
-			std::cerr << "MoveFileExW failed with error code: " << err << "\n";
+			throw std::runtime_error("MoveFileExW failed with error code:" + std::to_string(err));
 			fs::remove(temp);
 		}
 	}

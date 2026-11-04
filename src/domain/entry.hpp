@@ -92,12 +92,5 @@ ie, schemaData[0] = fieldMap[0]
 prevents errors caused by schema and EntryMeta field order differences
 */
 
-struct EntryUpdate {
-	size_t id;
-	UPDATE_OPERATION op;
-	size_t fieldIndex;
-	anime::storage::recordField value;
-};
-
 } // namespace anime::domain
 

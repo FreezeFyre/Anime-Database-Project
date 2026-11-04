@@ -179,6 +179,14 @@ recordData groupDB::getTableRecord(fileType type, size_t sectionIndex, size_t ro
 	return recordData();
 }
 
+// Indexing
+void groupDB::constructIdMap(std::unordered_map<GroupId, size_t>& idMap) const {
+	idMap.clear();
+	for (size_t i = 0; i < groups.size(); i++) {
+		idMap.emplace(groups[i].id, i);
+	}
+}
+
 // Validation
 std::vector<size_t> groupDB::validateSchema(const schemaData& schema) const {
 	return anime::domain::validateGroupSchema(schema);
@@ -215,12 +223,15 @@ GroupId groupDB::addGroup(const Group& group) {
 	idMap.insert({result.id, groups.size()-1});
 	return result.id;
 }
-void groupDB::updateGroups(const std::vector<GroupUpdate>& updates) {
+std::vector<GroupId> groupDB::updateGroups(const std::vector<GroupUpdate>& updates) {
+
+	std::unordered_set<GroupId> set;
 	for (const auto& update : updates) {
 		if (update.fieldIndex >= groupMetadata.size()) {throw std::runtime_error("Update field out of bounds");}
 		if (update.fieldIndex == 0) { throw std::runtime_error("Group ID updates are not allowed."); }
 		if (update.fieldIndex == 1) { throw std::runtime_error("Rank updates are not supported yet."); }
 
+		set.emplace(update.id);
 		auto index = idMap.at(update.id);
 		switch (update.operation) {
 			case UPDATE_OPERATION::SET_FIELD: {
@@ -273,6 +284,7 @@ void groupDB::updateGroups(const std::vector<GroupUpdate>& updates) {
 				throw std::runtime_error("Unknown update operation.");
 		}
 	}
+	return {set.begin(), set.end()};
 }
 void groupDB::deleteGroup(const GroupId id) {
 	auto index = idMap.at(id);
@@ -287,8 +299,7 @@ void groupDB::deleteGroup(const GroupId id) {
 	}
 
 	groups.erase(groups.begin() + index); // may want to use swap and popback or erase_if instead
-	idMap.erase(id);
-	//constructIdMap(idMap);
+	constructIdMap(idMap);
 }
 
 void groupDB::setField(Group& group, size_t fieldIndex, const recordField& value) {

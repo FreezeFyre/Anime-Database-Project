@@ -7,6 +7,7 @@ namespace anime::app {
 struct Context;
 using anime::protocol::AuthRequest;
 using anime::protocol::EntryRequest;
+using anime::protocol::LibraryRequest;
 using anime::protocol::AppRequest;
 using anime::protocol::AppResponse;
 using anime::net::Session;
@@ -18,6 +19,7 @@ class Router {
 	private:
 	    AppResponse handle(const EntryRequest& request, uint32_t id, Context& context, Session& session);
 		AppResponse handle(const AuthRequest& request, uint32_t id, Context& context, Session& session);
+		AppResponse handle(const LibraryRequest& request, uint32_t id, Context& context, Session& session);
 
 };
 

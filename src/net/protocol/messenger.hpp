@@ -14,6 +14,7 @@ class WebSocketCodec {
 	private:
 	    ByteVector encodeHandler(const EntryResponse& response);
 	    ByteVector encodeHandler(const AuthResponse& response);
+		ByteVector encodeHandler(const LibraryResponse& response);
 
 };
 

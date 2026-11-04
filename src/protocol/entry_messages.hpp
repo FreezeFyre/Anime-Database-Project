@@ -8,7 +8,6 @@ namespace anime::protocol {
 
 using anime::domain::Entry;
 using anime::domain::EntryId;
-using anime::domain::EntryUpdate;
 using anime::storage::schemaData;
 using anime::storage::sectionHeader;
 using anime::filtering::FilterRequest;
@@ -20,6 +19,7 @@ struct Update {
 	anime::storage::dataType type;
 	anime::storage::recordField value;
 };
+using EntryUpdate = Update;
 
 struct EntryGetRequest {
 	std::vector<EntryId> ids;

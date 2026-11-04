@@ -36,6 +36,8 @@ set(PROJECT_CORE_SOURCES
 	"src/databases/auth/auth_service.cpp"
 	"src/filtering/filterProcessor.cpp"
 	"src/protocol/entry_codec.cpp"
+	"src/protocol/codec.cpp"
+	"src/protocol/library_codec.cpp"
 	"src/net/protocol/messenger.cpp"
 	"src/net/protocol/data.cpp"
 	"src/net/transport/net_service.cpp"

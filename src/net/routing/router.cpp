@@ -26,5 +26,13 @@ AppResponse Router::handle(const AuthRequest& request, uint32_t id, Context& con
 	AuthResponse resp = router.route(request, context, session);
 	return AppResponse{id, resp, false}; // Bool is false as it is ignored for http
 }
+AppResponse Router::handle(const LibraryRequest& request, uint32_t id, Context & context, Session & session) {
+	LibraryService library{context.entries,context.groups,context.entriesMutex,context.groupsMutex};
+	LibraryRouter router(library);
+
+	LibraryResponse resp = router.route(request, context, session);
+	return AppResponse{id, resp, false};
+}
+
 
 } // namespace anime::app

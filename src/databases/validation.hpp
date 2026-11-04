@@ -290,6 +290,9 @@ void validateField(const FieldInfo& fieldInfo, const T& value) {
 			}
 			break;
 		}
+		case VALUE_REFERENCE_TYPE::FOREIGN_RECORD: {
+			break;
+		}
 		case VALUE_REFERENCE_TYPE::NONE: {
 			break;
 		}

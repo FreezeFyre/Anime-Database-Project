@@ -103,35 +103,46 @@ EntryResponse LibraryService::filterEntries(const EntryFilterRequest& request, c
 
 
 Result<GroupId> LibraryService::createAnime(const CreateAnimeRequest& request, const Session& session) {
-	{
-		try {
-			std::scoped_lock locks(entriesMutex, groupsMutex);
-
-			auto groupId = groups.addGroup(request.group);
-
-			for (auto entry : request.entries) {
-				entry.ip_group = groupId;
-				entries.addEntry(entry, session.role);
-			}
-			groups.compile(groupId,entries);
-			return groupId;
-		} catch (const std::exception& e) {
-			return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
-		}
-	}
-}
-Result<void> LibraryService::updateAnime(const UpdateAnimeRequest& request, const Session& session) {
-	return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::NOT_IMPLEMENTED, "updateAnime is not implemented."});
-
 	try {
 		std::scoped_lock locks(entriesMutex, groupsMutex);
 
+		auto groupId = groups.addGroup(request.group);
 
+		std::vector<EntryId> members = request.entries | std::views::transform([&](const auto& entry){
+				auto buffer = entry;
+				buffer.ip_group = groupId;
+				return entries.addEntry(buffer, session.role);
+			}) | std::ranges::to<std::vector<EntryId>>();
+
+
+		groups.attachMembers({{groupId, members}});
+		groups.compile(groupId,entries);
+		return groupId;
 	} catch (const std::exception& e) {
 		return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
 	}
+}
+Result<void> LibraryService::updateAnime(const UpdateAnimeRequest& request, const Session& session) {
+	try {
+		std::scoped_lock locks(entriesMutex, groupsMutex);
 
-	return {}; // Returns the id of that anime(its group id)
+		auto groupIds = groups.updateGroups(request.groupUpdates);
+		auto childrenIds = entries.updateEntry(request.entryUpdates,session.role);
+		auto children = entries.getEntries(childrenIds);
+
+		auto parents = children | std::views::transform([&](const auto& entry) { return entry.ip_group; }) | std::ranges::to<std::vector<GroupId>>();
+
+		
+		groupIds.append_range(parents);
+		std::ranges::sort(groupIds);
+		groupIds.erase(std::ranges::unique(groupIds).begin(), groupIds.end());
+
+		groups.compile(groupIds, entries);
+		return {};
+	} catch (const std::exception& e) {
+		return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
+	}
+	return {};
 }
 Result<void> LibraryService::deleteAnime(const DeleteAnimeRequest& request, const Session& session) {
 	{
@@ -153,38 +164,50 @@ Result<void> LibraryService::deleteAnime(const DeleteAnimeRequest& request, cons
 		}
 	}
 }
-Result<std::vector<Entry>> LibraryService::addEntries(const AddEntriesRequest& request, const Session& session) {
+Result<std::vector<EntryId>> LibraryService::addEntries(const AddEntriesRequest& request, const Session& session) {
 	{
 		try {
 			std::scoped_lock locks(entriesMutex, groupsMutex);
 
-			const auto& entryIds =
-				request.entries | std::views::transform([](const auto& entry) -> const auto& { return entry.id; }) |
-				std::ranges::to<std::vector<EntryId>>();
-			groups.updateGroups(std::vector<GroupUpdate>{{request.id, UPDATE_OPERATION::ADD_VALUE, 4, anime::storage::dataType::VECU32, entryIds}});
+			if (!groups.contains(request.id)) { return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, " Target group:" + std::to_string(request.id) + ", does not exist" }); }
 
-			for (const auto& entry : request.entries) {
-				entries.addEntry(entry, session.role);
-			}
+			const auto& entryIds =
+				request.entries | std::views::transform([&](const auto& entry) {auto buffer = entry; buffer.ip_group = request.id; return entries.addEntry(buffer, session.role); }) |
+				std::ranges::to<std::vector<EntryId>>();
+
+			groups.updateGroups(std::vector<GroupUpdate>{{request.id, UPDATE_OPERATION::ADD_VALUE, 4, anime::storage::dataType::VECU32, entryIds}});
 			groups.compile(request.id, entries);
-			return request.entries;
+			return entryIds;
 		} catch (const std::exception& e) {
 			return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
 		}
 	}
 }
 Result<void> LibraryService::updateEntries(const UpdateEntriesRequest& request, const Session& session) {
-	return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::NOT_IMPLEMENTED, "updateEntries is not implemented."});
+	try {
+		std::scoped_lock locks(entriesMutex, groupsMutex);
+		const auto& members = entries.updateEntry(request.updates,session.role);
+		auto parents = members
+			| std::views::transform([&](const auto id) -> GroupId { return std::get<GroupId>(entries.getField(id, "ip_group")); })
+			| std::ranges::to<std::vector<GroupId>>();
+		groups.compile(parents, entries);
+		return {};
+	} catch (const std::exception& e) {
+		return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
+	}
+
 }
 Result<void> LibraryService::transferEntry(const TransferEntryRequest& request, const Session& session) {
 	{
 		try {
 			std::scoped_lock locks(entriesMutex, groupsMutex);
 
-			GroupId old = std::get<std::uint32_t>(entries.getField(request.entry, 14)); // For once i get compile individual group
-			entries.updateEntry(std::vector<EntryUpdate>{{request.entry, UPDATE_OPERATION::SET_FIELD, 14, request.group}}, session.role);
+			if (!groups.contains(request.group)) {return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, " Target group" + std::to_string(request.group) + "does not exist. "}); }
 
-			groups.updateGroups(std::vector<GroupUpdate>{{old,UPDATE_OPERATION::REMOVE_VALUE,4,anime::storage::dataType::VECU32,request.entry},{request.group,UPDATE_OPERATION::ADD_VALUE,4,anime::storage::dataType::VECU32,request.entry}});
+			GroupId old = std::get<std::uint32_t>(entries.getField(request.entry, 14)); // For once i get compile individual group
+			entries.updateEntry(std::vector<EntryUpdate>{{request.entry, UPDATE_OPERATION::SET_FIELD, 14,anime::storage::dataType::U32, request.group}}, session.role);
+
+			groups.updateGroups(std::vector<GroupUpdate>{{old,UPDATE_OPERATION::REMOVE_VALUE,4,anime::storage::dataType::VECU32, std::vector<EntryId>{request.entry}},{request.group,UPDATE_OPERATION::ADD_VALUE,4,anime::storage::dataType::VECU32, std::vector<EntryId>{request.entry}}});
 			groups.compile(old,entries);groups.compile(request.group,entries);
 		} catch (const std::exception& e) {
 			return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
@@ -193,7 +216,7 @@ Result<void> LibraryService::transferEntry(const TransferEntryRequest& request, 
 	return {};
 }
 Result<void> LibraryService::deleteEntries(const DeleteEntriesRequest& request, const Session& session) {
-	{
+	try {
 		std::scoped_lock locks(entriesMutex, groupsMutex);
 
 		auto parents = request.entries
@@ -204,7 +227,6 @@ Result<void> LibraryService::deleteEntries(const DeleteEntriesRequest& request, 
 
 		std::ranges::sort(parents);
 		parents.erase(std::ranges::unique(parents).begin(), parents.end());
-
 		for (const auto& id : request.entries) {
 			try {
 				entries.deleteEntry(id, session.role); // need to implement delete by vector for safe deletion and errors
@@ -213,11 +235,23 @@ Result<void> LibraryService::deleteEntries(const DeleteEntriesRequest& request, 
 			}
 		}
 
+		std::unordered_set<EntryId> removals(request.entries.begin(), request.entries.end());
+		std::unordered_map<GroupId, std::vector<EntryId>> memberships;
+		for (const Group& group : groups.getGroups(parents)) {
+			memberships.emplace(group.id, group.members);
+		}
+		for (auto& [parent, members] : memberships) {
+			std::erase_if(members, [&](EntryId id) { return removals.contains(id); });
+		}
+
 		try {
+			groups.attachMembers(memberships);
 			groups.compile(parents,entries);
 		} catch (const std::exception& e) {
 			return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
 		}
+	} catch (const std::exception& e) {
+		return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
 	}
 	return {};
 }
@@ -231,14 +265,13 @@ Result<std::vector<Group>> LibraryService::getAnime(const GetAnimeRequest& reque
 	}
 }
 Result<std::vector<Entry>> LibraryService::getEntries(const GetEntriesRequest& request, const Session& session) {
-	return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::NOT_IMPLEMENTED, "getEntries is not implemented."});
+	try {
+		std::shared_lock lock(entriesMutex);
 
-	/* Unfinished implementation draft, preserved for continued development.
-	// Gets a anime via entry ids
-
-	std::vector<Entry> res;
-	return Result(); // Returns a entrys
-	*/
+		return entries.getEntries(request.entries);
+	} catch (const std::exception& e) {
+		return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
+	}
 }
 Result<std::vector<GroupId>> LibraryService::searchAnime(const SearchAnimeRequest& request, const Session& session) {
 	return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::NOT_IMPLEMENTED, "searchAnime is not implemented."});

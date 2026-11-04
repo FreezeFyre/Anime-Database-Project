@@ -7,6 +7,7 @@
 #include "io/fileHandling.hpp"
 #include "validation.hpp"
 #include "filtering/filterProcessor.hpp"
+#include "../protocol/entry_messages.hpp"
 
 namespace anime::storage {
 
@@ -17,8 +18,8 @@ using anime::domain::GroupId;
 using anime::domain::IndexStructure;
 using anime::domain::entryMetadata;
 using anime::domain::entryFieldNames;
-using anime::domain::EntryUpdate;
 using anime::schema::FieldInfo;
+using anime::protocol::EntryUpdate;
 using anime::filtering::FilterRequest;
 using anime::filtering::filterProcessor;
 
@@ -79,7 +80,7 @@ class entryDB {
 
 		// Entry operations
 		EntryId              addEntry          (const Entry& entry, const USER_ACCOUNT_ROLE& role);
-		void                 updateEntry       (const std::vector<EntryUpdate>& updates, const USER_ACCOUNT_ROLE& role);
+		std::vector<EntryId> updateEntry       (const std::vector<EntryUpdate>& updates, const USER_ACCOUNT_ROLE& role);
 		std::vector<Entry>   getEntries        (std::vector<EntryId> ids);
 		void                 deleteEntry       (const EntryId id, const USER_ACCOUNT_ROLE& role);
 		std::vector<EntryId> searchEntryTitles (const std::string& term);

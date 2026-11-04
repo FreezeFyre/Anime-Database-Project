@@ -1,5 +1,5 @@
 #include "net/protocol/messenger.hpp"
-#include "protocol/entry_codec.hpp"
+#include "protocol/codec.hpp"
 
 
 
@@ -14,7 +14,7 @@ AppRequest WebSocketCodec::decode(const ByteVector& byteStream) {
 	}
 	COM_TYPE comType = static_cast<COM_TYPE>(decoder.read<std::uint8_t>());
 	DOMAIN_TYPE domain = static_cast<DOMAIN_TYPE>(decoder.read<std::uint8_t>());
-	ACTION_TYPE action = static_cast<ACTION_TYPE>(decoder.read<std::uint8_t>());
+	std::uint8_t action = decoder.read<std::uint8_t>();
 	uint32_t id = decoder.read<std::uint32_t>();
 	uint32_t payloadSize = decoder.read<std::uint32_t>();
 
@@ -26,9 +26,14 @@ AppRequest WebSocketCodec::decode(const ByteVector& byteStream) {
 
 	switch (domain) {
 		case DOMAIN_TYPE::ENTRY: {
-			EntryWebSocketCodec entryCodec;
-			EntryRequest entryReq = entryCodec.decode(action, payload);
+			EntryWSC entryCodec;
+			EntryRequest entryReq = entryCodec.decode(static_cast<ACTION_TYPE>(action), payload);
 			return AppRequest{comType, domain, action, id, std::move(entryReq)};
+		}
+		case DOMAIN_TYPE::LIBRARY: {
+			LibraryWSC libraryCodec;
+			LibraryRequest libraryReq = libraryCodec.decode(static_cast<LIBRARY_ACTION>(action), payload);
+			return AppRequest{comType, domain, action, id, std::move(libraryReq)};
 		}
 		default:
 			throw std::runtime_error("Unknown WebSocket domain.");
@@ -58,11 +63,14 @@ ByteVector WebSocketCodec::encode(const AppRequest& request, const AppResponse& 
 }
 
 ByteVector WebSocketCodec::encodeHandler(const EntryResponse& response) {
-	EntryWebSocketCodec codec;
-	return codec.encode(response);
+	return EntryWSC{}.encode(response);
 }
 ByteVector WebSocketCodec::encodeHandler(const AuthResponse& response) {
 	throw std::runtime_error("[WebSocketCodec][ERROR] Auth not supported on web-socket.");
+}
+
+ByteVector WebSocketCodec::encodeHandler(const LibraryResponse& response) {
+	return LibraryWSC{}.encode(response);
 }
 
 } // namespace anime::protocol

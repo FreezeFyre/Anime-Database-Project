@@ -294,12 +294,12 @@ EntryId entryDB::addEntry(const Entry& entry, const USER_ACCOUNT_ROLE& role) {
 
 	return result.id;
 }
-void entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const USER_ACCOUNT_ROLE& role) {
+std::vector<EntryId> entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const USER_ACCOUNT_ROLE& role) {
 	if (role == USER_ACCOUNT_ROLE::VIEWER) {
 		throw std::runtime_error("User does not meet account permission level to update entries. \n");
-		return;
 	}
 
+	std::unordered_set<EntryId> set;
 	for (const EntryUpdate& update : updates) {
 		if (update.fieldIndex >= entryMetadata.size()) {
 			throw std::runtime_error("Update field out of bounds");
@@ -320,14 +320,15 @@ void entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const USER_AC
 		if (update.fieldIndex == 1) {
 			throw std::runtime_error("Rank updates are not supported yet.");
 		}
-		
-		switch (update.op) {
+
+		set.emplace(update.id);
+		switch (update.operation) {
 			case UPDATE_OPERATION::SET_FIELD: {
 				try {
 					setField(database[index], update.fieldIndex, update.value);
-				}
-				catch (const std::exception& e) {
-					std::cerr << "Error Setting Entry" << update.id << "Field: " << update.fieldIndex << ": " << e.what() << ".\n";
+				} catch (const std::exception& e) {
+					std::cerr << "Error Setting Entry" << update.id << "Field: " << update.fieldIndex << ": "
+						      << e.what() << ".\n";
 					throw; // Rethrow to allow caller to handle as well
 				}
 				break;
@@ -335,35 +336,36 @@ void entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const USER_AC
 			case UPDATE_OPERATION::CLEAR_FIELD: {
 				try {
 					clearField(database[index], update.fieldIndex);
-				}
-				catch (const std::exception& e) {
-					std::cerr << "Error Clearing Entry" << update.id << "Field: " << update.fieldIndex << ": " << e.what() << ".\n";
+				} catch (const std::exception& e) {
+					std::cerr << "Error Clearing Entry" << update.id << "Field: " << update.fieldIndex << ": "
+						      << e.what() << ".\n";
 					throw; // Rethrow to allow caller to handle as well
 				}
 				break;
 			}
 			case UPDATE_OPERATION::ADD_VALUE: {
-				if (entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU8 and entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU16) {
+				if (entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU8 and
+					entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU16) {
 					throw std::runtime_error("Add value only works with vectors");
 				}
 				try {
 					addFieldValue(database[index], update.fieldIndex, update.value);
-				}
-				catch (const std::exception& e) {
+				} catch (const std::exception& e) {
 					std::cerr << "Error adding value to Entry" << update.id << "Field: " << e.what() << ".\n";
 					throw; // Rethrow to allow caller to handle as well
 				}
 				break;
 			}
 			case UPDATE_OPERATION::REMOVE_VALUE: {
-				if (entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU8 and entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU16) {
+				if (entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU8 and
+					entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU16) {
 					throw std::runtime_error("Remove value only works with vectors");
 				}
 				try {
 					removeFieldValue(database[index], update.fieldIndex, update.value);
-				}
-				catch (const std::exception& e) {
-					std::cerr << "Error Removing value from entry" << update.id << "Field: " << update.fieldIndex << ": " << e.what() << ".\n";
+				} catch (const std::exception& e) {
+					std::cerr << "Error Removing value from entry" << update.id << "Field: " << update.fieldIndex
+						      << ": " << e.what() << ".\n";
 					throw; // Rethrow to allow caller to handle as well
 				}
 				break;
@@ -372,6 +374,7 @@ void entryDB::updateEntry(const std::vector<EntryUpdate>& updates, const USER_AC
 				throw std::runtime_error("Unknown update operation.");
 		}
 	}
+	return {set.begin(), set.end()};
 }
 std::vector<Entry> entryDB::getEntries(std::vector<EntryId> ids) {
 	if (ids.empty()) {
