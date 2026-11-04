@@ -1,7 +1,8 @@
 #pragma once
 
-#include "protocol/entry_messages.hpp"
 #include "net/transport/session.hpp"
+#include "protocol/entry_messages.hpp"
+#include "protocol/library_messages.hpp"
 
 #include "../databases/library_service.hpp"
 
@@ -17,6 +18,9 @@ using anime::protocol::EntrySearchRequest;
 using anime::protocol::EntryFilterRequest;
 using anime::protocol::EntryRequest;
 using anime::protocol::EntryResponse;
+using anime::protocol::LibraryResponse;
+using anime::protocol::LibraryRequest;
+
 class EntryRouter {
 	public:
 		explicit EntryRouter(anime::storage::LibraryService& service) : library(service) {}
@@ -37,20 +41,31 @@ class LibraryRouter {
 	public:
 		explicit LibraryRouter(anime::storage::LibraryService& service) : library(service) {}
 
-		LibraryResponse route(const LibraryRequest& request, Context& context, anime::net::Session& session);
+		anime::protocol::LibraryResponse route(const anime::protocol::LibraryRequest& request, Context& context,
+		                                       anime::net::Session& session);
 
 	private:
 		anime::storage::LibraryService& library;
-		LibraryResponse handle(const CreateAnimeRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const UpdateAnimeRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const DeleteAnimeRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const AddEntriesRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const UpdateEntriesRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const TransferEntryRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const DeleteEntriesRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const GetAnimeRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const GetEntriesRequest& request, Context& context, anime::net::Session& session);
-		LibraryResponse handle(const SearchAnimeRequest& request, Context& context, anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::CreateAnimeRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::UpdateAnimeRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::DeleteAnimeRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::AddEntriesRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::UpdateEntriesRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::TransferEntryRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::DeleteEntriesRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::GetAnimeRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::GetEntriesRequest& request, Context& context,
+		                                        anime::net::Session& session);
+		anime::protocol::LibraryResponse handle(const anime::protocol::SearchAnimeRequest& request, Context& context,
+		                                        anime::net::Session& session);
 };
 
 } // namespace anime::app

@@ -9,22 +9,23 @@
 
 
 namespace anime::net::http {
-using anime::protocol::ByteVector;
-using anime::protocol::AuthResponse;
-using anime::protocol::EntryResponse;
-using anime::protocol::AppRequest;
-using anime::protocol::AppResponse;
+	using anime::protocol::AppRequest;
+	using anime::protocol::AppResponse;
+	using anime::protocol::AuthResponse;
+	using anime::protocol::ByteVector;
+	using anime::protocol::EntryResponse;
+	using anime::protocol::LibraryResponse;
 
-inline constexpr std::string_view APP_HTTP_VERSION = "HTTP/1.1";
+	inline constexpr std::string_view APP_HTTP_VERSION = "HTTP/1.1";
 
-struct HttpRequest {
-	std::string method;
-	std::string target;
-	std::string version;
+	struct HttpRequest {
+		std::string method;
+		std::string target;
+		std::string version;
 
-	std::unordered_map<std::string, std::string> headers;
-	ByteVector body;
-};
+		std::unordered_map<std::string, std::string> headers;
+		ByteVector body;
+	};
 
 
 class HttpCodec {
@@ -48,6 +49,7 @@ class HttpAppCodec {
 
 		HttpResponse encodeHandler(const EntryResponse& response);
 		HttpResponse encodeHandler(const AuthResponse& response);
+		HttpResponse encodeHandler(const LibraryResponse& response);
 };
 
 } // namespace anime::net::http

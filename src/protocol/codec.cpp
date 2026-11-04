@@ -14,9 +14,30 @@ Update BaseWSC::readUpdate(ByteReader& reader) {
 
 	r.id = reader.read<std::uint32_t>();
 	r.operation = static_cast<UPDATE_OPERATION>(reader.read<std::uint8_t>());
+	switch (r.operation) {
+		case UPDATE_OPERATION::SET_FIELD:
+		case UPDATE_OPERATION::CLEAR_FIELD:
+		case UPDATE_OPERATION::ADD_VALUE:
+		case UPDATE_OPERATION::REMOVE_VALUE:
+			break;
+		default:
+			throw std::runtime_error("Unknown update operation.");
+	}
 	r.fieldIndex = reader.read<std::uint8_t>();
 	r.type = static_cast<dataType>(reader.read<std::uint8_t>());
 	switch (r.type) {
+		case dataType::BOOL:
+			r.value = reader.read<bool>();
+			break;
+		case dataType::U64:
+			r.value = reader.read<std::uint64_t>();
+			break;
+		case dataType::VECU32:
+			r.value = reader.read<std::vector<std::uint32_t>>();
+			break;
+		case dataType::VECU64:
+			r.value = reader.read<std::vector<std::uint64_t>>();
+			break;
 		case dataType::U8: {
 			r.value = reader.read<std::uint8_t>();
 			break;

@@ -19,6 +19,9 @@ AppRequest WebSocketCodec::decode(const ByteVector& byteStream) {
 	uint32_t payloadSize = decoder.read<std::uint32_t>();
 
 	ByteVector payload;
+	if (payloadSize != byteStream.size() - decoder.offset) {
+		throw std::runtime_error("Application payload size does not match the message.");
+	}
 	payload.reserve(payloadSize);
 	for (uint32_t i = 0; i < payloadSize; ++i) {
 		payload.push_back(decoder.read<std::uint8_t>());

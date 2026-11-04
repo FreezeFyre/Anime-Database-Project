@@ -105,6 +105,50 @@ void transportAndHandlerCompatibility(anime::app::Context& context) {
 	assert(httpResponse.statusCode==405);
 }
 
+void libraryWebSocketRoundTrip() {
+	anime::app::Context context;
+	anime::net::Session session;
+	Group group;
+	group.name = "Codec fixture";
+	const auto groupId = context.groups.addGroup(group);
+	WebSocketCodec codec;
+	anime::app::Router router;
+
+	const auto get = [&](GroupId id, std::uint32_t requestId, bool success) {
+		ByteWriter request;
+		request.write(ENCODE_VERSION);
+		request.write(static_cast<std::uint8_t>(COM_TYPE::REQ));
+		request.write(static_cast<std::uint8_t>(DOMAIN_TYPE::LIBRARY));
+		request.write(static_cast<std::uint8_t>(LIBRARY_ACTION::GET_ANIME));
+		request.write(requestId);
+		request.write(std::uint32_t{8});
+		request.write(std::vector<GroupId>{id});
+
+		auto decoded = codec.decode(request.buffer);
+		const auto response = router.route(decoded, context, session);
+		const auto bytes = codec.encode(decoded, response);
+		ByteReader reader{bytes};
+		assert(reader.read<std::uint32_t>() == ENCODE_VERSION);
+		assert(reader.read<std::uint8_t>() == static_cast<std::uint8_t>(COM_TYPE::RESP));
+		assert(reader.read<std::uint8_t>() == static_cast<std::uint8_t>(DOMAIN_TYPE::LIBRARY));
+		assert(reader.read<std::uint8_t>() == static_cast<std::uint8_t>(LIBRARY_ACTION::GET_ANIME));
+		assert(reader.read<std::uint32_t>() == requestId);
+		assert(reader.read<std::uint32_t>() == bytes.size() - 15);
+		assert(reader.read<std::uint8_t>() == static_cast<std::uint8_t>(success));
+		if (success) {
+			assert(reader.read<std::uint32_t>() == 1);
+			assert(reader.read<GroupId>() == groupId);
+			assert(reader.read<std::uint32_t>() == 0);
+			assert(reader.read<std::string>() == group.name);
+		} else {
+			assert(reader.read<std::uint8_t>() == static_cast<std::uint8_t>(LIBRARY_ERROR_CODE::ERROR_UNKOWN));
+			assert(!reader.read<std::string>().empty());
+		}
+	};
+	get(groupId, 45, true);
+	get(groupId + 1, 46, false);
+}
+
 void unfinishedLibraryOperationsDoNotMutate() {
 	anime::app::Context context;
 	const fs::path fixtures=ANIME_FIXTURE_DIR;
@@ -139,7 +183,7 @@ void unfinishedLibraryOperationsDoNotMutate() {
 	newGroup.name="Unimplemented group";
 	check(library.createAnime(CreateAnimeRequest{newGroup,{entry}},session),"createAnime");
 	check(library.updateAnime(UpdateAnimeRequest{{groupUpdate}},session),"updateAnime");
-	check(library.deleteAnime(DeleteAnimeRequest{groupId},session),"deleteAnime");
+	check(library.deleteAnime(DeleteAnimeRequest{{groupId}}, session), "deleteAnime");
 	check(library.addEntries(AddEntriesRequest{groupId,{entry}},session),"addEntries");
 	check(library.updateEntries(UpdateEntriesRequest{{entryUpdate}},session),"updateEntries");
 	check(library.transferEntry(TransferEntryRequest{entry.id,groupId},session),"transferEntry");
@@ -152,6 +196,10 @@ void unfinishedLibraryOperationsDoNotMutate() {
 }
 
 int main(int argc, char* argv[]) {
+	if (argc == 2 && std::string_view(argv[1]) == "--library-websocket") {
+		libraryWebSocketRoundTrip();
+		return 0;
+	}
 	anime::app::Context context;
 	if(argc==2 && std::string_view(argv[1])=="--library-service") {
 		const fs::path fixtures=ANIME_FIXTURE_DIR;

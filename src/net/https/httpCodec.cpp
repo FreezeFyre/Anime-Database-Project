@@ -4,6 +4,7 @@
 // Need to rewrite logic cleaner just trying to get the basic idea down and also need to add normalization
 namespace anime::net::http {
 using namespace anime::protocol;
+anime::protocol::LibraryResponse;
 
 HttpRequest HttpCodec::decode(ByteVector& bytes) {
 	HttpRequest request;
@@ -99,7 +100,7 @@ AppRequest HttpAppCodec::decode(const HttpRequest& request) {
 			uint32_t id = 0;
 
 			auto req = codec.decode(action, path, request.headers, request.body);
-			return AppRequest{COM_TYPE::REQ, domain, action, id, req};
+			return AppRequest{COM_TYPE::REQ, domain, static_cast<std::uint8_t>(action), id, req};
 		}
 		default:
 			throw std::runtime_error("Unkown/Unsupported domain in target: " + request.target);
@@ -206,6 +207,15 @@ HttpResponse HttpAppCodec::encodeHandler(const EntryResponse& response) {
 HttpResponse HttpAppCodec::encodeHandler(const AuthResponse& response) {
 	AuthHttpCodec codec;
 	return codec.encode(response);
+}
+
+HttpResponse HttpAppCodec::encodeHandler(const LibraryResponse& response) {
+	const std::string error = "Library requests require WebSocket.";
+	return {std::string(APP_HTTP_VERSION),
+		    405,
+		    "Method Not Allowed",
+		    {{"Content-Type", "text/plain"}},
+		    ByteVector{error.begin(), error.end()}};
 }
 
 } // namespace anime::net::http

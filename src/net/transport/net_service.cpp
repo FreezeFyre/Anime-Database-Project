@@ -150,7 +150,13 @@ void NetService::websocketHandler(SocketHandle ClientSocket) {
 			continue;
 		}
 
-		AppRequest req = codec.decode(frame.payload);
+		AppRequest req;
+		try {
+			req = codec.decode(frame.payload);
+		} catch (const std::exception& error) {
+			std::cerr << "Invalid WebSocket request: " << error.what() << '\n';
+			break;
+		}
 		AppResponse resp = router.route(req, context, session);
 		ByteVector encResp = codec.encode(req, resp);
 

@@ -1,5 +1,5 @@
-#include "protocol/entry_codec.hpp"
 #include "domain/entry_schema.hpp"
+#include "protocol/codec.hpp"
 
 #include <cassert>
 #include <functional>
@@ -21,7 +21,7 @@ void expectError(const std::function<void()>& action, const std::string& message
 }
 
 void requestFixtures() {
-	EntryWebSocketCodec codec;
+	EntryWSC codec;
 	const ByteVector ids{0,0,0,2, 0,0,0,1, 0,0,1,0};
 	assert((std::get<EntryGetRequest>(codec.decode(ACTION_TYPE::ACT_GET, ids)).ids == std::vector<EntryId>{1,256}));
 	assert((std::get<EntryDeleteRequest>(codec.decode(ACTION_TYPE::ACT_DELETE, ids)).ids == std::vector<EntryId>{1,256}));
@@ -91,7 +91,7 @@ void byteLayout() {
 }
 
 void responseFixturesAndCreateRoundTrip() {
-	EntryWebSocketCodec codec;
+	EntryWSC codec;
 	assert((codec.encode({EntryIdsResponse{{1,256}},false}) == ByteVector{0,0,0,2,0,0,0,1,0,0,1,0}));
 	assert((codec.encode({EntrySuccessResponse{"OK"},false}) == ByteVector{0,0,0,2,'O','K'}));
 	assert((codec.encode({EntryErrorResponse{"bad"},false}) == ByteVector{0,0,0,3,'b','a','d'}));
@@ -115,13 +115,13 @@ void responseFixturesAndCreateRoundTrip() {
 }
 
 void schemaCompatibility() {
-	schemaData required{
-		{"title",schemaField::dataType::STR,schemaField::filterMode::FM_NONE},
-		{"id",schemaField::dataType::U32,schemaField::filterMode::FM_NONE},
-		{"rank",schemaField::dataType::U32,schemaField::filterMode::FM_RMV}
-	};
-	assert((validateEntrySchema(required)==std::vector<size_t>{2,0,1}));
-	auto duplicate=required; duplicate.push_back(required[0]);
+	schemaData required{{"title", schemaField::dataType::STR, schemaField::filterMode::FM_NONE},
+		                {"id", schemaField::dataType::U32, schemaField::filterMode::FM_NONE},
+		                {"rank", schemaField::dataType::U32, schemaField::filterMode::FM_RMV},
+		                {"ip_group", schemaField::dataType::U32, schemaField::filterMode::FM_MULTI_VALUE}};
+	assert((validateEntrySchema(required) == std::vector<size_t>{2, 0, 1, 14}));
+	auto duplicate = required;
+	duplicate.push_back(required[0]);
 	expectError([&]{validateEntrySchema(duplicate);},"Duplicate schema field: title");
 	auto wrong=required; wrong[0].type=schemaField::dataType::U8;
 	expectError([&]{validateEntrySchema(wrong);},"Schema field has incorrect data type: title");

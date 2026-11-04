@@ -134,6 +134,7 @@ add_test(NAME metadata_compile_test COMMAND metadata_compile_test)
 add_executable(entry_codec_test
 	"src/tests/entry_codec_test.cpp"
 	"src/protocol/entry_codec.cpp"
+	"src/protocol/codec.cpp"
 	"src/domain/entry_schema.cpp"
 	"src/filtering/filterProcessor.cpp"
 	"src/net/protocol/data.cpp"
@@ -141,9 +142,20 @@ add_executable(entry_codec_test
 target_include_directories(entry_codec_test PRIVATE src)
 add_test(NAME entry_codec_test COMMAND entry_codec_test)
 
+add_executable(library_codec_test
+	"src/tests/library_codec_test.cpp"
+	"src/protocol/library_codec.cpp"
+	"src/protocol/codec.cpp"
+	"src/net/protocol/data.cpp"
+)
+target_include_directories(library_codec_test PRIVATE src)
+add_test(NAME library_codec_test COMMAND library_codec_test)
+
+
 add_executable(entry_integration_test "src/tests/entry_integration_test.cpp" ${PROJECT_CORE_SOURCES})
 target_include_directories(entry_integration_test PRIVATE src)
 target_compile_definitions(entry_integration_test PRIVATE ANIME_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/io")
 target_link_libraries(entry_integration_test PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2 CURL::libcurl)
 add_test(NAME entry_integration_test COMMAND entry_integration_test)
 add_test(NAME library_service_test COMMAND entry_integration_test --library-service)
+add_test(NAME library_websocket_test COMMAND entry_integration_test --library-websocket)
