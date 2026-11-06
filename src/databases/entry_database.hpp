@@ -109,6 +109,7 @@ class entryDB {
 
 		// Validation
 		void validateTable(const std::string& title) const;
+		bool validateUniqueness() const;
 		bool validateIds() const;
 		bool validateRanks() const;
 		bool validateTitles() const;

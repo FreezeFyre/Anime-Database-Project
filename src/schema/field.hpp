@@ -24,6 +24,8 @@ struct FieldInfo {
 	VALUE_REFERENCE_TYPE reference = VALUE_REFERENCE_TYPE::NONE;
 	std::optional<Bound> bounds = std::nullopt;
 	std::string tableTitle;
+	UNIQUENESS uniqueness = UNIQUENESS::NONE;
+	EDIT_POLICY editPolicy = EDIT_POLICY::EDITABLE;
 };
 
 

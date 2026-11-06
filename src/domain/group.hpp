@@ -17,6 +17,8 @@
 namespace anime::domain {
 	using anime::schema::FIELD_PRESENCE;
 	using anime::schema::FieldInfo;
+	using anime::schema::UNIQUENESS;
+	using anime::schema::EDIT_POLICY;
 	using anime::schema::UPDATE_OPERATION;
 	using anime::schema::VALUE_REFERENCE_TYPE;
 	using anime::protocol::Update;
@@ -94,7 +96,9 @@ namespace anime::domain {
 			.info = {
 				.name = "id",
 				.type = schemaField::dataType::U32,
-				.presence = FIELD_PRESENCE::REQUIRED
+				.presence = FIELD_PRESENCE::REQUIRED,
+				.uniqueness = UNIQUENESS::ALL_VALUES,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::id
 		},GroupField{
@@ -102,33 +106,43 @@ namespace anime::domain {
 				.name = "rank",
 				.type = schemaField::dataType::U32,
 				.mode = schemaField::filterMode::FM_RMV,
-				.presence = FIELD_PRESENCE::REQUIRED
+				.presence = FIELD_PRESENCE::REQUIRED,
+				.uniqueness = UNIQUENESS::NON_ZERO,
+				.editPolicy = EDIT_POLICY::EDITABLE
 			},
 			.ptr = &Group::rank
 		},GroupField{
 			.info = {
 				.name = "name",
-				.type = schemaField::dataType::STR
+				.type = schemaField::dataType::STR,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::EDITABLE
 			},
 			.ptr = &Group::name
 		},GroupField{
 			.info = {
 				.name = "description",
-				.type = schemaField::dataType::STR
+				.type = schemaField::dataType::STR,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::EDITABLE
 			},
 			.ptr = &Group::description
 		},GroupField{
 			.info = {
 				.name = "members",
 				.type = schemaField::dataType::VECU32,
-				.presence = FIELD_PRESENCE::REQUIRED
+				.presence = FIELD_PRESENCE::REQUIRED,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::members
 		},GroupField{
 			.info = {
 				.name = "genres",
 				.type = schemaField::dataType::VECU32,
-				.mode = schemaField::filterMode::FM_MULTI_VALUE
+				.mode = schemaField::filterMode::FM_MULTI_VALUE,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::genres,
 			.rule = CompilationRule{
@@ -138,7 +152,9 @@ namespace anime::domain {
 		},GroupField{
 			.info = {
 				.name = "knownRuntimeMinutes",
-				.type = schemaField::dataType::U64
+				.type = schemaField::dataType::U64,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::knownRuntimeMinutes,
 			.rule = CompilationRule{
@@ -149,7 +165,9 @@ namespace anime::domain {
 			.info = {
 				.name = "episodeCount",
 				.type = schemaField::dataType::U32,
-				.presence = FIELD_PRESENCE::REQUIRED
+				.presence = FIELD_PRESENCE::REQUIRED,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::episodeCount,
 			.rule = CompilationRule{
@@ -161,7 +179,9 @@ namespace anime::domain {
 			.info = {
 				.name = "movieCount",
 				.type = schemaField::dataType::U32,
-				.presence = FIELD_PRESENCE::REQUIRED
+				.presence = FIELD_PRESENCE::REQUIRED,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::movieCount,
 			.rule = CompilationRule{
@@ -172,7 +192,9 @@ namespace anime::domain {
 			.info = {
 				.name = "seriesCount",
 				.type = schemaField::dataType::U32,
-				.presence = FIELD_PRESENCE::REQUIRED
+				.presence = FIELD_PRESENCE::REQUIRED,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::seriesCount,
 			.rule = CompilationRule{
@@ -182,7 +204,9 @@ namespace anime::domain {
 		},GroupField{
 			.info = {
 				.name = "fanServiceLevel",
-				.type = schemaField::dataType::U8
+				.type = schemaField::dataType::U8,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::fanServiceLevel,
 			.rule = CompilationRule{
@@ -192,7 +216,9 @@ namespace anime::domain {
 		},GroupField{
 			.info = {
 				.name = "status",
-				.type = schemaField::dataType::U8
+				.type = schemaField::dataType::U8,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::status,
 			.rule = CompilationRule{
@@ -202,19 +228,25 @@ namespace anime::domain {
 		},GroupField{
 			.info = {
 				.name = "runtimeComplete",
-				.type = schemaField::dataType::BOOL
+				.type = schemaField::dataType::BOOL,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::runtimeComplete
 		},GroupField{
 			.info = {
 				.name = "compiledFromEntryRevision",
-				.type = schemaField::dataType::U64
+				.type = schemaField::dataType::U64,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::compiledFromEntryRevision
 		},GroupField{
 			.info = {
 				.name = "compilationVersion",
-				.type = schemaField::dataType::U32
+				.type = schemaField::dataType::U32,
+				.uniqueness = UNIQUENESS::NONE,
+				.editPolicy = EDIT_POLICY::INTERNAL_ONLY
 			},
 			.ptr = &Group::compilationVersion
 		},

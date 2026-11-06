@@ -1,5 +1,6 @@
-#include "protocol/codec.hpp"
+#include "databases/validation.hpp"
 #include "domain/entry_schema.hpp"
+#include "protocol/codec.hpp"
 
 #include <type_traits>
 
@@ -103,7 +104,9 @@ Entry EntryWSC::readEntry(ByteReader& reader, std::vector<size_t>& fieldIndices)
 	for (size_t i = 0; i < fieldIndices.size(); i++) {
 		std::visit([&](const auto& memberPtr) {
 			using FieldType = std::remove_cvref_t<decltype(result.*memberPtr)>;
-			result.*memberPtr = reader.read<FieldType>();
+			auto value = reader.read<FieldType>();
+			anime::storage::validation::validateField(entryMetadata[fieldIndices[i]].info, recordField{value});
+			result.*memberPtr = std::move(value);
 		}, entryMetadata[fieldIndices[i]].ptr);
 	}
 	return result;

@@ -152,10 +152,12 @@ target_include_directories(library_codec_test PRIVATE src)
 add_test(NAME library_codec_test COMMAND library_codec_test)
 
 
-add_executable(entry_integration_test "src/tests/entry_integration_test.cpp" ${PROJECT_CORE_SOURCES})
+add_executable(entry_integration_test "src/tests/entry_integration_test.cpp" "src/tests/field_validation_test.cpp" ${PROJECT_CORE_SOURCES})
 target_include_directories(entry_integration_test PRIVATE src)
 target_compile_definitions(entry_integration_test PRIVATE ANIME_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/io")
 target_link_libraries(entry_integration_test PRIVATE ${PROJECT_COMMON_LIBS} unofficial::argon2::libargon2 CURL::libcurl)
 add_test(NAME entry_integration_test COMMAND entry_integration_test)
 add_test(NAME library_service_test COMMAND entry_integration_test --library-service)
 add_test(NAME library_websocket_test COMMAND entry_integration_test --library-websocket)
+
+add_test(NAME field_validation_test COMMAND entry_integration_test --field-validation)

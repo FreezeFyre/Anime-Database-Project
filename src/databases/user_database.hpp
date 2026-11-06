@@ -73,7 +73,7 @@ class userDB {
 	    bool validateUserIds() const;
 	    bool validateIdentityIds() const;
 	    bool validateEmail(const std::string& email) const;
-
+		void validateIdentity(const UserIdentity& identity) const;
 
 		// Utilities
 		recordField getUserField(size_t id, size_t fieldIndex) const;

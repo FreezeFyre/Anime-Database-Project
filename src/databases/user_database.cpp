@@ -21,8 +21,7 @@
 #include <vector>
 
 #include "database_ops.hpp"
-
-
+#include "validation.hpp"
 
 //====================================
 //				I/O
@@ -40,9 +39,13 @@ void userDB::load(const std::filesystem::path& filename) {
 		savePath = filename;
 	} catch (const std::exception& e) {
 		std::cerr << "Error Loading User Database: " << e.what() << "\n";
+		throw;
 	}
 }
 void userDB::save(const std::filesystem::path& filename) {
+	if (!validation::validateUniqueness(users, UserMeta) ||
+		!validation::validateUniqueness(identities, UserIdentityMeta))
+		throw std::runtime_error("User/identity uniqueness validation failed before save");
 	fileProcessor f;
 	try {
 		f.saveFile(filename, *this, fileType::HEADER_DATABASE);
@@ -51,6 +54,7 @@ void userDB::save(const std::filesystem::path& filename) {
 		std::clog << now << "\t" << "[INFO] User data saved to file. " << "\n ";
 	} catch (const std::exception& e) {
 		std::cerr << "Error Saving User Database: " << e.what() << "\n";
+		throw;
 	}
 }
 
@@ -87,11 +91,6 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 	using anime::storage::helpers::UnsignedInteger;
 	if (section.title == "USER_DATA") {
 
-		UserId id = std::get<UserId>(record[0]);
-		UserId expectedId = users.size();
-		if (id != expectedId) {
-			throw std::runtime_error("Non-sequential or corrupt ID in file. \n");
-		}
 
 		User user{};
 		for (size_t i = 0; i < userFieldMap.size(); i++) {
@@ -99,11 +98,14 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 
 			try {
 				validatePresence(record[i], fieldInfo);
+				validation::validateField(fieldInfo, record[i]);
 			}
 			catch (const std::exception& e) {
 				throw std::runtime_error("Error validating user record field \"" + std::to_string(userFieldMap[i]) + "\": " + e.what());
 			}
 
+			if (std::holds_alternative<std::monostate>(record[i]))
+				continue;
 			std::visit([&](auto memberPtr, const auto& value) {
 					using MemberType = std::remove_cvref_t<decltype(user.*memberPtr)>;
 					using ValueType = std::remove_cvref_t<decltype(value)>;
@@ -120,16 +122,14 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 			}, UserMeta[userFieldMap[i]].ptr, record[i]);
 		}
 
+		validation::validateUniqueness(users, user, UserMeta);
+		if (user.id >= nextUserId)
+			nextUserId = user.id + 1;
 		size_t index = users.size();
 		users.emplace_back(std::move(user));
 		userIdMap.emplace(static_cast<UserId>(users[index].id), index);
 	} else if (section.title == "IDENTITY_DATA") {
 
-		IdentityId id = std::get<IdentityId>(record[0]);
-		IdentityId expectedId = identities.size();
-		if (id != expectedId) {
-			throw std::runtime_error("Non-sequential or corrupt ID in file. \n");
-		}
 
 		UserIdentity identity{};
 
@@ -138,17 +138,24 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 
 			try {
 				validatePresence(record[i], fieldInfo);
+				validation::validateField(fieldInfo, record[i]);
 			}
 			catch (const std::exception& e) {
 				throw std::runtime_error("Error validating identity record field \"" + std::to_string(identityFieldMap[i]) + "\": " + e.what());
 			}
 
+			if (std::holds_alternative<std::monostate>(record[i]))
+				continue;
 			std::visit([&](auto memberPtr, const auto& value) {
 					using MemberType = std::remove_cvref_t<decltype(identity.*memberPtr)>;
 					using ValueType = std::remove_cvref_t<decltype(value)>;
 
 					if constexpr (std::is_same_v<MemberType, ValueType>) {
 						identity.*memberPtr = value;
+					} else if constexpr (std::same_as<MemberType, LoginProvider> && UnsignedInteger<ValueType>) {
+						if (value > static_cast<unsigned>(LoginProvider::GITHUB))
+							throw std::runtime_error("Invalid login provider");
+						identity.*memberPtr = static_cast<LoginProvider>(value);
 					} else if constexpr (UnsignedInteger<MemberType> && UnsignedInteger<ValueType>) {
 						identity.*memberPtr = anime::storage::helpers::checkedConvert<MemberType>(value);
 					} else {
@@ -157,10 +164,12 @@ void userDB::record(const sectionHeader& section, const recordData& record, cons
 			}, UserIdentityMeta[identityFieldMap[i]].ptr, record[i]);
 		}
 
+		validateIdentity(identity);
+		if (identity.id >= nextIdentityId)
+			nextIdentityId = identity.id + 1;
 		size_t index = identities.size();
 		identities.emplace_back(std::move(identity));
 		identityIdMap.emplace(static_cast<IdentityId>(identities[index].id), index);
-		nextIdentityId++;
 	} else {
 		throw std::runtime_error("Unknown section title for user database: " + section.title);
 	}
@@ -277,6 +286,9 @@ void userDB::addUser(const User& user) {
 	if (userIdMap.find(user.id) != userIdMap.end()) {
 		throw std::runtime_error("User with ID " + std::to_string(user.id) + " already exists.");
 	}
+	validation::validateUniqueness(users, user, UserMeta);
+	if (user.id >= nextUserId)
+		nextUserId = user.id + 1;
 	size_t index = users.size();
 	users.push_back(user);
 	userIdMap[user.id] = index;
@@ -298,9 +310,13 @@ void userDB::addIdentity(const UserIdentity& identity) {
 	if (identityIdMap.find(identity.id) != identityIdMap.end()) {
 		throw std::runtime_error("Identity with ID " + std::to_string(identity.id) + " already exists.");
 	}
+	validateIdentity(identity);
+	if (identity.id >= nextIdentityId)
+		nextIdentityId = identity.id + 1;
 	size_t index = identities.size();
 	identities.push_back(identity);
 	identityIdMap[identity.id] = index;
+	passwordMap = constructKeyMap(LoginProvider::PASSWORD);
 
 	auto now = std::chrono::system_clock::now();
 	std::clog << now << "\t" << "[INFO] New user identity add, User id: " << identity.id << "\n ";
@@ -310,12 +326,9 @@ void userDB::createAccount(const AuthCreateAccountRequest& request, const std::s
 	UserIdentity identity;
 	
 
-	// this all should work but i need to add duplicate verification and such, also need to add other login methods
 	user.id = nextUserId;
-	nextUserId++;
 	identity.userId = user.id;
 	identity.id = nextIdentityId;
-	nextIdentityId++;
 
 	user.displayName = request.displayName;
 	identity.provider = request.provider;
@@ -325,14 +338,14 @@ void userDB::createAccount(const AuthCreateAccountRequest& request, const std::s
 		case LoginProvider::PASSWORD: {
 			identity.passwordHash = argon_password;
 			identity.email = request.email;
-			passwordMap[request.email] = identity.id;
-			passwordMap[request.loginKey] = identity.id;
 			break;
 		}
 		default:
 			throw std::runtime_error("Invalid login provider for creating a account \n");
 	}
 
+	validation::validateUniqueness(users, user, UserMeta);
+	validateIdentity(identity);
 	addUser(user);
 	addIdentity(identity);
 	auto now = std::chrono::system_clock::now();
@@ -535,6 +548,20 @@ std::vector<size_t> userDB::validateIdentitySchema(const schemaData& schema) con
 
 	return fieldIndices;
 }
+void userDB::validateIdentity(const UserIdentity& identity) const {
+	validation::validateUniqueness(identities, identity, UserIdentityMeta);
+	if (identity.provider != LoginProvider::PASSWORD)
+		return;
+	for (const auto& stored : identities) {
+		if (stored.provider != LoginProvider::PASSWORD)
+			continue;
+		for (const auto& key : {identity.loginKey, identity.email}) {
+			if (!key.empty() && (key == stored.loginKey || key == stored.email))
+				throw std::runtime_error("Password login key/email is already in use");
+		}
+	}
+}
+
 bool userDB::validateEmail(const std::string& email) const {
 	if (email.size() < 4 or email.empty()) {
 		return false;

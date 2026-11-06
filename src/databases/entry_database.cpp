@@ -2,16 +2,20 @@
 // Anime List database implementation.
 // Created by Luke Raykovitz on 10/24/25.
 
+#include "database_ops.hpp"
+#include "domain/entry_schema.hpp"
+#include "validation.hpp"
 #include <algorithm>
 #include <cctype>
 #include <domain/entry.hpp>
 #include <domain/types.hpp>
 #include <exception>
 #include <filtering/filterProcessor.hpp>
-#include <io/file_types.hpp>
 #include <io/fileHandling.hpp>
+#include <io/file_types.hpp>
 #include <iostream>
 #include <schema/field.hpp>
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -19,9 +23,6 @@
 #include <utility>
 #include <variant>
 #include <vector>
-#include "database_ops.hpp"
-#include "domain/entry_schema.hpp"
-#include "validation.hpp"
 
 #include "group_database.hpp"
 
@@ -68,6 +69,8 @@ void entryDB::loadLookupTables(const std::filesystem::path& file) {
 
 }
 void entryDB::saveEntries(const std::filesystem::path& file) {
+	if (!validateUniqueness())
+		throw std::runtime_error("Entry uniqueness validation failed before save");
 	fileProcessor saver;
 	try {
 		saver.saveFile(file, *this, fileType::HEADER_DATABASE);
@@ -121,11 +124,7 @@ void entryDB::schema(const sectionHeader& section, const schemaData& schema) {
 	fieldMap = anime::domain::validateEntrySchema(schema);
 }
 void entryDB::record(const sectionHeader& section, const recordData& record, const schemaData& schema) {
-	// Check For ID, will probably change to check against a map of existing ids to ensure there arent duplicates
 	using anime::storage::helpers::UnsignedInteger;
-
-	EntryId id = std::get<EntryId>(record[0]);
-	if (id >= nextId) { nextId = id+1; }
 
 	Entry entry{};
 	for (size_t i = 0; i < fieldMap.size(); i++) {
@@ -136,6 +135,7 @@ void entryDB::record(const sectionHeader& section, const recordData& record, con
 				throw std::runtime_error("Missing required data for field: " + fieldInfo.name + " at index: " + std::to_string(i) + "\n");
 			} else { continue; }
 		}
+		validateField(fieldInfo, record[i]);
 		std::visit([&](auto member, const auto& value) {
 			using MemberType = std::remove_cvref_t<decltype(entry.*member)>;
 			using ValueType = std::remove_cvref_t<decltype(value)>;
@@ -143,7 +143,7 @@ void entryDB::record(const sectionHeader& section, const recordData& record, con
 			if constexpr (std::is_same_v<MemberType, ValueType>) {
 				entry.*member = value;
 			} else if constexpr (UnsignedInteger<MemberType> && UnsignedInteger<ValueType>) {
-				entry.*member = static_cast<MemberType>(value);
+				entry.*member = helpers::checkedConvert<MemberType>(value);
 			} else {
 				throw std::runtime_error("Type mismatch for field '" + fieldInfo.name + "': expected " + typeid(MemberType).name() + ", got " + typeid(ValueType).name());
 			}
@@ -151,6 +151,10 @@ void entryDB::record(const sectionHeader& section, const recordData& record, con
 
 	}
 
+	validation::validateUniqueness(database, entry, entryMetadata);
+	if (entry.id >= nextId) {
+		nextId = entry.id + 1;
+	}
 	size_t index = database.size();
 	database.emplace_back(std::move(entry));
 	idMap.emplace(static_cast<EntryId>(database[index].id), index);
@@ -269,25 +273,15 @@ EntryId entryDB::addEntry(const Entry& entry, const USER_ACCOUNT_ROLE& role) {
 
 	Entry result = entry;
 
-	try {
-		result.id = addId();
-	}
-	catch (const std::exception& e) {
-		std::cerr << "Error generating ID for new entry: " << e.what() << "\n";
-		throw; // Rethrow to allow caller to handle as well
-	}
-
-	// Check if user has rank permissions, if yes then rank adjust, else rank = 0
-	if (result.rank > 0) {
-		rankInsert(result.rank);
-	}
-	else {
-		result.rank = 0; // Default rank, can be updated later
-	}
-
-	for (size_t i = 2; i < entryMetadata.size(); i++) {
+	for (size_t i = 2; i < entryMetadata.size(); ++i) {
 		validateField(entryMetadata[i].info, getFromEntry(result, i));
 	}
+	// Rank insertion shifts existing ranks, so validate other fields first.
+	validation::validateUniqueness(database, result, std::span(entryMetadata).subspan(2));
+	result.id = addId();
+	if (result.rank > 0)
+		rankInsert(result.rank);
+
 	size_t index = database.size();
 	database.push_back(result);
 	idMap.emplace(static_cast<EntryId>(result.id), index);
@@ -313,19 +307,18 @@ std::vector<EntryId> entryDB::updateEntry(const std::vector<EntryUpdate>& update
 		}
 
 		size_t index = found->second;
-		if (update.fieldIndex == 0) {
-			throw std::runtime_error("Entry ID updates are not allowed.");
-		}
+		validation::validateEditPolicy(entryMetadata[update.fieldIndex].info);
 
 		if (update.fieldIndex == 1) {
 			throw std::runtime_error("Rank updates are not supported yet.");
 		}
 
+		Entry candidate = database[index];
 		set.emplace(update.id);
 		switch (update.operation) {
 			case UPDATE_OPERATION::SET_FIELD: {
 				try {
-					setField(database[index], update.fieldIndex, update.value);
+					setField(candidate, update.fieldIndex, update.value);
 				} catch (const std::exception& e) {
 					std::cerr << "Error Setting Entry" << update.id << "Field: " << update.fieldIndex << ": "
 						      << e.what() << ".\n";
@@ -335,7 +328,7 @@ std::vector<EntryId> entryDB::updateEntry(const std::vector<EntryUpdate>& update
 			}
 			case UPDATE_OPERATION::CLEAR_FIELD: {
 				try {
-					clearField(database[index], update.fieldIndex);
+					clearField(candidate, update.fieldIndex);
 				} catch (const std::exception& e) {
 					std::cerr << "Error Clearing Entry" << update.id << "Field: " << update.fieldIndex << ": "
 						      << e.what() << ".\n";
@@ -345,11 +338,11 @@ std::vector<EntryId> entryDB::updateEntry(const std::vector<EntryUpdate>& update
 			}
 			case UPDATE_OPERATION::ADD_VALUE: {
 				if (entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU8 and
-					entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU16) {
+					entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU32) {
 					throw std::runtime_error("Add value only works with vectors");
 				}
 				try {
-					addFieldValue(database[index], update.fieldIndex, update.value);
+					addFieldValue(candidate, update.fieldIndex, update.value);
 				} catch (const std::exception& e) {
 					std::cerr << "Error adding value to Entry" << update.id << "Field: " << e.what() << ".\n";
 					throw; // Rethrow to allow caller to handle as well
@@ -358,11 +351,11 @@ std::vector<EntryId> entryDB::updateEntry(const std::vector<EntryUpdate>& update
 			}
 			case UPDATE_OPERATION::REMOVE_VALUE: {
 				if (entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU8 and
-					entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU16) {
+					entryMetadata[update.fieldIndex].info.type != schemaField::dataType::VECU32) {
 					throw std::runtime_error("Remove value only works with vectors");
 				}
 				try {
-					removeFieldValue(database[index], update.fieldIndex, update.value);
+					removeFieldValue(candidate, update.fieldIndex, update.value);
 				} catch (const std::exception& e) {
 					std::cerr << "Error Removing value from entry" << update.id << "Field: " << update.fieldIndex
 						      << ": " << e.what() << ".\n";
@@ -373,6 +366,8 @@ std::vector<EntryId> entryDB::updateEntry(const std::vector<EntryUpdate>& update
 			default:
 				throw std::runtime_error("Unknown update operation.");
 		}
+		validation::validateUniqueness(database, candidate, entryMetadata, &database[index]);
+		database[index] = std::move(candidate);
 	}
 	return {set.begin(), set.end()};
 }
@@ -446,6 +441,7 @@ std::vector<EntryId> entryDB::searchEntryTitles(const std::string& term) {
 //			Operation Utilities
 //====================================
 void entryDB::setField(Entry& entry, size_t fieldIndex, const recordField& value) {
+	validation::validateEditPolicy(entryMetadata.at(fieldIndex).info);
 	try {
 		validateField(entryMetadata[fieldIndex].info, value);
 	}
@@ -459,6 +455,7 @@ void entryDB::setField(Entry& entry, size_t fieldIndex, const recordField& value
 	}, entryMetadata[fieldIndex].ptr, value);
 }
 void entryDB::addFieldValue(Entry& entry, size_t fieldIndex, const recordField& value) {
+	validation::validateEditPolicy(entryMetadata.at(fieldIndex).info);
 	try {
 		validateField(entryMetadata[fieldIndex].info, value);
 	}
@@ -478,6 +475,7 @@ void entryDB::addFieldValue(Entry& entry, size_t fieldIndex, const recordField& 
 	}, entryMetadata[fieldIndex].ptr, value);
 }
 void entryDB::removeFieldValue(Entry& entry, size_t fieldIndex, const recordField& value) {
+	validation::validateEditPolicy(entryMetadata.at(fieldIndex).info);
 	try {
 		validateField(entryMetadata[fieldIndex].info, value);
 	}
@@ -498,6 +496,7 @@ void entryDB::removeFieldValue(Entry& entry, size_t fieldIndex, const recordFiel
 	}, entryMetadata[fieldIndex].ptr, value);
 }
 void entryDB::clearField(Entry& entry, size_t fieldIndex) {
+	validation::validateEditPolicy(entryMetadata.at(fieldIndex).info);
 	if (entryMetadata[fieldIndex].info.presence == FIELD_PRESENCE::REQUIRED) {
 		throw std::runtime_error("Cannot clear required field: " + entryMetadata[fieldIndex].info.name);
 	}
@@ -637,6 +636,9 @@ void entryDB::validateTable(const std::string& title) const {
 		}
 	}
 	throw std::runtime_error("No field matches the table: " + title);
+}
+bool entryDB::validateUniqueness() const {
+	return validation::validateUniqueness(database, entryMetadata);
 }
 bool entryDB::validateIds() const {
 	return validation::validateIds(database, &Entry::id);

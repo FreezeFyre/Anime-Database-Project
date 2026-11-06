@@ -20,6 +20,8 @@ using anime::schema::VALUE_REFERENCE_TYPE;
 using anime::schema::UPDATE_OPERATION;
 using anime::schema::Bound;
 using anime::schema::FieldInfo;
+using anime::schema::UNIQUENESS;
+using anime::schema::EDIT_POLICY;
 using anime::storage::schemaField;
 using anime::domain::GroupId;
 
@@ -61,21 +63,21 @@ struct EntryField {
 
 // This Provides the Meta Data for each field in the Entry for use in other processes
 inline const std::array<EntryField, 15> entryMetadata = { {
-	{{"id",             schemaField::dataType::U32,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::id,           },
-	{{"rank",           schemaField::dataType::U32,     schemaField::filterMode::FM_RMV,          FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::rank,         },
-	{{"title",          schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::title,        },
-	{{"alt_title",      schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::alt_title,    },
-	{{"format",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "format"    }, &Entry::format,       },
-	{{"status",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "status"    }, &Entry::status,       },
-	{{"genres",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "genres"    }, &Entry::genres,       },
-	{{"channels",       schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "channels"  }, &Entry::channels,     },
-	{{"audios",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "audios"    }, &Entry::audios,       },
-	{{"subtitles",      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "subtitles" }, &Entry::subtitles,    },
-	{{"fan_service",    schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::BOUNDS,       Bound{0, 10}, ""          }, &Entry::fan_service,  },
-	{{"episode_count",  schemaField::dataType::U16,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::episode_count,},
-	{{"min_runtime",    schemaField::dataType::U32,     schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::min_runtime,  },
-	{{"characters",     schemaField::dataType::VECU32,  schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          }, &Entry::characters,   },
-	{{"ip_group",       schemaField::dataType::U32,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::REQUIRED, VALUE_REFERENCE_TYPE::FOREIGN_RECORD,         std::nullopt, "Group"          }, &Entry::ip_group,     }
+	{{"id",             schemaField::dataType::U32,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::ALL_VALUES, EDIT_POLICY::INTERNAL_ONLY}, &Entry::id,           },
+	{{"rank",           schemaField::dataType::U32,     schemaField::filterMode::FM_RMV,          FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NON_ZERO, EDIT_POLICY::EDITABLE}, &Entry::rank,         },
+	{{"title",          schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NON_ZERO, EDIT_POLICY::EDITABLE}, &Entry::title,        },
+	{{"alt_title",      schemaField::dataType::STR,     schemaField::filterMode::FM_NONE,         FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::alt_title,    },
+	{{"format",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "format"    , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::format,       },
+	{{"status",         schemaField::dataType::U8,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "status"    , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::status,       },
+	{{"genres",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "genres"    , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::genres,       },
+	{{"channels",       schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "channels"  , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::channels,     },
+	{{"audios",         schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "audios"    , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::audios,       },
+	{{"subtitles",      schemaField::dataType::VECU8,   schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::LOOKUP_TABLE, std::nullopt, "subtitles" , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::subtitles,    },
+	{{"fan_service",    schemaField::dataType::U8,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::BOUNDS,       Bound{0, 10}, ""          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::fan_service,  },
+	{{"episode_count",  schemaField::dataType::U16,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::episode_count,},
+	{{"min_runtime",    schemaField::dataType::U32,     schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::min_runtime,  },
+	{{"characters",     schemaField::dataType::VECU32,  schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::characters,   },
+	{{"ip_group",       schemaField::dataType::U32,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::REQUIRED, VALUE_REFERENCE_TYPE::FOREIGN_RECORD,         std::nullopt, "Group"          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::ip_group,     }
 } };
 
 

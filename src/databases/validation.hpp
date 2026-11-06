@@ -1,9 +1,9 @@
 #pragma once
 
+#include <algorithm>
+#include <ranges>
 #include <unordered_map>
 #include <unordered_set>
-#include <ranges>
-#include <algorithm>
 
 #include "database_ops.hpp"
 #include "schema/field.hpp"
@@ -17,28 +17,31 @@ using anime::storage::helpers::UnsignedInteger;
 using anime::storage::helpers::UnsignedVector;
 using anime::storage::helpers::checkedConvert;
 
-
-using anime::schema::FIELD_PRESENCE;
-using anime::schema::VALUE_REFERENCE_TYPE;
-using anime::schema::UPDATE_OPERATION;
 using anime::schema::Bound;
+using anime::schema::EDIT_POLICY;
+using anime::schema::FIELD_PRESENCE;
 using anime::schema::FieldInfo;
-using anime::storage::schemaField;
+using anime::schema::UNIQUENESS;
+using anime::schema::UPDATE_OPERATION;
+using anime::schema::VALUE_REFERENCE_TYPE;
 using anime::storage::recordData;
+using anime::storage::schemaField;
 
 enum class VALIDATION_SCOPE : uint8_t {
 	ALL, // Checks all validation scopes
 	ALL_LOCAL,
-	IDS,                // checks exclusivness of IDs and index tables
-	RANKS,              // checks continuity of ranks
-	TITLES,             // checks exclusiveness of titles
-	RANGES,             // checks that scalar fields are within valid ranges
-	REFERENCES,         // checks that fields exist or are in range of their reference
-	EXTERNAL_REFERENCES // Used with overloaded func. ex(check that entry group is in groupDB)
+	IDS,                 // checks exclusivness of IDs and index tables
+	RANKS,               // checks continuity of ranks
+	TITLES,              // checks exclusiveness of titles
+	RANGES,              // checks that scalar fields are within valid ranges
+	REFERENCES,          // checks that fields exist or are in range of their reference
+	EXTERNAL_REFERENCES, // Used with overloaded func. ex(check that entry group is in groupDB)
+	UNIQUENESS           // checks metadata-declared uniqueness
 };
 
 template <typename Database, typename External>
 concept ValidatableDatabase = requires(const Database& database, const External& external) {
+	{ database.validateUniqueness() } -> std::same_as<bool>;
 	{ database.validateIds() } -> std::same_as<bool>;
 	{ database.validateRanks() } -> std::same_as<bool>;
 	{ database.validateTitles() } -> std::same_as<bool>;
@@ -56,12 +59,11 @@ template <typename Database> bool validate(const Database& database, VALIDATION_
 			break;
 		}
 		case VALIDATION_SCOPE::ALL_LOCAL: {
-			return
-				database.validateIds() &&
-				database.validateRanks() &&
-				database.validateTitles() &&
-				database.validateRanges() &&
-				database.validateReferences();
+			return database.validateUniqueness() && database.validateIds() && database.validateRanks() &&
+				   database.validateTitles() && database.validateRanges() && database.validateReferences();
+		}
+		case VALIDATION_SCOPE::UNIQUENESS: {
+			return database.validateUniqueness();
 		}
 		case VALIDATION_SCOPE::IDS: {
 			return database.validateIds();
@@ -95,6 +97,9 @@ template <typename Database, typename External> bool validate(const Database& da
 			return validate(database, VALIDATION_SCOPE::ALL_LOCAL) && database.validateExternal(external);
 		}
 		case VALIDATION_SCOPE::ALL_LOCAL: {
+			return validate(database, scope);
+		}
+		case VALIDATION_SCOPE::UNIQUENESS: {
 			return validate(database, scope);
 		}
 		case VALIDATION_SCOPE::IDS: {
@@ -212,10 +217,37 @@ template <std::ranges::input_range Records, typename MemberPointer, typename Exi
 	return true;
 }
 
+// Checks a proposed record before insertion or replacement.
+template <typename Records, typename Record, typename Metadata>
+void validateUniqueness(const Records& records, const Record& candidate, const Metadata& metadata,
+	                    const Record* replaced = nullptr) {
+	// TODO: Check each field using its FieldInfo::uniqueness policy.
+	// NONE permits duplicates; ALL_VALUES includes zero/empty values;
+	// NON_ZERO excludes numeric zero and empty strings.
+	// Compare candidate values against the same fields in stored records,
+	// excluding replaced when updating an existing record.
+	// Include INTERNAL_ONLY fields in these checks when loading stored data.
+	// Throw an error naming the conflicting field before committing the candidate.
+}
+
+template <typename Records, typename Metadata>
+bool validateUniqueness(const Records& records, const Metadata& metadata) {
+	// TODO: Validate all stored records using each field's uniqueness policy.
+	// Ignore NONE fields; allow repeated zero/empty values only for NON_ZERO.
+	// Check uniqueness across records, independently of vector element deduplication.
+	// Return false on a duplicate and true when the collection satisfies every rule.
+	return true; // Placeholder: uniqueness validation is not implemented yet.
+}
+
+inline void validateEditPolicy(const FieldInfo& info) {
+	if (info.editPolicy == EDIT_POLICY::INTERNAL_ONLY)
+		throw std::runtime_error("Field is internal-only: " + info.name);
+}
 
 // Primarily pre/input validation
 // Helpers for validating unsigned recordField alternatives.
-template <std::unsigned_integral T> requires(!std::same_as<T, bool>)
+template <std::unsigned_integral T>
+	requires(!std::same_as<T, bool>)
 void validateVectorElement(const FieldInfo& fieldInfo, const T& value) {
 	switch (fieldInfo.type) {
 		case schemaField::dataType::VECU8: {
@@ -249,6 +281,11 @@ void validateVectorElement(const FieldInfo& fieldInfo, const T& value) {
 // Overloads for validating recordField alternatives and the variant itself.
 template <std::unsigned_integral T> requires(!std::same_as<T, bool>)
 void validateField(const FieldInfo& fieldInfo, const T& value) {
+	if (fieldInfo.type == schemaField::dataType::VECU8 || fieldInfo.type == schemaField::dataType::VECU16 ||
+		fieldInfo.type == schemaField::dataType::VECU32 || fieldInfo.type == schemaField::dataType::VECU64) {
+		validateVectorElement(fieldInfo, value);
+		return;
+	}
 	switch (fieldInfo.type) {
 		case schemaField::dataType::U8: {
 			if (!std::in_range<std::uint8_t>(value)) {

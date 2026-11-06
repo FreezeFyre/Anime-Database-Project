@@ -17,6 +17,8 @@ namespace anime::domain {
 using anime::schema::FIELD_PRESENCE;
 using anime::schema::VALUE_REFERENCE_TYPE;
 using anime::schema::FieldInfo;
+using anime::schema::UNIQUENESS;
+using anime::schema::EDIT_POLICY;
 using anime::storage::dataType;
 using anime::storage::schemaField;
 enum class LoginProvider : uint8_t {
@@ -65,10 +67,10 @@ struct UserField {
 };
 
 inline const std::array<UserField, 4> UserMeta = { {
-	{{"id",            schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::id          },
-	{{"display_name",  schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::displayName },
-	{{"role",          schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::role        },
-	{{"disabled",      schemaField::dataType::BOOL,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""}, &User::disabled    }
+	{{"id",            schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::ALL_VALUES, EDIT_POLICY::INTERNAL_ONLY}, &User::id          },
+	{{"display_name",  schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &User::displayName },
+	{{"role",          schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NONE, EDIT_POLICY::INTERNAL_ONLY}, &User::role        },
+	{{"disabled",      schemaField::dataType::BOOL,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NONE, EDIT_POLICY::INTERNAL_ONLY}, &User::disabled    }
 } };
 
 inline const std::unordered_map<std::string, size_t> userNameMap = [] {
@@ -83,14 +85,14 @@ struct IdentityField {
 	UserIdentityMemPtr ptr;
 };
 inline const std::array<IdentityField, 8> UserIdentityMeta = {
-	{{{"id",               schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::id             },
-	 {{"user_id",          schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::userId         },
-	 {{"provider",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::provider       },
-	 {{"login_key",        schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::loginKey       },
-	 {{"email",            schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::email          },
-	 {{"provider_user_id", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::providerUserId },
-	 {{"password_hash",    schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::passwordHash   },
-	 {{"disabled",         schemaField::dataType::BOOL,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, ""},&UserIdentity::disabled       }
+	{{{"id",               schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::ALL_VALUES, EDIT_POLICY::INTERNAL_ONLY}, &UserIdentity::id             },
+	 {{"user_id",          schemaField::dataType::U32, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NONE, EDIT_POLICY::INTERNAL_ONLY}, &UserIdentity::userId         },
+	 {{"provider",         schemaField::dataType::U8,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NONE, EDIT_POLICY::INTERNAL_ONLY}, &UserIdentity::provider       },
+	 {{"login_key",        schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::ALL_VALUES, EDIT_POLICY::INTERNAL_ONLY}, &UserIdentity::loginKey       },
+	 {{"email",            schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NON_ZERO, EDIT_POLICY::INTERNAL_ONLY}, &UserIdentity::email          },
+	 {{"provider_user_id", schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NON_ZERO, EDIT_POLICY::INTERNAL_ONLY}, &UserIdentity::providerUserId },
+	 {{"password_hash",    schemaField::dataType::STR, schemaField::filterMode::FM_NONE, FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NONE, EDIT_POLICY::INTERNAL_ONLY}, &UserIdentity::passwordHash   },
+	 {{"disabled",         schemaField::dataType::BOOL,  schemaField::filterMode::FM_NONE, FIELD_PRESENCE::REQUIRED,       VALUE_REFERENCE_TYPE::NONE, std::nullopt, "", UNIQUENESS::NONE, EDIT_POLICY::INTERNAL_ONLY}, &UserIdentity::disabled       }
 	}};
 inline const std::unordered_map<std::string, size_t> identityNameMap = [] {
 	std::unordered_map<std::string, size_t> result;

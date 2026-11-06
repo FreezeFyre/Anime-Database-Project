@@ -1,3 +1,4 @@
+#include "databases/validation.hpp"
 #include "domain/entry_schema.hpp"
 #include "protocol/codec.hpp"
 
@@ -102,7 +103,9 @@ namespace anime::protocol {
 			std::visit(
 				[&](const auto& memberPtr) {
 					using FieldType = std::remove_cvref_t<decltype(result.*memberPtr)>;
-					result.*memberPtr = reader.read<FieldType>();
+				    auto value = reader.read<FieldType>();
+				    anime::storage::validation::validateField(entryMetadata[fieldIndices[i]].info, recordField{value});
+				    result.*memberPtr = std::move(value);
 				},
 				entryMetadata[fieldIndices[i]].ptr);
 		}
@@ -115,7 +118,9 @@ namespace anime::protocol {
 			std::visit(
 				[&](const auto& memberPtr) {
 					using FieldType = std::remove_cvref_t<decltype(result.*memberPtr)>;
-					result.*memberPtr = reader.read<FieldType>();
+				    auto value = reader.read<FieldType>();
+				    anime::storage::validation::validateField(groupMetadata[fieldIndices[i]].info, recordField{value});
+				    result.*memberPtr = std::move(value);
 				},
 				groupMetadata[fieldIndices[i]].ptr);
 		}

@@ -195,7 +195,13 @@ void unfinishedLibraryOperationsDoNotMutate() {
 }
 }
 
+void fieldValidationTests();
+
 int main(int argc, char* argv[]) {
+	if (argc == 2 && std::string_view(argv[1]) == "--field-validation") {
+		fieldValidationTests();
+		return 0;
+	}
 	if (argc == 2 && std::string_view(argv[1]) == "--library-websocket") {
 		libraryWebSocketRoundTrip();
 		return 0;

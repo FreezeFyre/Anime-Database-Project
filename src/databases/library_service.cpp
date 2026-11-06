@@ -175,7 +175,9 @@ Result<std::vector<EntryId>> LibraryService::addEntries(const AddEntriesRequest&
 				request.entries | std::views::transform([&](const auto& entry) {auto buffer = entry; buffer.ip_group = request.id; return entries.addEntry(buffer, session.role); }) |
 				std::ranges::to<std::vector<EntryId>>();
 
-			groups.updateGroups(std::vector<GroupUpdate>{{request.id, UPDATE_OPERATION::ADD_VALUE, 4, anime::storage::dataType::VECU32, entryIds}});
+			auto members = groups.getGroups({request.id}).front().members;
+			members.insert(members.end(), entryIds.begin(), entryIds.end());
+			groups.attachMembers({{request.id, std::move(members)}});
 			groups.compile(request.id, entries);
 			return entryIds;
 		} catch (const std::exception& e) {
@@ -207,6 +209,11 @@ Result<void> LibraryService::transferEntry(const TransferEntryRequest& request, 
 			GroupId old = std::get<std::uint32_t>(entries.getField(request.entry, 14)); // For once i get compile individual group
 			entries.updateEntry(std::vector<EntryUpdate>{{request.entry, UPDATE_OPERATION::SET_FIELD, 14,anime::storage::dataType::U32, request.group}}, session.role);
 
+			// TODO: members is INTERNAL_ONLY, so replace this ordinary update with
+			// trusted membership maintenance: remove the entry from its old group,
+			// attach it once to the destination, and handle same-group transfers.
+			// Validate that path before changing ip_group above, so a rejected
+			// membership update cannot leave the parent and memberships inconsistent.
 			groups.updateGroups(std::vector<GroupUpdate>{{old,UPDATE_OPERATION::REMOVE_VALUE,4,anime::storage::dataType::VECU32, std::vector<EntryId>{request.entry}},{request.group,UPDATE_OPERATION::ADD_VALUE,4,anime::storage::dataType::VECU32, std::vector<EntryId>{request.entry}}});
 			groups.compile(old,entries);groups.compile(request.group,entries);
 		} catch (const std::exception& e) {
