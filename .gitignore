@@ -58,3 +58,4 @@ Thumbs.db
 *.swp
 /.vs
 /temp-portal
+/src/tests/entry_integration_test.cpp

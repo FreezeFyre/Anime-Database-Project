@@ -62,9 +62,9 @@ void transportAndHandlerCompatibility(anime::app::Context& context) {
 	envelope.buffer.insert(envelope.buffer.end(),payload.buffer.begin(),payload.buffer.end());
 	WebSocketCodec codec;
 	auto request=codec.decode(envelope.buffer);
-	anime::net::Session session;
+	std::string token;
 	anime::app::Router router;
-	const auto response=router.route(request,context,session);
+	const auto response=router.route(request,context,token);
 	assert(response.id==1234 && !response.closeConnection);
 	const auto& entries=std::get<EntryGetResponse>(std::get<EntryResponse>(response.payload).payload).entries;
 	assert(entries.size()==context.entries.getSize());
@@ -76,20 +76,21 @@ void transportAndHandlerCompatibility(anime::app::Context& context) {
 
 	anime::storage::LibraryService library{context.entries,context.groups,context.entriesMutex,context.groupsMutex};
 	anime::app::EntryRouter direct{library};
-	const auto rejected=direct.route(EntryUpdateRequest{},context,session);
+	const auto rejected=direct.route(EntryUpdateRequest{},context,token);
 	assert(std::holds_alternative<EntryErrorResponse>(rejected.payload));
-	assert(std::holds_alternative<EntryErrorResponse>(direct.route(EntryCreateRequest{{entries.front()}},context,session).payload));
-	assert(std::holds_alternative<EntryErrorResponse>(direct.route(EntryDeleteRequest{{static_cast<anime::domain::EntryId>(entries.front().id)}},context,session).payload));
-	const auto searched=direct.route(EntrySearchRequest{"Rascal"},context,session);
+	assert(std::holds_alternative<EntryErrorResponse>(direct.route(EntryCreateRequest{{entries.front()}},context,token).payload));
+	assert(std::holds_alternative<EntryErrorResponse>(direct.route(EntryDeleteRequest{{static_cast<anime::domain::EntryId>(entries.front().id)}},context,token).payload));
+	const auto searched=direct.route(EntrySearchRequest{"Rascal"},context,token);
 	assert(std::get<EntryIdsResponse>(searched.payload).ids==context.entries.searchEntryTitles("Rascal"));
-	const auto filtered=direct.route(EntryFilterRequest{},context,session);
+	const auto filtered=direct.route(EntryFilterRequest{},context,token);
 	assert(std::get<EntryIdsResponse>(filtered.payload).ids==context.entries.getFilteredIDS({}));
-	session.role=anime::domain::USER_ACCOUNT_ROLE::EDITOR;
-	const auto emptyDelete=direct.route(EntryDeleteRequest{},context,session);
+	context.users.addUser({anime::domain::UserId{900000}, "Handler editor", anime::domain::USER_ACCOUNT_ROLE::EDITOR, false});
+	token = context.sessions.create(anime::domain::UserId{900000});
+	const auto emptyDelete=direct.route(EntryDeleteRequest{},context,token);
 	assert(std::holds_alternative<EntryErrorResponse>(emptyDelete.payload));
 	assert(std::get<EntryErrorResponse>(emptyDelete.payload).message.find("At least one entry id")!=std::string::npos);
 	assert(context.entries.getSize()==entries.size());
-	const auto accepted=direct.route(EntryUpdateRequest{},context,session);
+	const auto accepted=direct.route(EntryUpdateRequest{},context,token);
 	assert(std::holds_alternative<EntrySuccessResponse>(accepted.payload));
 
 	// Preserve the existing transport boundary: entries are not an HTTP API.
@@ -107,7 +108,7 @@ void transportAndHandlerCompatibility(anime::app::Context& context) {
 
 void libraryWebSocketRoundTrip() {
 	anime::app::Context context;
-	anime::net::Session session;
+	std::string token;
 	Group group;
 	group.name = "Codec fixture";
 	const auto groupId = context.groups.addGroup(group);
@@ -125,7 +126,7 @@ void libraryWebSocketRoundTrip() {
 		request.write(std::vector<GroupId>{id});
 
 		auto decoded = codec.decode(request.buffer);
-		const auto response = router.route(decoded, context, session);
+		const auto response = router.route(decoded, context, token);
 		const auto bytes = codec.encode(decoded, response);
 		ByteReader reader{bytes};
 		assert(reader.read<std::uint32_t>() == ENCODE_VERSION);
