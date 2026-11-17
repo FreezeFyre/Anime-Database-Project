@@ -39,15 +39,15 @@ using anime::storage::validation::VALIDATION_SCOPE;
 			Result<void>    updateAnime (const UpdateAnimeRequest& request, const Session& session);
 			Result<void>    deleteAnime (const DeleteAnimeRequest& request, const Session& session);
 				
-			Result<std::vector<EntryId>> addEntries    (const AddEntriesRequest& request, const Session& session);
-			Result<void> updateEntries (const UpdateEntriesRequest& request, const Session& session);
-			Result<void> transferEntry (const TransferEntryRequest& request, const Session& session);
-			Result<void> deleteEntries (const DeleteEntriesRequest& request, const Session& session);
+			Result<std::vector<EntryId>> addEntries(const AddEntriesRequest& request, const Session& session);
+			Result<void>                 updateEntries(const UpdateEntriesRequest& request, const Session& session);
+			Result<void>                 transferEntry(const TransferEntryRequest& request, const Session& session);
+			Result<void>                 deleteEntries(const DeleteEntriesRequest& request, const Session& session);
 							   
-			Result<std::vector<Group>> getAnime      (const GetAnimeRequest& request, const Session& session);
-			Result<std::vector<Entry>> getEntries    (const GetEntriesRequest& request, const Session& session);
-			Result<std::vector<GroupId>> searchAnime   (const SearchAnimeRequest& request, const Session& session);
-			Result<std::vector<GroupId>> filterAnime   (const FilterAnimeRequest& request, const Session& session);
+			Result<std::vector<Group>>   getAnime(const GetAnimeRequest& request, const Session& session);
+			Result<std::vector<Entry>>   getEntries(const GetEntriesRequest& request, const Session& session);
+			Result<std::vector<GroupId>> searchAnime(const SearchAnimeRequest& request, const Session& session);
+			Result<std::vector<GroupId>> filterAnime(const FilterAnimeRequest& request, const Session& session);
 	};
 
 	class LibraryRouter {

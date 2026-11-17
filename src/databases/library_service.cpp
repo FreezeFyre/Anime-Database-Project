@@ -202,20 +202,27 @@ Result<void> LibraryService::updateEntries(const UpdateEntriesRequest& request, 
 Result<void> LibraryService::transferEntry(const TransferEntryRequest& request, const Session& session) {
 	{
 		try {
+			if (session.role < USER_ACCOUNT_ROLE::EDITOR) {
+				return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::INVALID_USER_PERMISSION_LEVEL, " Users permission level must be editor or higher. "});
+			}
 			std::scoped_lock locks(entriesMutex, groupsMutex);
 
 			if (!groups.contains(request.group)) {return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, " Target group" + std::to_string(request.group) + "does not exist. "}); }
 
-			GroupId old = std::get<std::uint32_t>(entries.getField(request.entry, 14)); // For once i get compile individual group
-			entries.updateEntry(std::vector<EntryUpdate>{{request.entry, UPDATE_OPERATION::SET_FIELD, 14,anime::storage::dataType::U32, request.group}}, session.role);
+			std::unordered_map<GroupId, std::vector<EntryId>> members;
+			GroupId old = std::get<std::uint32_t>(entries.getField(request.entry, 14));
+			members[old] = std::get<std::vector<std::uint32_t>>(groups.getField(old, 4)) |
+				           std::views::filter([&](std::uint32_t id) { return id != request.entry; }) |
+				           std::ranges::to<std::vector>();
 
-			// TODO: members is INTERNAL_ONLY, so replace this ordinary update with
-			// trusted membership maintenance: remove the entry from its old group,
-			// attach it once to the destination, and handle same-group transfers.
-			// Validate that path before changing ip_group above, so a rejected
-			// membership update cannot leave the parent and memberships inconsistent.
-			groups.updateGroups(std::vector<GroupUpdate>{{old,UPDATE_OPERATION::REMOVE_VALUE,4,anime::storage::dataType::VECU32, std::vector<EntryId>{request.entry}},{request.group,UPDATE_OPERATION::ADD_VALUE,4,anime::storage::dataType::VECU32, std::vector<EntryId>{request.entry}}});
-			groups.compile(old,entries);groups.compile(request.group,entries);
+			entries.setMembership(request.group, request.entry);
+
+			members.try_emplace(
+				request.group, std::get<std::vector<EntryId>>(groups.getField(request.group, 4))
+			).first->second.push_back(request.entry);
+
+			groups.attachMembers(members);
+			groups.compile(std::vector<GroupId>{old,request.group}, entries);
 		} catch (const std::exception& e) {
 			return std::unexpected(ErrorResponse{LIBRARY_ERROR_CODE::ERROR_UNKOWN, std::string(e.what())});
 		}
@@ -224,6 +231,8 @@ Result<void> LibraryService::transferEntry(const TransferEntryRequest& request, 
 }
 Result<void> LibraryService::deleteEntries(const DeleteEntriesRequest& request, const Session& session) {
 	try {
+
+
 		std::scoped_lock locks(entriesMutex, groupsMutex);
 
 		auto parents = request.entries

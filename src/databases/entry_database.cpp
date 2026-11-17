@@ -524,6 +524,9 @@ std::vector<size_t> entryDB::idToIndex(std::vector<EntryId> ids) {
 void entryDB::addMembership(GroupId group, EntryId entry) {
 	membershipMap[group].push_back(entry);
 }
+void entryDB::setMembership(GroupId group, EntryId entry) {
+	membershipMap[group] = std::vector<EntryId>{entry};
+}
 
 
 //====================================

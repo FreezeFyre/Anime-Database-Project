@@ -93,6 +93,7 @@ class entryDB {
 		std::string normalizeString(const std::string& string);
 		std::vector<size_t> idToIndex(std::vector<EntryId> ids);
 		void addMembership(GroupId group, EntryId entry);
+		void setMembership(GroupId group, EntryId entry);
 
 		// Query operations
 		std::vector<EntryId> getFilteredIDS(const FilterRequest& filters) const;

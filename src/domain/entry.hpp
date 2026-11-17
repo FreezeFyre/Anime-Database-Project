@@ -77,7 +77,7 @@ inline const std::array<EntryField, 15> entryMetadata = { {
 	{{"episode_count",  schemaField::dataType::U16,      schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::episode_count,},
 	{{"min_runtime",    schemaField::dataType::U32,     schemaField::filterMode::FM_RANGE,        FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::min_runtime,  },
 	{{"characters",     schemaField::dataType::VECU32,  schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::FIELD_OPTIONAL, VALUE_REFERENCE_TYPE::NONE,         std::nullopt, ""          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::characters,   },
-	{{"ip_group",       schemaField::dataType::U32,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::REQUIRED, VALUE_REFERENCE_TYPE::FOREIGN_RECORD,         std::nullopt, "Group"          , UNIQUENESS::NONE, EDIT_POLICY::EDITABLE}, &Entry::ip_group,     }
+	{{"ip_group",       schemaField::dataType::U32,      schemaField::filterMode::FM_MULTI_VALUE,  FIELD_PRESENCE::REQUIRED, VALUE_REFERENCE_TYPE::FOREIGN_RECORD,         std::nullopt, "Group"          , UNIQUENESS::NONE, EDIT_POLICY::INTERNAL_ONLY}, &Entry::ip_group,     }
 } };
 
 

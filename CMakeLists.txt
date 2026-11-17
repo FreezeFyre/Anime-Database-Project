@@ -34,6 +34,7 @@ set(PROJECT_CORE_SOURCES
 	"src/databases/group_database.cpp"
 	"src/databases/auth/password.cpp"
 	"src/databases/auth/auth_service.cpp"
+	"src/databases/auth/session.cpp"
 	"src/filtering/filterProcessor.cpp"
 	"src/protocol/entry_codec.cpp"
 	"src/protocol/codec.cpp"
