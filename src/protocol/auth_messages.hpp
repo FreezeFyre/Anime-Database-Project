@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 #include <variant>
+#include <expected>
 #include "domain/types.hpp"
 #include "protocol/auth_requests.hpp"
 
@@ -10,13 +11,6 @@ namespace anime::protocol {
 using anime::domain::UserId;
 using anime::domain::USER_ACCOUNT_ROLE;
 using anime::domain::LoginProvider;
-
-struct AuthResult {
-	bool success;
-	std::optional<UserId> userId;
-	USER_ACCOUNT_ROLE role;
-	std::string error;
-};
 
 struct AuthOAuthStartRequest {
 	LoginProvider provider;
@@ -37,9 +31,22 @@ using AuthRequest = std::variant<
 >;
 
 
+struct LoginSuccess {
+	UserId user;
+	std::string token;
+};
+struct LogoutSuccess {};
+struct AccountCreated {
+	UserId user;
+};
 struct OAuthRedirect {
 	std::string url;
 };
-using AuthResponse = std::variant<AuthResult, OAuthRedirect>;
+struct AuthError {
+	std::string error;
+};
+using AuthSuccess = std::variant<LoginSuccess, LogoutSuccess, AccountCreated, OAuthRedirect>;
+using AuthResponse = std::expected<AuthSuccess, AuthError>;
+
 
 } // namespace anime::protocol

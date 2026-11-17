@@ -16,15 +16,20 @@ namespace anime::auth {
 using anime::protocol::ACTION_TYPE;
 using anime::protocol::AuthLoginRequest;
 using anime::protocol::AuthCreateAccountRequest;
-using anime::protocol::AuthResult;
+using anime::protocol::LoginSuccess;
+using anime::protocol::LogoutSuccess;
+using anime::protocol::AccountCreated;
+using anime::protocol::OAuthRedirect;
+using anime::protocol::AuthError;
+using anime::protocol::AuthSuccess;
+using anime::protocol::AuthResponse;
 using anime::protocol::AuthOAuthStartRequest;
 using anime::protocol::AuthOAuthCallbackRequest;
 using anime::protocol::AuthLogoutRequest;
 using anime::protocol::AuthRequest;
-using anime::protocol::OAuthRedirect;
-using anime::protocol::AuthResponse;
 using anime::net::Session;
 using anime::app::Context;
+
 class Auth {
 	public:
 		Context& context;
@@ -32,15 +37,15 @@ class Auth {
 
 		explicit Auth(Context& context);
 
-		AuthResult login(const AuthLoginRequest& request, Session& session);
+		std::expected<LoginSuccess,AuthError> login(const AuthLoginRequest& request,const std::string& token);
 
-		AuthResult logout(Session& session);
+		std::expected<LogoutSuccess,AuthError> logout(const std::string& token);
 
-		AuthResult create(const AuthCreateAccountRequest& request, Session& session);
+		std::expected<AccountCreated,AuthError> create(const AuthCreateAccountRequest& request,const std::string& tokenn);
 
 
 	private:
-		AuthResult password(PasswordService& passwordService, const AuthLoginRequest& request, Session& session);
+		std::expected<LoginSuccess,AuthError> password(PasswordService& passwordService, const AuthLoginRequest& request,const std::string& token);
 
 
 };
@@ -48,15 +53,15 @@ class Auth {
 class OAuthService {
 	public:
 		OAuthService(Context& context);
-		OAuthRedirect start(const AuthOAuthStartRequest& request, Session& session);
-		AuthResponse callback(const AuthOAuthCallbackRequest& request, Session& session);
+		OAuthRedirect start(const AuthOAuthStartRequest& request,const std::string& token);
+		AuthResponse callback(const AuthOAuthCallbackRequest& request,const std::string& token);
 	
 	private:
 		Context& context;
 
-		OAuthRedirect google(const AuthOAuthStartRequest& request, Session& session);
-		OAuthRedirect apple(const AuthOAuthStartRequest& request, Session& session);
-		OAuthRedirect github(const AuthOAuthStartRequest& request, Session& session);
+		OAuthRedirect google(const AuthOAuthStartRequest& request,const std::string& token);
+		OAuthRedirect apple(const AuthOAuthStartRequest& request, const std::string& token);
+		OAuthRedirect github(const AuthOAuthStartRequest& request, const std::string& token);
 
 
 };
@@ -71,7 +76,9 @@ class AuthHttpCodec {
 		HttpResponse encode(const AuthResponse& response);
 
 	private:
-	    HttpResponse encodeResponse(const AuthResult& response);
+		HttpResponse encodeResponse(const LoginSuccess& response);
+		HttpResponse encodeResponse(const LogoutSuccess& response);
+		HttpResponse encodeResponse(const AccountCreated& response);
 		HttpResponse encodeResponse(const OAuthRedirect& response);
 
 };
@@ -82,24 +89,22 @@ namespace anime::app {
 using anime::protocol::ACTION_TYPE;
 using anime::protocol::AuthLoginRequest;
 using anime::protocol::AuthCreateAccountRequest;
-using anime::protocol::AuthResult;
 using anime::protocol::AuthOAuthStartRequest;
 using anime::protocol::AuthOAuthCallbackRequest;
 using anime::protocol::AuthLogoutRequest;
 using anime::protocol::AuthRequest;
 using anime::protocol::OAuthRedirect;
 using anime::protocol::AuthResponse;
-using anime::net::Session;
 class AuthRouter {
 	public:
-		AuthResponse route(const AuthRequest& request, Context& context, Session& session);
+		AuthResponse route(const AuthRequest& request, Context& context, const std::string& token);
 
 	private:
-		AuthResponse handle(const AuthLoginRequest& request, Context& context, Session& session);
-		AuthResponse handle(const AuthOAuthStartRequest& request, Context& context, Session& session);
-		AuthResponse handle(const AuthOAuthCallbackRequest& request, Context& context, Session& session);
-		AuthResponse handle(const AuthCreateAccountRequest& request, Context& context, Session& session);
-		AuthResponse handle(const AuthLogoutRequest& request, Context& context, Session& session);
+		AuthResponse handle(const AuthLoginRequest& request, Context& context, const std::string& token);
+		AuthResponse handle(const AuthOAuthStartRequest& request, Context& context, const std::string& token);
+		AuthResponse handle(const AuthOAuthCallbackRequest& request, Context& context, const std::string& token);
+		AuthResponse handle(const AuthCreateAccountRequest& request, Context& context, const std::string& token);
+		AuthResponse handle(const AuthLogoutRequest& request, Context& context, const std::string& token);
 
 };
 

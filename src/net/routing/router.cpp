@@ -8,29 +8,29 @@ namespace anime::app {
 using namespace anime::protocol;
 using anime::storage::LibraryService;
 
-AppResponse Router::route(AppRequest& request, Context& context, Session& session) {
+AppResponse Router::route(AppRequest& request, Context& context,const std::string& token) {
 	return std::visit([&](const auto& payload) {
-		return handle(payload, request.id, context, session);
+		return handle(payload, request.id, context, token);
 	},request.payload);
 }
 
-AppResponse Router::handle(const EntryRequest & request, uint32_t id, Context & context, Session & session) {
+AppResponse Router::handle(const EntryRequest & request, uint32_t id, Context & context, const std::string& token) {
 	LibraryService library{context.entries,context.groups,context.entriesMutex,context.groupsMutex};
 	EntryRouter router{library};
-	EntryResponse resp = router.route(request, context, session);
+	EntryResponse resp = router.route(request, context, token);
 	return AppResponse{id, resp, resp.closeConnection};
 }
 
-AppResponse Router::handle(const AuthRequest& request, uint32_t id, Context& context, Session& session) {
+AppResponse Router::handle(const AuthRequest& request, uint32_t id, Context& context, const std::string& token) {
 	AuthRouter router;
-	AuthResponse resp = router.route(request, context, session);
+	AuthResponse resp = router.route(request, context, token);
 	return AppResponse{id, resp, false}; // Bool is false as it is ignored for http
 }
-AppResponse Router::handle(const LibraryRequest& request, uint32_t id, Context & context, Session & session) {
+AppResponse Router::handle(const LibraryRequest& request, uint32_t id, Context & context,const std::string& token) {
 	LibraryService library{context.entries,context.groups,context.entriesMutex,context.groupsMutex};
 	LibraryRouter router(library);
 
-	LibraryResponse resp = router.route(request, context, session);
+	LibraryResponse resp = router.route(request, context, token);
 	return AppResponse{id, resp, false};
 }
 

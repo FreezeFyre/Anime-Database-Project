@@ -5,16 +5,17 @@
 #include <mutex>
 #include <shared_mutex>
 #include <chrono>
+#include <expected>
 
 namespace anime::auth {
 using namespace anime::domain;
 using namespace anime::protocol;
 Auth::Auth(Context& context) : context(context) {}
 
-AuthResult Auth::login(const AuthLoginRequest& request, Session& session) {
+std::expected<LoginSuccess,AuthError> Auth::login(const AuthLoginRequest& request,const std::string& token) {
 	switch (request.provider) {
 		case LoginProvider::PASSWORD: {
-			return password(passwordService, request, session);
+			return password(passwordService, request, token);
 			break;
 		}
 		//case LoginProvider::GOOGLE:
@@ -24,16 +25,18 @@ AuthResult Auth::login(const AuthLoginRequest& request, Session& session) {
 		//case LoginProvider::GITHUB:
 		//	return github(request.secret);
 		default:
-			return {false, std::nullopt, USER_ACCOUNT_ROLE::VIEWER, "Unsupported login provider."};
+			return {std::unexpected(AuthError{"Unsupported login provider."})};
 	}
 }
-AuthResult Auth::logout(Session& session) {
-	session.signedIn = false;
-	session.userId = std::nullopt;
-	session.role = USER_ACCOUNT_ROLE::VIEWER;
-    return {true, session.userId, session.role, ""};
+std::expected<LogoutSuccess,AuthError> Auth::logout(const std::string& token) {
+	try {
+		context.sessions.revoke(token);
+	} catch (const std::exception& e) {
+		return std::unexpected(AuthError{std::string(e.what())});
+	}
+	return LogoutSuccess{};
 }
-AuthResult Auth::create(const AuthCreateAccountRequest& request, Session& session) {
+std::expected<AccountCreated,AuthError> Auth::create(const AuthCreateAccountRequest& request,const std::string& token) {
 	switch (request.provider) {
 		case LoginProvider::PASSWORD: {
 			const std::string pw = passwordService.hash(request.secret);
@@ -41,19 +44,14 @@ AuthResult Auth::create(const AuthCreateAccountRequest& request, Session& sessio
 			// Exclusive Mutex Lock
 			{
 				std::unique_lock lock(context.usersMutex);
-				context.users.createAccount(request, pw);
+				return AccountCreated{context.users.createAccount(request, pw)};
 			}
-			return {true, std::nullopt, USER_ACCOUNT_ROLE::VIEWER, ""};
 		}
 		default:
-			return {false, std::nullopt, USER_ACCOUNT_ROLE::VIEWER, "Unsupported login provider."};
+			return std::unexpected(AuthError{"Unsupported login provider."});
 	}
 }
-AuthResult Auth::password(PasswordService& passwordService, const AuthLoginRequest& request, Session& session) {
-	AuthResult result;
-	result.success = false;
-	result.role = USER_ACCOUNT_ROLE::VIEWER;
-
+std::expected<LoginSuccess,AuthError> Auth::password(PasswordService& passwordService, const AuthLoginRequest& request,const std::string& token) {
 	try {
 		IdentityId identityId;
 		UserIdentity identity;
@@ -67,48 +65,36 @@ AuthResult Auth::password(PasswordService& passwordService, const AuthLoginReque
 		}
 
 		if (identity.disabled || user.disabled) {
-			result.error = "Invalid login.";
-			return result;
+			return std::unexpected(AuthError{"Invalid login. "});
 		}
 
 		if (!passwordService.verifyPassword(request.secret, identity.passwordHash.c_str())) {
-			result.error = "Invalid login.";
-			return result;
+			return std::unexpected(AuthError{"Invalid login. "});
 		}
 
-		result.success = true;
-		result.userId = user.id;
-		result.role = user.role;
-		session.role = user.role;
-		session.signedIn = true;
-		session.userId = user.id;
 
-		auto now = std::chrono::system_clock::now();
-		std::clog << now << "\t" << "[INFO] user login success, User id: " << user.id << "\n ";
-
-
-		return result;
+		auto token = context.sessions.create(user.id);
+		return LoginSuccess{user.id, token};
 	}
 	catch (const std::runtime_error& e) {
 		std::clog << e.what() << "\n";
-		result.error = "Invalid login.";
-		return result;
+		return std::unexpected(AuthError{"Invalid login. "});
 	}
 }
 
 
 OAuthService::OAuthService(Context& context) : context(context) {}
 
-OAuthRedirect OAuthService::start(const AuthOAuthStartRequest& request, Session& session) {
+OAuthRedirect OAuthService::start(const AuthOAuthStartRequest& request, const std::string& token) {
 	switch (request.provider) {
 		case LoginProvider::GOOGLE: {
-			return OAuthRedirect{google(request, session)};
+			return OAuthRedirect{google(request, token)};
 		}
 		case LoginProvider::APPLE: {
-			return OAuthRedirect{apple(request, session)};
+			return OAuthRedirect{apple(request, token)};
 		}
 		case LoginProvider::GITHUB: {
-			return OAuthRedirect{github(request, session)};
+			return OAuthRedirect{github(request, token)};
 		}
 		default:
 			std::clog << "Unsupported OAuth provider: " << static_cast<int>(request.provider) << "\n";
@@ -116,7 +102,7 @@ OAuthRedirect OAuthService::start(const AuthOAuthStartRequest& request, Session&
 			break;
 	}
 }
-AuthResponse OAuthService::callback(const AuthOAuthCallbackRequest& request, Session& session) {
+AuthResponse OAuthService::callback(const AuthOAuthCallbackRequest& request, const std::string& token) {
 	// Handle callback
 
 	// Based on the provider we need to contact the correct OAuth service to exchange the code for an access token and
@@ -126,13 +112,13 @@ AuthResponse OAuthService::callback(const AuthOAuthCallbackRequest& request, Ses
 	return AuthResponse();
 }
 
-OAuthRedirect OAuthService::google(const AuthOAuthStartRequest& request, Session& session) {
+OAuthRedirect OAuthService::google(const AuthOAuthStartRequest& request, const std::string& token) {
 	return OAuthRedirect();
 }
-OAuthRedirect OAuthService::apple(const AuthOAuthStartRequest& request, Session& session) {
+OAuthRedirect OAuthService::apple(const AuthOAuthStartRequest& request, const std::string& token) {
 	return OAuthRedirect();
 }
-OAuthRedirect OAuthService::github(const AuthOAuthStartRequest& request, Session& session) {
+OAuthRedirect OAuthService::github(const AuthOAuthStartRequest& request, const std::string& token) {
 	return OAuthRedirect();
 }
 
@@ -140,26 +126,26 @@ OAuthRedirect OAuthService::github(const AuthOAuthStartRequest& request, Session
 
 namespace anime::app {
 using namespace anime::auth;
-AuthResponse AuthRouter::route(const AuthRequest& request, Context& context, Session& session) {
+AuthResponse AuthRouter::route(const AuthRequest& request, Context& context, const std::string& token) {
 	return std::visit([&](const auto& payload) {
-		return handle(payload, context, session);
+		return handle(payload, context, token);
 	}, request);
 }
 
-AuthResponse AuthRouter::handle(const AuthLoginRequest& request, Context& context, Session& session) {
-	return Auth{context}.login(request, session);
+AuthResponse AuthRouter::handle(const AuthLoginRequest& request, Context& context, const std::string& token) {
+	return Auth{context}.login(request, token);
 }
-AuthResponse AuthRouter::handle(const AuthOAuthStartRequest& request, Context& context, Session& session) {
-	return OAuthService{context}.start(request, session);
+AuthResponse AuthRouter::handle(const AuthOAuthStartRequest& request, Context& context, const std::string& token) {
+	return OAuthService{context}.start(request, token);
 }
-AuthResponse AuthRouter::handle(const AuthOAuthCallbackRequest& request, Context& context, Session& session) {
-	return OAuthService{context}.callback(request, session);
+AuthResponse AuthRouter::handle(const AuthOAuthCallbackRequest& request, Context& context, const std::string& token) {
+	return OAuthService{context}.callback(request, token);
 }
-AuthResponse AuthRouter::handle(const AuthCreateAccountRequest& request, Context& context, Session& session) {
-	return Auth{context}.create(request, session);
+AuthResponse AuthRouter::handle(const AuthCreateAccountRequest& request, Context& context, const std::string& token) {
+	return Auth{context}.create(request, token);
 }
-AuthResponse AuthRouter::handle(const AuthLogoutRequest& request, Context& context, Session& session) {
-	return Auth{context}.logout(session);
+AuthResponse AuthRouter::handle(const AuthLogoutRequest& request, Context& context, const std::string& token) {
+	return Auth{context}.logout(token);
 }
 
 
@@ -209,28 +195,52 @@ AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::str
 	return AuthRequest();
 }
 HttpResponse AuthHttpCodec::encode(const AuthResponse& response) {
-	return std::visit([&](const auto& resp) { return encodeResponse(resp); }, response);
-}
-
-HttpResponse AuthHttpCodec::encodeResponse(const AuthResult& response) {
-	if (response.success) {
-		return HttpResponse{
+	if (response.has_value()) {
+		return std::visit([&](const auto& resp) { return encodeResponse(resp); }, *response);	
+	} else {
+		const auto& message = response.error().error;
+		return HttpResponse {
 			"HTTP/1.1",
-			200,
-			"OK",
+			401,
+			"Unauthorized",
 			{{"Content-Type", "application/octet-stream"}},
-			{static_cast<uint8_t>(response.role)}
+			ByteVector{message.begin(), message.end()}
 		};
 	}
+}
 
-	return HttpResponse {
+HttpResponse AuthHttpCodec::encodeResponse(const LoginSuccess& response) {
+	return HttpResponse{
 		"HTTP/1.1",
-		401,
-		"Unauthorized",
-		{{"Content-Type", "application/octet-stream"}},
-		ByteVector{response.error.begin(), response.error.end()}
+		200,
+		"OK",
+		{{"Set-Cookie", "session=" + response.token + "; Path=/; HttpOnly; SameSite=Lax"}},
+		{}
 	};
 }
+HttpResponse AuthHttpCodec::encodeResponse(const LogoutSuccess& response) {
+	return HttpResponse{
+		"HTTP/1.1",
+		204,
+		"No Content",
+		{{"Set-Cookie",
+		  "session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax"}},
+		{}
+	};
+}
+HttpResponse AuthHttpCodec::encodeResponse(const AccountCreated& response) {
+	ByteWriter writer;
+	writer.write(response.user);
+
+	return HttpResponse{
+		"HTTP/1.1",
+		201,
+		"Created",
+		{{"Content-Type", "application/octet-stream"}},
+		std::move(writer.buffer)
+	};
+}
+
 HttpResponse AuthHttpCodec::encodeResponse(const OAuthRedirect& response) {
 	return HttpResponse{
 		"HTTP/1.1",

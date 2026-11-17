@@ -14,12 +14,12 @@ using anime::net::Session;
 
 class Router {
     public:
-	    AppResponse route(AppRequest& request, Context& context, Session& session);
+	    AppResponse route(AppRequest& request, Context& context, const std::string& token);
 
 	private:
-	    AppResponse handle(const EntryRequest& request, uint32_t id, Context& context, Session& session);
-		AppResponse handle(const AuthRequest& request, uint32_t id, Context& context, Session& session);
-		AppResponse handle(const LibraryRequest& request, uint32_t id, Context& context, Session& session);
+	    AppResponse handle(const EntryRequest& request, uint32_t id, Context& context, const std::string& token);
+		AppResponse handle(const AuthRequest& request, uint32_t id, Context& context, const std::string& token);
+		AppResponse handle(const LibraryRequest& request, uint32_t id, Context& context, const std::string& token);
 
 };
 

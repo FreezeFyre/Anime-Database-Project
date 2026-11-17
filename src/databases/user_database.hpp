@@ -51,7 +51,7 @@ class userDB {
 		void addUser(const User& user);
 		void elevateUser(UserId id, USER_ACCOUNT_ROLE newRole, const USER_ACCOUNT_ROLE& role);
 		void addIdentity(const UserIdentity& identity);
-	    void createAccount(const AuthCreateAccountRequest& request, const std::string& argon_password);
+	    UserId createAccount(const AuthCreateAccountRequest& request, const std::string& argon_password);
 
 		// Query Operations
 	    const User& getUser(UserId id) const;
