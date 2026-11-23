@@ -47,9 +47,9 @@ fileHeader fileProcessor::readHeader(std::string& line) {
 		}
 	}
 
-	if (!checkMagic(tokens[0])) { throw std::exception("Invalid File Magic"); } // Handle Wrong Magic (Versioning and File Type Identifier)
+	if (!checkMagic(tokens[0])) { throw std::runtime_error("Invalid File Magic"); } // Handle Wrong Magic (Versioning and File Type Identifier)
 	header.magic = tokens[0];
-	if (!checkVersion(tokens[1])) { throw std::exception("Depreciated File Versioning"); } // Handle Wrong Versioning
+	if (!checkVersion(tokens[1])) { throw std::runtime_error("Deprecated File Versioning"); } // Handle Wrong Versioning
 	header.version = std::stoi(tokens[1]);
 
 	try {

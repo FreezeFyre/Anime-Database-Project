@@ -41,7 +41,7 @@ void fileProcessor::readFile(const std::filesystem::path& file, f& handler, cons
 		if (line.empty()) { continue; }
 		if (readHeaderLine) {
 			header = readHeader(line);
-			if (header.type != expected_type) { throw std::exception("Wrong File Type In Header"); }
+			if (header.type != expected_type) { throw std::runtime_error("Wrong File Type In Header"); }
 
 			readHeaderLine = false;
 			readSectionLine = true;
@@ -55,7 +55,7 @@ void fileProcessor::readFile(const std::filesystem::path& file, f& handler, cons
 			else { readRecordLine = true; }
 			readSectionLine = false;
 			if (section_count > header.sectionCount) {
-				throw std::exception("Inaccurate Section Count in Header or Parsing Logic Error");
+				throw std::runtime_error("Inaccurate Section Count in Header or Parsing Logic Error");
 			}
 			continue;
 		}

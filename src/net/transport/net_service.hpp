@@ -74,6 +74,18 @@ struct WebSOCKFrame {
 	std::vector<uint8_t> payload;
 };
 
+enum class UserPermission {
+	VIEW,
+	EDIT,
+	FULL
+};
+
+struct Session {
+	uint32_t sessionId;
+	SocketHandle client;
+	UserPermission permission;
+};
+
 class NetService {
 	public:
 		explicit NetService(Context& context);
