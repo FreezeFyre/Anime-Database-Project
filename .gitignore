@@ -58,4 +58,21 @@ Thumbs.db
 *.swp
 /.vs
 /temp-portal
-/src/tests/entry_integration_test.cpp
+
+# Generated standalone test output
+/parser_fuzz_artifacts/
+/parser_stress_artifacts/
+
+# Local Nginx executable and runtime state; keep configuration/versioned text
+/nginx-1.31.3/nginx.exe
+/nginx-1.31.3/logs/
+
+# Local agent configuration and personal workflow notes
+/AGENTS.md
+/.agents/
+/.codex/
+/docs/subagents.md
+/docs/vision.md
+/docs/roadmap.md
+/docs/plans/TEMPLATE.md
+/docs/decisions/TEMPLATE.md
