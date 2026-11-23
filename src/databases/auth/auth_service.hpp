@@ -72,7 +72,7 @@ namespace anime::protocol {
 using anime::net::http::HttpResponse;
 class AuthHttpCodec {
 	public:
-		AuthRequest decode(ACTION_TYPE action, const std::vector<std::string_view>& path, const std::unordered_map<std::string, std::string>& headers, const std::vector<uint8_t>& body);
+		AuthRequest decode(ACTION_TYPE action, const std::vector<std::string_view>& path, const std::vector<uint8_t>& body);
 		HttpResponse encode(const AuthResponse& response);
 
 	private:

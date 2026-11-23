@@ -153,7 +153,7 @@ AuthResponse AuthRouter::handle(const AuthLogoutRequest& request, Context& conte
 } // namespace anime::app
 
 namespace anime::protocol {
-AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::string_view>& path, const std::unordered_map<std::string, std::string>& headers, const std::vector<uint8_t>& body) {
+AuthRequest AuthHttpCodec::decode(ACTION_TYPE action, const std::vector<std::string_view>& path, const std::vector<uint8_t>& body) {
 	switch (action) {
 		case ACTION_TYPE::ACT_LOGIN: {
 			ByteReader reader{body};

@@ -55,12 +55,16 @@ bool sendAll(SocketHandle client, const void* data, size_t size) {
 
 bool webSocketHandshake(SocketHandle client, std::string& token) {
 	// Placeholder for handshake implementation
-	Headers headers = parseHeaders(httpHeader(client));
+	auto http = httpHeader(client);
+	auto headStart = http.find("\r\n");
+	if (headStart == std::string::npos) {return false;}
+	Headers headers = parseHeaders(http.substr(headStart, http.length()-headStart));
 
-	std::string key = getHeaderValues(headers, "Sec-WebSocket-Key")[0];
-	if (key.empty()) {
+	auto keyTemp = getHeaderValues(headers, "sec-webSocket-key");
+	if (keyTemp.empty()) {
 		return false;
 	}
+	std::string key = keyTemp[0];
 
 	token = retrieveCookie(headers, "session");
 
@@ -73,9 +77,7 @@ bool webSocketHandshake(SocketHandle client, std::string& token) {
 		"Sec-WebSocket-Accept: " + accept + "\r\n"
 		"\r\n";
 
-	sendAll(client, response.c_str(), response.size());
-
-	return true;
+	return sendAll(client, response.c_str(), response.size());
 }
 
 WebSocketFrame readWebSocketFrame(SocketHandle client) {
