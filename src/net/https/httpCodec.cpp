@@ -6,45 +6,55 @@ namespace anime::net::http {
 using namespace anime::protocol;
 anime::protocol::LibraryResponse;
 
+
 HttpRequest HttpCodec::decode(ByteVector& bytes) {
 	HttpRequest request;
 
-	std::string_view raw(reinterpret_cast<char*>(bytes.data()), bytes.size());
+	const std::string_view raw(
+		reinterpret_cast<const char*>(bytes.data()),
+		bytes.size()
+	);
 
-	size_t length = raw.length();
-	size_t startLineEnd = raw.find("\r\n");
-	std::string_view startLine = raw.substr(0,startLineEnd);
-	raw.remove_prefix(startLineEnd+2);
+	const auto headerEnd = raw.find("\r\n\r\n");
+	if (headerEnd == std::string_view::npos) {
+		throw std::runtime_error("Incomplete HTTP headers.");
+	}
 
-	size_t pos = startLine.find(" ");
-	request.method =  std::string(startLine.substr(0,pos));
-	startLine.remove_prefix(pos+1);
-	pos = startLine.find(" ");
-	request.target =  std::string(startLine.substr(0,pos));
-	startLine.remove_prefix(pos+1);
-	request.version = std::string(startLine);
+	const auto startLineEnd = raw.find("\r\n");
+	const auto startLine = raw.substr(0, startLineEnd);
+
+	const auto firstSpace = startLine.find(' ');
+	if (firstSpace == std::string_view::npos || firstSpace == 0) {
+		throw std::runtime_error("Invalid HTTP request line.");
+	}
+
+	const auto secondSpace = startLine.find(' ', firstSpace + 1);
+	if (secondSpace == std::string_view::npos ||
+		secondSpace == firstSpace + 1 ||
+		secondSpace + 1 == startLine.size() ||
+		startLine.find(' ', secondSpace + 1) != std::string_view::npos) {
+		throw std::runtime_error("Invalid HTTP request line.");
+	}
+
+	request.method = std::string(startLine.substr(0, firstSpace));
+	request.target = std::string(
+		startLine.substr(firstSpace + 1, secondSpace - firstSpace - 1)
+	);
+	request.version = std::string(startLine.substr(secondSpace + 1));
+
 	if (request.version != APP_HTTP_VERSION) {
-		throw std::runtime_error("Bad Http Version: " + request.version + "\n");
+		throw std::runtime_error("Bad HTTP version: " + request.version);
 	}
 
-	size_t headerEnd = raw.find("\r\n\r\n");
-	raw.remove_suffix(raw.length() - headerEnd+2);
+	const auto headersStart = startLineEnd + 2;
 
-	// raw now == headers
-	size_t cursor = 0;
-	while (raw.find("\r\n") != std::string_view::npos) {
-		cursor = raw.find(":");
-		std::string key = std::string(raw.substr(0, cursor));
-		raw.remove_prefix(cursor);
-		cursor = raw.find("\r\n");
-		std::string value = std::string(raw.substr(1, cursor));
-		raw.remove_prefix(cursor+2);
+	request.headers = parseHeaders(
+		raw.substr(headersStart, headerEnd + 2 - headersStart)
+	);
 
-		request.headers[key] = value;
-	}
-
-	ByteVector body(bytes.begin() + headerEnd +  startLineEnd + 6, bytes.end());
-	request.body = body;
+	const auto bodyStart = headerEnd + 4;
+	const auto body = raw.substr(bodyStart);
+	request.body.assign(body.begin(), body.end());
 
 	return request;
 }
@@ -99,7 +109,7 @@ AppRequest HttpAppCodec::decode(const HttpRequest& request) {
 			ACTION_TYPE action = action_type(std::string(path[1]));
 			uint32_t id = 0;
 
-			auto req = codec.decode(action, path, request.headers, request.body);
+			auto req = codec.decode(action, path, request.body);
 			return AppRequest{COM_TYPE::REQ, domain, static_cast<std::uint8_t>(action), id, req};
 		}
 		default:

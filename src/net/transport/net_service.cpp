@@ -123,13 +123,13 @@ void NetService::tcpServer(uint16_t port, void (NetService::* handler)(SocketHan
 
 
 void NetService::websocketHandler(SocketHandle ClientSocket) {
-	if (!webSocketHandshake(ClientSocket)) {
+	std::string token;
+	if (!webSocketHandshake(ClientSocket, token)) {
 		closeSocket(ClientSocket);
 		return;
 	}
 	WebSocketCodec codec;
 	Router router;
-	Session session;
 
 
 	do {
@@ -157,7 +157,7 @@ void NetService::websocketHandler(SocketHandle ClientSocket) {
 			std::cerr << "Invalid WebSocket request: " << error.what() << '\n';
 			break;
 		}
-		AppResponse resp = router.route(req, context, session);
+		AppResponse resp = router.route(req, context, token);
 		ByteVector encResp = codec.encode(req, resp);
 
 		if (!sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_BINARY, encResp)) {
@@ -176,7 +176,6 @@ void NetService::websocketHandler(SocketHandle ClientSocket) {
 }
 
 void NetService::httpHandler(SocketHandle ClientSocket) {
-	Session session;
 	Router router;
 	HttpCodec httpCodec;
 	HttpAppCodec appCodec;
@@ -190,8 +189,12 @@ void NetService::httpHandler(SocketHandle ClientSocket) {
 	if (iResult > 0) {
 		ByteVector bytes(reinterpret_cast<uint8_t*>(recvbuf), reinterpret_cast<uint8_t*>(recvbuf) + iResult);
 
-		AppRequest req = appCodec.decode(httpCodec.decode(bytes));
-		AppResponse resp = router.route(req, context, session);
+		HttpRequest httpRequest = httpCodec.decode(bytes);
+
+		const auto token = retrieveCookie(httpRequest.headers, "session");
+
+		AppRequest req = appCodec.decode(httpRequest);
+		AppResponse resp = router.route(req, context, token);
 		ByteVector encResp = httpCodec.encode(appCodec.encode(resp));
 		iSendResult = send(ClientSocket, reinterpret_cast<const char*>(encResp.data()), static_cast<int>(encResp.size()), 0);
 		if (iSendResult == SOCKET_ERROR) {

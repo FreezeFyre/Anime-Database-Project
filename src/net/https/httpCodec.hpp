@@ -6,7 +6,7 @@
 #include "protocol/app_messages.hpp"
 #include "net/protocol/data.hpp"
 #include "net/http/http_types.hpp"
-
+#include "../http/http_helpers.hpp"
 
 namespace anime::net::http {
 	using anime::protocol::AppRequest;
@@ -23,7 +23,7 @@ namespace anime::net::http {
 		std::string target;
 		std::string version;
 
-		std::unordered_map<std::string, std::string> headers;
+		Headers headers;
 		ByteVector body;
 	};
 

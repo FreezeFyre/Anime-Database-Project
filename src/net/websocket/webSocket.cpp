@@ -1,7 +1,8 @@
 #include "net/websocket/webSocket.hpp"
+#include "../http/http_helpers.hpp"
 
 namespace anime::net::websocket {
-
+using namespace anime::net::http;
 namespace {
 
 bool recvAll(SocketHandle client, void* data, size_t size) {
@@ -52,17 +53,16 @@ bool sendAll(SocketHandle client, const void* data, size_t size) {
 
 } // namespace
 
-bool webSocketHandshake(SocketHandle client) {
+bool webSocketHandshake(SocketHandle client, std::string& token) {
 	// Placeholder for handshake implementation
-	std::string header = httpHeader(client);
-	if (header.empty()) {
-		return false;
-	}
+	Headers headers = parseHeaders(httpHeader(client));
 
-	std::string key = getHttpValue(header, "Sec-WebSocket-Key");
+	std::string key = getHeaderValues(headers, "Sec-WebSocket-Key")[0];
 	if (key.empty()) {
 		return false;
 	}
+
+	token = retrieveCookie(headers, "session");
 
 	std::string accept = webSockAcceptKey(key);
 
@@ -73,7 +73,7 @@ bool webSocketHandshake(SocketHandle client) {
 		"Sec-WebSocket-Accept: " + accept + "\r\n"
 		"\r\n";
 
-	send(client, response.c_str(), response.size(), 0);
+	sendAll(client, response.c_str(), response.size());
 
 	return true;
 }
@@ -160,23 +160,6 @@ std::string httpHeader(SocketHandle client) {
 	return request;
 }
 
-std::string getHttpValue(const std::string& header, const std::string& key) {
-	size_t pos = header.find(key + ":");
-	if (pos == std::string::npos) {
-		return "";
-	}
-	size_t start = pos + key.length() + 2;
-
-	while (start < header.size() && header[start] == ' ') {
-		start++;
-	}
-
-	size_t end = header.find("\r\n", start);
-	if (end == std::string::npos) {
-		return "";
-	}
-	return header.substr(start, end - start);
-}
 
 std::string webSockAcceptKey(const std::string& key) {
 	auto digest = sha1Bytes(key + WEB_SOCKET_MAGIC_GUID);

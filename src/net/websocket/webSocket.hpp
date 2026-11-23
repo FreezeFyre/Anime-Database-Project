@@ -38,14 +38,12 @@ struct WebSocketFrame {
     std::vector<uint8_t> payload;
 };
 
-bool webSocketHandshake(SocketHandle client);
+bool webSocketHandshake(SocketHandle client, std::string& token);
 WebSocketFrame readWebSocketFrame(SocketHandle client);
 
 bool sendWebSocketFrame(SocketHandle client,uint8_t opcode,const std::vector<uint8_t>& payload);
 
 std::string httpHeader(SocketHandle client);
-
-std::string getHttpValue(const std::string& header, const std::string& key);
 
 std::string webSockAcceptKey(const std::string& key);
 

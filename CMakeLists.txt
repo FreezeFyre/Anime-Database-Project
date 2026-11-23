@@ -48,6 +48,7 @@ set(PROJECT_CORE_SOURCES
 	"src/net/websocket/sha1.cpp"
 	"src/net/websocket/base64.cpp"
 	"src/net/https/httpCodec.cpp"
+	"src/net/http/http_helpers.cpp"
 )
 
 add_executable(anime_database_project

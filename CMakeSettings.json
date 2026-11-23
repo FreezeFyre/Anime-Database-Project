@@ -1,15 +1,16 @@
 {
   "configurations": [
-    {
-      "name": "x64-Debug",
-      "generator": "Ninja",
-      "configurationType": "Debug",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${env.LOCALAPPDATA}\\Build\\anime-database-project\\${name}",
-      "installRoot": "${projectDir}\\out\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_TOOLCHAIN_FILE=${projectDir}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_INSTALLED_DIR=${projectDir}\\vcpkg_installed",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": ""
-    }
+	{
+		"name": "x64-Debug",
+		"generator": "Ninja",
+		"configurationType": "Debug",
+		"inheritEnvironments": [ "msvc_x64_x64" ],
+		"buildRoot": "${env.LOCALAPPDATA}\\Build\\anime-database-project\\${name}",
+		"installRoot": "${projectDir}\\out\\install\\${name}",
+		"cmakeCommandArgs": "-DCMAKE_TOOLCHAIN_FILE=${projectDir}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_INSTALLED_DIR=${projectDir}\\vcpkg_installed",
+		"buildCommandArgs": "",
+		"ctestCommandArgs": "",
+		"enableClangTidyCodeAnalysis": true
+	}
   ]
 }
