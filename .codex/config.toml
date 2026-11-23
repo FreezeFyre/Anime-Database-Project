@@ -1,0 +1,5 @@
+# Project-scoped subagent settings. Models inherit the parent session.
+[agents]
+enabled = true
+# Excludes the main thread; five available roles do not require five active agents.
+max_concurrent_threads_per_session = 3

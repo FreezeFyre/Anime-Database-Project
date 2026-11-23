@@ -525,6 +525,7 @@ void entryDB::addMembership(GroupId group, EntryId entry) {
 	membershipMap[group].push_back(entry);
 }
 void entryDB::setMembership(GroupId group, EntryId entry) {
+	database[idMap[entry]].ip_group = group;
 	membershipMap[group] = std::vector<EntryId>{entry};
 }
 
