@@ -1,8 +1,14 @@
 #include "net/websocket/webSocket.hpp"
 #include "../http/http_helpers.hpp"
+#include "../https/httpCodec.hpp"
+
+#include <expected>
 
 namespace anime::net::websocket {
-using namespace anime::net::http;
+using anime::net::http::HttpRequest;
+using anime::net::http::readHttpRequest;
+using anime::net::http::getHeaderValues;
+using anime::net::http::retrieveCookie;
 namespace {
 
 bool recvAll(SocketHandle client, void* data, size_t size) {
@@ -26,7 +32,6 @@ bool recvAll(SocketHandle client, void* data, size_t size) {
 
 	return true;
 }
-
 
 bool sendAll(SocketHandle client, const void* data, size_t size) {
 	const char* buffer = static_cast<const char*>(data);
@@ -54,19 +59,15 @@ bool sendAll(SocketHandle client, const void* data, size_t size) {
 } // namespace
 
 bool webSocketHandshake(SocketHandle client, std::string& token) {
-	// Placeholder for handshake implementation
-	auto http = httpHeader(client);
-	auto headStart = http.find("\r\n");
-	if (headStart == std::string::npos) {return false;}
-	Headers headers = parseHeaders(http.substr(headStart, http.length()-headStart));
-
-	auto keyTemp = getHeaderValues(headers, "sec-webSocket-key");
-	if (keyTemp.empty()) {
+	std::string buffer;
+	auto http = readHttpRequest(client, buffer);
+	auto keyTemp = getHeaderValues(http.headers, "sec-websocket-key");
+	if (keyTemp.empty() || keyTemp.size() > 1) {
 		return false;
 	}
 	std::string key = keyTemp[0];
 
-	token = retrieveCookie(headers, "session");
+	token = retrieveCookie(http.headers, "session");
 
 	std::string accept = webSockAcceptKey(key);
 
@@ -80,11 +81,14 @@ bool webSocketHandshake(SocketHandle client, std::string& token) {
 	return sendAll(client, response.c_str(), response.size());
 }
 
-WebSocketFrame readWebSocketFrame(SocketHandle client) {
+std::expected<WebSocketFrame,std::string> readWebSocketFrame(SocketHandle client) {
 	// Placeholder for frame reading implementation
 	char buffer[512];
 
-	recvAll(client, buffer, 2);
+	if (!recvAll(client, buffer, 2)) {
+		std::cerr << "Did not recieve all" << std::endl;
+		return std::unexpected("Something broke...");
+	}
 
 	uint8_t b0 = buffer[0];
 
@@ -96,12 +100,12 @@ WebSocketFrame readWebSocketFrame(SocketHandle client) {
 
 	if (!fin) {
 		std::cerr << "Fragmented frames not supported" << std::endl;
-		return { false, 0, {} };
+		return std::unexpected("Something broke...");
 	}
 
 	if (rsv1 or rsv2 or rsv3) {
 		std::cerr << "Websocket extension not supported" << std::endl;
-		return { false, 0, {} };
+		return std::unexpected("Something broke...");
 	}
 
 	uint8_t b1 = buffer[1];
@@ -111,12 +115,15 @@ WebSocketFrame readWebSocketFrame(SocketHandle client) {
 
 	if (!masked) {
 		std::cerr << "Unmasked frame received" << std::endl;
-		return { false, 0, {} };
+		return std::unexpected("Something broke...");
 	}
 
 	if (payloadLength == 126) {
 		uint8_t ext[2];
-		recvAll(client, ext, 2);
+		if (!recvAll(client, ext, 2)) {
+			std::cerr << "Did not recieve all" << std::endl;
+			return std::unexpected("Something broke...");
+		}
 
 		payloadLength =
 			(static_cast<uint64_t>(ext[0]) << 8) |
@@ -124,7 +131,10 @@ WebSocketFrame readWebSocketFrame(SocketHandle client) {
 	}
 	else if (payloadLength == 127) {
 		uint8_t ext[8];
-		recvAll(client, ext, 8);
+		if (!recvAll(client, ext, 8)) {
+			std::cerr << "Did not recieve all" << std::endl;
+			return std::unexpected("Something broke...");
+		}
 
 		payloadLength = 0;
 		for (int i = 0; i < 8; ++i) {
@@ -133,10 +143,16 @@ WebSocketFrame readWebSocketFrame(SocketHandle client) {
 	}
 
 	uint8_t maskKey[4];
-	recvAll(client, maskKey, 4);
+	if (!recvAll(client, maskKey, 4)) {
+		std::cerr << "Did not recieve all" << std::endl;
+		return std::unexpected("Something broke...");
+	}
 
 	std::vector<uint8_t> payload(payloadLength);
-	recvAll(client, payload.data(), payload.size());
+	if (!recvAll(client, payload.data(), payload.size())) {
+		std::cerr << "Did not recieve all" << std::endl;
+		return std::unexpected("Something broke...");
+	}
 
 	for (uint64_t i = 0; i < payloadLength; ++i) {
 		payload[i] ^= maskKey[i % 4];

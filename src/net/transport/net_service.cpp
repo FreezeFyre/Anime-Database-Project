@@ -124,54 +124,65 @@ void NetService::tcpServer(uint16_t port, void (NetService::* handler)(SocketHan
 
 void NetService::websocketHandler(SocketHandle ClientSocket) {
 	std::string token;
-	if (!webSocketHandshake(ClientSocket, token)) {
-		closeSocket(ClientSocket);
-		return;
+	try {
+		if (!webSocketHandshake(ClientSocket, token)) {
+			closeSocket(ClientSocket);
+			return;
+		}
+		WebSocketCodec codec;
+		Router router;
+
+		// TODO: Finish WebSocket connection handling:
+		// - Reject oversized payloads before allocating memory in readWebSocketFrame().
+		// - Preserve leftover handshake bytes for subsequent frame reads.
+		// - Complete handshake and control-frame validation.
+
+		do {
+			auto res = readWebSocketFrame(ClientSocket);
+			if (!res) {
+				closeSocket(ClientSocket);
+				return;
+			}
+			WebSocketFrame frame = *res;
+
+			if (frame.opcode == WEB_SOCKET_OPCODE_CLOSE) {
+				sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_CLOSE, {});
+				break;
+			}
+
+			if (frame.opcode == WEB_SOCKET_OPCODE_PING) {
+				sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_PONG, frame.payload);
+				continue;
+			}
+
+			if (frame.opcode != WEB_SOCKET_OPCODE_BINARY) {
+				std::cerr << "Unsupported WebSocket opcode: " << static_cast<int>(frame.opcode) << std::endl;
+				continue;
+			}
+
+			AppRequest req;
+			try {
+				req = codec.decode(frame.payload);
+			} catch (const std::exception& error) {
+				std::cerr << "Invalid WebSocket request: " << error.what() << '\n';
+				break;
+			}
+			AppResponse resp = router.route(req, context, token);
+			ByteVector encResp = codec.encode(req, resp);
+
+			if (!sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_BINARY, encResp)) {
+				printf("send failed: %d\n", lastSocketError());
+				break;
+			}
+
+			if (resp.closeConnection) {
+				sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_CLOSE, {});
+				break;
+			}
+		} while (running);
+	} catch (const std::exception& e) {
+		std::cerr << e.what();
 	}
-	WebSocketCodec codec;
-	Router router;
-
-
-	do {
-		WebSocketFrame frame = readWebSocketFrame(ClientSocket);
-
-		if (frame.opcode == WEB_SOCKET_OPCODE_CLOSE) {
-			sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_CLOSE, {});
-			break;
-		}
-
-		if (frame.opcode == WEB_SOCKET_OPCODE_PING) {
-			sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_PONG, frame.payload);
-			continue;
-		}
-
-		if (frame.opcode != WEB_SOCKET_OPCODE_BINARY) {
-			std::cerr << "Unsupported WebSocket opcode: " << static_cast<int>(frame.opcode) << std::endl;
-			continue;
-		}
-
-		AppRequest req;
-		try {
-			req = codec.decode(frame.payload);
-		} catch (const std::exception& error) {
-			std::cerr << "Invalid WebSocket request: " << error.what() << '\n';
-			break;
-		}
-		AppResponse resp = router.route(req, context, token);
-		ByteVector encResp = codec.encode(req, resp);
-
-		if (!sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_BINARY, encResp)) {
-			printf("send failed: %d\n", lastSocketError());
-			break;
-		}
-
-		if (resp.closeConnection) {
-			sendWebSocketFrame(ClientSocket, WEB_SOCKET_OPCODE_CLOSE, {});
-			break;
-		}
-
-	} while (running);
-
 	closeSocket(ClientSocket);
 }
 
@@ -180,39 +191,26 @@ void NetService::httpHandler(SocketHandle ClientSocket) {
 	HttpCodec httpCodec;
 	HttpAppCodec appCodec;
 
-	char recvbuf[DEFAULT_BUFLEN];
-	int iResult, iSendResult;
-	int recvbuflen = DEFAULT_BUFLEN;
-	
-
-	iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
-	if (iResult > 0) {
-		ByteVector bytes(reinterpret_cast<uint8_t*>(recvbuf), reinterpret_cast<uint8_t*>(recvbuf) + iResult);
-
-		HttpRequest httpRequest = httpCodec.decode(bytes);
+	try {
+		std::string buffer;
+		HttpRequest httpRequest = readHttpRequest(ClientSocket, buffer);
 
 		const auto token = retrieveCookie(httpRequest.headers, "session");
-
 		AppRequest req = appCodec.decode(httpRequest);
 		AppResponse resp = router.route(req, context, token);
 		ByteVector encResp = httpCodec.encode(appCodec.encode(resp));
-		iSendResult = send(ClientSocket, reinterpret_cast<const char*>(encResp.data()), static_cast<int>(encResp.size()), 0);
-		if (iSendResult == SOCKET_ERROR) {
-			printf("send failed: %d\n", WSAGetLastError());
-			closesocket(ClientSocket);
-			WSACleanup();
-			return;
+		int totalSent = 0;
+		while (totalSent < encResp.size()) {
+			int sent = send(ClientSocket, reinterpret_cast<const char*>(encResp.data()+totalSent), static_cast<int>(encResp.size()-totalSent), 0);
+			if (sent <= 0) {
+				throw std::runtime_error("Failed to send HTTP response");
+			}
+			totalSent += static_cast<size_t>(sent);
 		}
-		printf("Bytes sent: %d\n", iSendResult);
-	} else if (iResult == 0)
-		printf("Connection closing...\n");
-	else {
-		printf("recv failed: %d\n", WSAGetLastError());
-		closesocket(ClientSocket);
-		WSACleanup();
-		return;
+	} catch (const std::exception& e) {
+		std::cerr << e.what();
 	}
-
+	closeSocket(ClientSocket);
 }
 
 } // namespace anime::net

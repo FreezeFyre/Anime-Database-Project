@@ -15,6 +15,7 @@
 #include <queue>
 #include <typeinfo>
 #include <cstdio>
+#include <expected>
 
 #include "net/transport/socket_compat.hpp"
 #include "net/websocket/sha1.hpp"
@@ -31,7 +32,6 @@ inline constexpr uint8_t WEB_SOCKET_OPCODE_PONG = 0xA;
 
 inline const std::string WEB_SOCKET_MAGIC_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-
 struct WebSocketFrame {
     bool fin;
     uint8_t opcode;
@@ -39,7 +39,7 @@ struct WebSocketFrame {
 };
 
 bool webSocketHandshake(SocketHandle client, std::string& token);
-WebSocketFrame readWebSocketFrame(SocketHandle client);
+std::expected<WebSocketFrame,std::string> readWebSocketFrame(SocketHandle client);
 
 bool sendWebSocketFrame(SocketHandle client,uint8_t opcode,const std::vector<uint8_t>& payload);
 

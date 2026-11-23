@@ -7,6 +7,7 @@
 #include "net/protocol/data.hpp"
 #include "net/http/http_types.hpp"
 #include "../http/http_helpers.hpp"
+#include "net/transport/socket_compat.hpp"
 
 namespace anime::net::http {
 	using anime::protocol::AppRequest;
@@ -27,6 +28,7 @@ namespace anime::net::http {
 		ByteVector body;
 	};
 
+	HttpRequest readHttpRequest(SocketHandle client, std::string& buffer);
 
 class HttpCodec {
 	public:

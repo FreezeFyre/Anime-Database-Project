@@ -1,11 +1,146 @@
-#include "net/https/httpCodec.hpp"
+#include <algorithm>
+#include <charconv>
+#include <cstdint>
+#include <net/http/http_helpers.hpp>
+#include <net/http/http_types.hpp>
+#include <net/protocol/data.hpp>
+#include <net/transport/socket_compat.hpp>
+#include <optional>
+#include <protocol/app_messages.hpp>
+#include <protocol/auth_messages.hpp>
+#include <protocol/entry_messages.hpp>
+#include <protocol/library_messages.hpp>
+#include <protocol/message_types.hpp>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <system_error>
+#include <variant>
+#include <vector>
+#include <WinSock2.h>
 #include "databases/auth/auth_service.hpp"
+#include "net/https/httpCodec.hpp"
 
 // Need to rewrite logic cleaner just trying to get the basic idea down and also need to add normalization
 namespace anime::net::http {
 using namespace anime::protocol;
 anime::protocol::LibraryResponse;
 
+HttpRequest readHttpRequest(SocketHandle client, std::string& buffer) {
+	constexpr size_t maxHeaderSize = 16 * 1024;
+	constexpr size_t maxBodySize = 4 * 1024 * 1024;
+
+	HttpRequest request;
+	char buf[1024];
+
+	// Receive until the complete header section is available.
+	auto headerEnd = buffer.find("\r\n\r\n");
+
+	while (headerEnd == std::string::npos) {
+		if (buffer.size() >= maxHeaderSize) {
+			throw std::runtime_error("HTTP headers are too large.");
+		}
+
+		int res = recv(client, buf, sizeof(buf), 0);
+		if (res <= 0) {
+			throw std::runtime_error("Connection ended while receiving HTTP headers.");
+		}
+
+		buffer.append(buf, static_cast<size_t>(res));
+		headerEnd = buffer.find("\r\n\r\n");
+	}
+
+	const auto bodyStart = headerEnd + 4;
+	if (bodyStart > maxHeaderSize) {
+		throw std::runtime_error("HTTP headers are too large.");
+	}
+
+	// Parse the request line.
+	const auto requestLineEnd = buffer.find("\r\n");
+	const std::string_view requestLine{buffer.data(), requestLineEnd};
+
+	const auto firstSpace = requestLine.find(' ');
+	const auto secondSpace =
+		firstSpace == std::string_view::npos
+			? std::string_view::npos
+			: requestLine.find(' ', firstSpace + 1);
+
+	if (firstSpace == std::string_view::npos || firstSpace == 0 ||
+		secondSpace == std::string_view::npos ||
+		secondSpace == firstSpace + 1 ||
+		secondSpace + 1 == requestLine.size() ||
+		requestLine.find(' ', secondSpace + 1) != std::string_view::npos) {
+		throw std::runtime_error("Invalid HTTP request line.");
+	}
+
+	request.method = requestLine.substr(0, firstSpace);
+	request.target = requestLine.substr(
+		firstSpace + 1, secondSpace - firstSpace - 1
+	);
+	request.version = requestLine.substr(secondSpace + 1);
+
+	if (request.version != "HTTP/1.1") {
+		throw std::runtime_error("Unsupported HTTP version.");
+	}
+
+	// Exclude the request line and body from header parsing.
+	const auto headersStart = requestLineEnd + 2;
+	request.headers = parseHeaders(
+		std::string_view{buffer}.substr(
+			headersStart, headerEnd + 2 - headersStart
+		)
+	);
+
+	if (!getHeaderValues(request.headers, "transfer-encoding").empty()) {
+		throw std::runtime_error("HTTP transfer encoding is not supported.");
+	}
+
+	// No length header means no request body.
+	size_t contentLength = 0;
+	const auto lengths = getHeaderValues(request.headers, "content-length");
+
+	if (lengths.size() > 1) {
+		throw std::runtime_error("Multiple Content-Length headers.");
+	}
+
+	if (!lengths.empty()) {
+		const auto& value = lengths.front();
+		const auto [end, error] = std::from_chars(
+			value.data(), value.data() + value.size(), contentLength
+		);
+
+		if (error != std::errc{} || end != value.data() + value.size()) {
+			throw std::runtime_error("Invalid Content-Length.");
+		}
+	}
+
+	if (contentLength > maxBodySize) {
+		throw std::runtime_error("HTTP body is too large.");
+	}
+
+	// Include any body bytes received alongside the headers.
+	const auto messageSize = bodyStart + contentLength;
+
+	while (buffer.size() < messageSize) {
+		const auto remaining = messageSize - buffer.size();
+		const auto amount = std::min(remaining, sizeof(buf));
+
+		int res = recv(client, buf, static_cast<int>(amount), 0);
+		if (res <= 0) {
+			throw std::runtime_error("Connection ended while receiving HTTP body.");
+		}
+
+		buffer.append(buf, static_cast<size_t>(res));
+	}
+
+	const auto body = std::string_view{buffer}.substr(bodyStart, contentLength);
+	request.body.assign(body.begin(), body.end());
+
+	// Preserve any bytes belonging to the next request.
+	buffer.erase(0, messageSize);
+
+	return request;
+}
 
 HttpRequest HttpCodec::decode(ByteVector& bytes) {
 	HttpRequest request;
